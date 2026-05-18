@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>C64 Mastery — Anhang: KERNAL-Routinen</title>
+  <style>
+    :root { --c64-blue:#0033aa;--c64-green:#00ff88;--c64-dark:#1a1a2e;--c64-darker:#0d0d1a;--paper:#f8f6f0;--paper-dark:#ede9df;--text:#1a1a2e;--text-light:#444466;--accent:#cc3300; }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Georgia',serif;font-size:15px;line-height:1.7;color:var(--text);background:var(--paper);display:grid;grid-template-columns:270px 1fr;min-height:100vh;}
+    .sidebar{background:var(--c64-dark);color:#ccc;position:sticky;top:0;height:100vh;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--c64-blue) var(--c64-darker);}
+    .sidebar::-webkit-scrollbar{width:6px;}.sidebar::-webkit-scrollbar-thumb{background:var(--c64-blue);}
+    .sidebar-header{background:var(--c64-blue);padding:18px 20px;font-family:'Courier New',monospace;font-size:13px;font-weight:bold;color:white;}
+    .sidebar-header .logo{font-size:22px;margin-bottom:4px;color:var(--c64-green);}
+    .sidebar nav{padding:12px 0;}
+    .sidebar nav a{display:block;padding:7px 20px;color:#aab;text-decoration:none;font-family:'Courier New',monospace;font-size:12.5px;border-left:3px solid transparent;transition:all 0.2s;}
+    .sidebar nav a:hover{color:white;background:rgba(255,255,255,0.05);border-left-color:var(--c64-green);}
+    .sidebar nav a.active{color:var(--c64-green);border-left-color:var(--c64-green);background:rgba(0,255,136,0.07);font-weight:bold;}
+    .sidebar nav .section-label{padding:12px 20px 4px;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:#556;font-family:'Courier New',monospace;}
+    main{max-width:980px;padding:40px 48px;}
+    h1{font-size:32px;color:var(--c64-dark);margin-bottom:8px;}
+    .chapter-number{font-family:'Courier New',monospace;font-size:13px;color:var(--c64-blue);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;}
+    .chapter-meta{display:flex;gap:16px;font-family:'Courier New',monospace;font-size:12px;color:var(--text-light);margin:12px 0 28px;flex-wrap:wrap;}
+    .chapter-meta span{background:var(--paper-dark);padding:4px 10px;border-radius:3px;}
+    h2{font-size:22px;color:var(--c64-blue);margin:36px 0 14px;padding-bottom:6px;border-bottom:1px solid #d0ccc0;}
+    h3{font-size:17px;color:var(--c64-dark);margin:22px 0 10px;}
+    p{margin-bottom:14px;}
+    code{font-family:'Courier New',monospace;font-size:13px;background:#e8e4da;padding:2px 5px;border-radius:3px;color:var(--accent);}
+    pre{background:var(--c64-dark);color:var(--c64-green);font-family:'Courier New',monospace;font-size:13px;padding:20px 24px;border-radius:6px;overflow-x:auto;margin:16px 0;border-left:4px solid var(--c64-blue);}
+    table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13.5px;}
+    thead{background:var(--c64-blue);color:white;}
+    thead th{padding:9px 10px;text-align:left;font-family:'Courier New',monospace;font-size:12px;}
+    tbody tr:nth-child(even){background:var(--paper-dark);}
+    tbody tr:hover{background:#e0dbd0;}
+    tbody td{padding:7px 10px;border-bottom:1px solid #d0ccc0;vertical-align:top;}
+    td code{font-size:12px;}
+    .box-info{background:#cce5ff;border:1px solid #0066cc;border-left:5px solid #0066cc;border-radius:6px;padding:14px 18px;margin:16px 0;}
+    .box-info strong{color:#004085;font-family:'Courier New',monospace;font-size:13px;display:block;margin-bottom:6px;}
+    .box-warn{background:#fff3cd;border:1px solid #ffc107;border-left:5px solid #ffc107;border-radius:6px;padding:14px 18px;margin:16px 0;}
+    .box-warn strong{color:#856404;font-family:'Courier New',monospace;font-size:13px;display:block;margin-bottom:6px;}
+    .box-tip{background:#d4edda;border:1px solid #28a745;border-left:5px solid #28a745;border-radius:6px;padding:14px 18px;margin:16px 0;}
+    .box-tip strong{color:#155724;font-family:'Courier New',monospace;font-size:13px;display:block;margin-bottom:6px;}
+    .comment{color:#669966;}
+    .directive{color:#ffcc44;}
+    .benchmark{background:var(--paper-dark);border:2px solid var(--c64-blue);border-radius:8px;padding:24px 28px;margin:40px 0;}
+    .benchmark h2{border:none;margin-top:0;padding:0 0 12px;}
+    .benchmark-list{list-style:none;padding:0;}
+    .benchmark-list li{padding:8px 0;border-bottom:1px solid #d0ccc0;display:flex;align-items:flex-start;gap:12px;font-size:14px;}
+    .benchmark-list li:last-child{border:none;}
+    .check{color:var(--c64-blue);font-size:18px;flex-shrink:0;line-height:1.4;}
+  </style>
+  <link rel="stylesheet" href="assets/c64-interactive.css">
+  <link rel="stylesheet" href="assets/c64-print.css" media="print">
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-header"><div class="logo">■ C64 MASTERY</div>Referenz</div>
+  <nav>
+    <div class="section-label">Curriculum</div>
+    <a href="index.html">◈ Übersicht</a>
+    <a href="stufe_07_interrupts_timing.html">07 · Interrupts &amp; Timing</a>
+    <a href="stufe_10_meisterschaft.html">10 · Meisterschaft</a>
+    <a href="stufe_11_spielentwicklung_workflow.html">11 · Spiel-Workflow</a>
+    <div class="section-label">Erweiterte Stufen</div>
+    <a href="stufe_13_hardware_erweiterungen.html">13 · Hardware-Erweiterungen</a>
+    <a href="stufe_14_modern_workflow.html">14 · Moderner Workflow</a>
+    <a href="stufe_15_debugging_deep_dive.html">15 · Deep Debugging</a>
+    <div class="section-label">Anhänge</div>
+    <a href="anhang_opcodes.html">Opcode-Referenz</a>
+    <a href="anhang_speicherkarte.html">Speicherkarte</a>
+    <a href="anhang_vic_register.html">VIC-II Register</a>
+    <a href="anhang_sid_register.html">SID Register</a>
+    <a href="anhang_cia_register.html">CIA Register</a>
+    <a href="anhang_petscii.html">PETSCII-Tabelle</a>
+    <a href="anhang_farben.html">C64-Farben</a>
+    <a href="anhang_kernal_routinen.html" class="active">KERNAL-Routinen</a>
+  </nav>
+</aside>
+<main>
+  <div class="chapter-number">Anhang H</div>
+  <h1>KERNAL-Routinen-Referenz</h1>
+  <div class="chapter-meta">
+    <span>$FF81 – $FFF3</span><span>40 Routinen</span><span>Jump-Tabelle · Aufruf-Konventionen</span>
+  </div>
+
+  <p>Das KERNAL ist ein ROM bei <code>$E000–$FFFF</code>, das geräteunabhängige I/O-Funktionen bereitstellt. Die Jump-Tabelle bei <code>$FF81–$FFF3</code> enthält stabile Einstiegspunkte — immer über die Jump-Tabellen-Adressen aufrufen, niemals interne KERNAL-Adressen direkt anspringen. Diese internen Adressen können sich zwischen ROM-Revisionen ändern, die Jump-Tabelle bleibt immer gleich. Die Statusvariable <code>STATUS</code> bei <code>$90</code> wird nach jeder I/O-Operation aktualisiert und gibt Auskunft über Erfolg oder Fehler. Aufruf aller Routinen mit <code>JSR $FFxx</code>.</p>
+
+  <div class="box-warn">
+    <strong>KERNAL nicht erreichbar bei deaktiviertem I/O</strong>
+    Der Bereich <code>$E000–$FFFF</code> muss als ROM eingeblendet sein. Sicherheitsprüfung: <code>LDA $01 / AND #$07</code> muss <code>$05</code>, <code>$06</code> oder <code>$07</code> ergeben. Für KERNAL-Zugriff muss Bit 1 gesetzt sein (Standard: <code>$01 = $37</code>). Bei Maschinenprogrammen, die I/O deaktivieren, vor jedem KERNAL-Aufruf <code>LDA #$37 / STA $01</code> setzen.
+  </div>
+
+  <div class="box-info">
+    <strong>Interrupt-Vektoren ($0314–$0319)</strong>
+    <code>$0314/$0315&nbsp;&nbsp;CINV&nbsp;&nbsp;&nbsp;IRQ-Vektor (Standard: $EA31 — KERNAL-IRQ)</code><br>
+    <code>$0316/$0317&nbsp;&nbsp;CBINV&nbsp;&nbsp;BRK-Vektor (Standard: $FE66)</code><br>
+    <code>$0318/$0319&nbsp;&nbsp;NMINV&nbsp;&nbsp;NMI-Vektor (Standard: $FE47)</code><br><br>
+    Eigene Interrupt-Routinen immer über <code>$0314/$0315</code> einhängen, NICHT über <code>$FFFE/$FFFF</code> — sonst gehen KERNAL-Funktionen (Tastatur-Scan, TOD-Timer) verloren.
+  </div>
+
+  <h3>Wichtige Zero-Page-Variablen</h3>
+  <table>
+    <thead><tr><th>Adresse</th><th>Name</th><th>Bedeutung</th></tr></thead>
+    <tbody>
+      <tr><td><code>$90</code></td><td><code>STATUS</code></td><td>I/O-Status: Bit 6 = EOF, Bit 7 = Gerät nicht vorhanden, Bits 0–1 = Timeout</td></tr>
+      <tr><td><code>$AE/$AF</code></td><td><code>EAL/EAH</code></td><td>Endadresse nach LOAD (lo/hi)</td></tr>
+      <tr><td><code>$B7</code></td><td><code>FNLEN</code></td><td>Länge des Dateinamens</td></tr>
+      <tr><td><code>$B8</code></td><td><code>LA</code></td><td>Aktuelle logische Dateinummer</td></tr>
+      <tr><td><code>$B9</code></td><td><code>SA</code></td><td>Aktuelle Sekundäradresse</td></tr>
+      <tr><td><code>$BA</code></td><td><code>FA</code></td><td>Aktuelle Gerätenummer</td></tr>
+      <tr><td><code>$BB/$BC</code></td><td><code>FNADR</code></td><td>Zeiger auf Dateinamen (lo/hi)</td></tr>
+      <tr><td><code>$C5</code></td><td><code>NDX</code></td><td>Anzahl Zeichen im Tastaturpuffer</td></tr>
+      <tr><td><code>$D3</code></td><td><code>QTSW</code></td><td>Quote-Modus-Flag</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ============================================================ -->
+  <h2>Screen &amp; Tastatur I/O</h2>
+
+  <table>
+    <thead><tr><th>Adresse</th><th>Name</th><th>Eingang</th><th>Ausgang</th><th>Beschreibung</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>$FFD2</code></td><td><code>CHROUT</code></td>
+        <td>A = PETSCII-Zeichen</td>
+        <td>STATUS ($90) aktualisiert</td>
+        <td>Zeichen auf aktuellen Ausgabekanal schreiben. Standard: Bildschirm. Sonderzeichen: <code>$0D</code> = Return, <code>$93</code> = CLR, <code>$91</code> = Cursor hoch/runter</td>
+      </tr>
+      <tr>
+        <td><code>$FFCF</code></td><td><code>CHRIN</code></td>
+        <td>—</td>
+        <td>A = Zeichen</td>
+        <td>Zeichen von aktuellem Eingabekanal lesen. Blockiert bis Zeichen verfügbar (bei Keyboard: wartet auf Tastendruck + Return)</td>
+      </tr>
+      <tr>
+        <td><code>$FFE4</code></td><td><code>GETIN</code></td>
+        <td>—</td>
+        <td>A = Zeichen (0 = Puffer leer)</td>
+        <td>Zeichen aus Tastaturpuffer lesen, <strong>non-blocking</strong>. A=0 wenn kein Zeichen vorhanden. Für Game-Loops verwenden</td>
+      </tr>
+      <tr>
+        <td><code>$FFED</code></td><td><code>SCREEN</code></td>
+        <td>—</td>
+        <td>X = Spalten (40), Y = Zeilen (25)</td>
+        <td>Bildschirmgröße abfragen</td>
+      </tr>
+      <tr>
+        <td><code>$FFF0</code></td><td><code>PLOT</code></td>
+        <td>C=0: X=Spalte, Y=Zeile setzen; C=1: lesen</td>
+        <td>C=1: X=Spalte, Y=Zeile</td>
+        <td>Cursor-Position lesen (C=1) oder setzen (C=0). Y=Zeile (0–24), X=Spalte (0–39)</td>
+      </tr>
+      <tr>
+        <td><code>$FF9F</code></td><td><code>SCNKEY</code></td>
+        <td>—</td>
+        <td>—</td>
+        <td>Tastaturmatrix scannen und Tastaturpuffer aktualisieren. Normalerweise vom KERNAL-IRQ aufgerufen</td>
+      </tr>
+      <tr>
+        <td><code>$FFE1</code></td><td><code>STOP</code></td>
+        <td>—</td>
+        <td>C=1: RUN/STOP gedrückt, Z=1: kein Key</td>
+        <td>RUN/STOP-Taste prüfen. Setzt C=1 wenn gedrückt. Gibt auch Tastaturscan aus</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>String-Ausgabe mit CHROUT</h3>
+<pre><span class="comment">; String mit CHROUT ausgeben ($FF,$00 = Ende-Markierung)</span>
+<span class="comment">; Aufruf: LDX #0 / JSR PrintStr (X = Index)</span>
+
+msg:   <span class="directive">!pet</span> "HELLO, WORLD!", 13, 0   <span class="comment">; PETSCII, Return am Ende, Null-Terminierung</span>
+
+PrintStr:
+       LDA msg,X          <span class="comment">; Zeichen laden</span>
+       BEQ .done          <span class="comment">; Null = Ende</span>
+       JSR $FFD2          <span class="comment">; CHROUT: Zeichen ausgeben</span>
+       INX
+       BNE PrintStr       <span class="comment">; nächstes Zeichen (max 255)</span>
+.done: RTS</pre>
+
+  <h3>Non-blocking Tastatur-Lesen mit GETIN</h3>
+<pre><span class="comment">; Nicht-blockierendes Tastatur-Lesen für Game-Loop</span>
+ReadKey:
+       JSR $FFE4          <span class="comment">; GETIN: A = Taste (0 = keine)</span>
+       CMP #$00
+       BEQ .no_key        <span class="comment">; kein Tastendruck</span>
+       CMP #$1D           <span class="comment">; CRSR-RIGHT?</span>
+       BEQ .move_right
+       CMP #$9D           <span class="comment">; CRSR-LEFT?</span>
+       BEQ .move_left
+.no_key:
+       RTS</pre>
+
+  <!-- ============================================================ -->
+  <h2>Datei-I/O — Laden, Speichern, Kanäle</h2>
+
+  <p>Datei-I/O folgt immer der Reihenfolge: SETLFS → SETNAM → OPEN (optional) → CHKIN/CHKOUT → Daten lesen/schreiben → CLOSE. Für LOAD/SAVE ist die Sequenz kürzer: SETLFS → SETNAM → LOAD/SAVE. Nach jedem I/O-Aufruf STATUS (<code>$90</code>) prüfen.</p>
+
+  <table>
+    <thead><tr><th>Adresse</th><th>Name</th><th>Eingang</th><th>Ausgang</th><th>Beschreibung</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>$FFBA</code></td><td><code>SETLFS</code></td>
+        <td>A=LFN (1–127), X=Gerät (8=Disk, 4=Drucker), Y=SA (0=kein, 1=ohne Name, 2=PRG, 15=Befehlskanal)</td>
+        <td>—</td>
+        <td>Logische Dateinummer, Gerätenummer und Sekundäradresse setzen. <strong>Muss vor OPEN/LOAD/SAVE</strong> aufgerufen werden</td>
+      </tr>
+      <tr>
+        <td><code>$FFBD</code></td><td><code>SETNAM</code></td>
+        <td>A=Länge, X=Lo-Adresse Name, Y=Hi-Adresse Name</td>
+        <td>—</td>
+        <td>Dateinamen setzen. Bei LOAD ohne Namen: A=0. Maximale Länge: 16 Zeichen</td>
+      </tr>
+      <tr>
+        <td><code>$FFC0</code></td><td><code>OPEN</code></td>
+        <td>—</td>
+        <td>C=1: Fehler (A=Fehlercode)</td>
+        <td>Datei öffnen (nach SETLFS + SETNAM). STATUS ($90) prüfen</td>
+      </tr>
+      <tr>
+        <td><code>$FFC3</code></td><td><code>CLOSE</code></td>
+        <td>A=LFN (logische Dateinummer)</td>
+        <td>—</td>
+        <td>Datei schließen</td>
+      </tr>
+      <tr>
+        <td><code>$FFC6</code></td><td><code>CHKIN</code></td>
+        <td>X=LFN</td>
+        <td>C=1: Fehler</td>
+        <td>Geöffnete Datei als Eingabekanal setzen. Danach liest CHRIN/GETIN von dieser Datei</td>
+      </tr>
+      <tr>
+        <td><code>$FFC9</code></td><td><code>CHKOUT</code></td>
+        <td>X=LFN</td>
+        <td>C=1: Fehler</td>
+        <td>Geöffnete Datei als Ausgabekanal setzen. Danach schreibt CHROUT in diese Datei</td>
+      </tr>
+      <tr>
+        <td><code>$FFCC</code></td><td><code>CLRCHN</code></td>
+        <td>—</td>
+        <td>—</td>
+        <td>Alle Kanäle zurücksetzen. Eingang → Tastatur, Ausgang → Bildschirm</td>
+      </tr>
+      <tr>
+        <td><code>$FFD5</code></td><td><code>LOAD</code></td>
+        <td>A=0 laden / A=1 verify, X=Lo-Zieladresse, Y=Hi-Zieladresse</td>
+        <td>X/Y = Endadresse+1, C=1: Fehler</td>
+        <td>Datei laden. Sekundäradresse=0: Ladeadresse aus Datei-Header. SA=1: lade an X/Y-Adresse</td>
+      </tr>
+      <tr>
+        <td><code>$FFD8</code></td><td><code>SAVE</code></td>
+        <td>A=ZP-Zeiger auf 2-Byte-Startadresse, X=Lo-Endadresse+1, Y=Hi-Endadresse+1</td>
+        <td>C=1: Fehler</td>
+        <td>Speicherbereich auf Gerät sichern</td>
+      </tr>
+      <tr>
+        <td><code>$FFE7</code></td><td><code>CLALL</code></td>
+        <td>—</td>
+        <td>—</td>
+        <td>Alle offenen Dateien schließen (interne Tabellen zurücksetzen)</td>
+      </tr>
+      <tr>
+        <td><code>$FFB7</code></td><td><code>READST</code></td>
+        <td>—</td>
+        <td>A=STATUS ($90)</td>
+        <td>I/O-Statuswort lesen. Bit 6=EOF/EOI, Bit 7=Gerät nicht vorhanden</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="box-info">
+    <strong>STATUS ($90) — Bit-Bedeutung</strong>
+    <code>Bit 0 = 1: Timeout beim Schreiben</code><br>
+    <code>Bit 1 = 1: Timeout beim Lesen</code><br>
+    <code>Bit 6 = 1: EOF / End of File (EOI auf seriellem Bus)</code><br>
+    <code>Bit 7 = 1: Gerät nicht vorhanden (Device Not Present)</code>
+  </div>
+
+  <h3>Datei laden — vollständige SETLFS → SETNAM → LOAD Sequenz</h3>
+<pre><span class="comment">; Datei "LEVEL1" von Laufwerk 8 an feste Adresse $3000 laden</span>
+<span class="comment">; Gibt C=1 zurück wenn Fehler</span>
+
+fname:  <span class="directive">!pet</span> "LEVEL1"
+fnamelen = 6
+
+LoadLevel:
+        LDA #1             <span class="comment">; Logische Dateinummer 1</span>
+        LDX #8             <span class="comment">; Gerät 8 (Disk)</span>
+        LDY #1             <span class="comment">; Sekundäradresse 1 = lade an X/Y-Adresse</span>
+        JSR $FFBA          <span class="comment">; SETLFS</span>
+
+        LDA #fnamelen      <span class="comment">; Länge des Dateinamens</span>
+        LDX #&lt;fname        <span class="comment">; Lo-Adresse des Namens</span>
+        LDY #&gt;fname        <span class="comment">; Hi-Adresse des Namens</span>
+        JSR $FFBD          <span class="comment">; SETNAM</span>
+
+        LDA #0             <span class="comment">; A=0: laden (nicht verify)</span>
+        LDX #&lt;$3000        <span class="comment">; Zieladresse Lo</span>
+        LDY #&gt;$3000        <span class="comment">; Zieladresse Hi</span>
+        JSR $FFD5          <span class="comment">; LOAD</span>
+        BCS .error         <span class="comment">; C=1: KERNAL-Fehler</span>
+
+        JSR $FFB7          <span class="comment">; READST: Status lesen</span>
+        BNE .io_error      <span class="comment">; Status ≠ 0: I/O-Problem</span>
+        CLC
+        RTS
+
+.error:
+.io_error:
+        SEC                <span class="comment">; C=1 signalisiert Fehler</span>
+        RTS</pre>
+
+  <!-- ============================================================ -->
+  <h2>Serieller Bus (IEC)</h2>
+
+  <p>Der IEC-Bus verbindet den C64 mit Diskettenlaufwerken (Gerät 8/9) und Druckern (Gerät 4/5). Die höherstufigen Routinen (OPEN/LOAD/SAVE) nutzen diese Routinen intern. Direkter Zugriff ist selten nötig — z. B. beim Schreiben eines eigenen Fast-Loaders oder bei direkter Kommunikation mit dem Befehlskanal des Laufwerks.</p>
+
+  <table>
+    <thead><tr><th>Adresse</th><th>Name</th><th>Eingang</th><th>Ausgang</th><th>Beschreibung</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>$FFB1</code></td><td><code>LISTEN</code></td>
+        <td>A = Gerätenummer (8–30)</td>
+        <td>—</td>
+        <td>Gerät in LISTEN-Modus versetzen. Danach SECOND und Daten mit CIOUT senden</td>
+      </tr>
+      <tr>
+        <td><code>$FFB4</code></td><td><code>TALK</code></td>
+        <td>A = Gerätenummer</td>
+        <td>—</td>
+        <td>Gerät in TALK-Modus versetzen. Danach TKSA und Daten mit ACPTR empfangen</td>
+      </tr>
+      <tr>
+        <td><code>$FF93</code></td><td><code>SECOND</code></td>
+        <td>A = Sekundäradresse (nach LISTEN, ORed mit $60)</td>
+        <td>—</td>
+        <td>Sekundäradresse nach LISTEN senden</td>
+      </tr>
+      <tr>
+        <td><code>$FF96</code></td><td><code>TKSA</code></td>
+        <td>A = Sekundäradresse (nach TALK, ORed mit $60)</td>
+        <td>—</td>
+        <td>Sekundäradresse nach TALK senden</td>
+      </tr>
+      <tr>
+        <td><code>$FFA5</code></td><td><code>ACPTR</code></td>
+        <td>—</td>
+        <td>A = empfangenes Byte</td>
+        <td>Ein Byte vom seriellen Bus empfangen</td>
+      </tr>
+      <tr>
+        <td><code>$FFA8</code></td><td><code>CIOUT</code></td>
+        <td>A = Byte</td>
+        <td>—</td>
+        <td>Ein Byte auf den seriellen Bus senden (nach LISTEN/SECOND)</td>
+      </tr>
+      <tr>
+        <td><code>$FFAB</code></td><td><code>UNTLK</code></td>
+        <td>—</td>
+        <td>—</td>
+        <td>UNTALK senden — beendet TALK-Sequenz</td>
+      </tr>
+      <tr>
+        <td><code>$FFAE</code></td><td><code>UNLSN</code></td>
+        <td>—</td>
+        <td>—</td>
+        <td>UNLISTEN senden — beendet LISTEN-Sequenz</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Disk-Fehlerkanal öffnen und auslesen</h3>
+<pre><span class="comment">; Disk-Fehlerkanal öffnen (Kanal 15 = Befehlskanal)</span>
+<span class="comment">; Laufwerk 8, sekundäre Adresse 15</span>
+
+OpenCmdChannel:
+        LDA #15            <span class="comment">; LFN 15</span>
+        LDX #8             <span class="comment">; Gerät 8</span>
+        LDY #15            <span class="comment">; SA 15 = Befehlskanal</span>
+        JSR $FFBA          <span class="comment">; SETLFS</span>
+        LDA #0             <span class="comment">; Kein Dateiname</span>
+        JSR $FFBD          <span class="comment">; SETNAM (leer)</span>
+        JSR $FFC0          <span class="comment">; OPEN</span>
+        RTS
+
+<span class="comment">; Fehlermeldung vom Laufwerk lesen</span>
+ReadDiskError:
+        LDX #15            <span class="comment">; Befehlskanal</span>
+        JSR $FFC6          <span class="comment">; CHKIN</span>
+.loop:  JSR $FFCF          <span class="comment">; CHRIN: Byte lesen</span>
+        CMP #13            <span class="comment">; Return = Ende</span>
+        BEQ .done
+        JSR $FFD2          <span class="comment">; CHROUT: auf Bildschirm ausgeben</span>
+        BNE .loop
+.done:  JSR $FFCC          <span class="comment">; CLRCHN</span>
+        RTS</pre>
+
+  <!-- ============================================================ -->
+  <h2>System &amp; Speicherverwaltung</h2>
+
+  <table>
+    <thead><tr><th>Adresse</th><th>Name</th><th>Eingang</th><th>Ausgang</th><th>Beschreibung</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>$FF8A</code></td><td><code>RESTOR</code></td>
+        <td>—</td>
+        <td>—</td>
+        <td>Standard-KERNAL-Vektoren wiederherstellen (überschreibt $0314–$033B)</td>
+      </tr>
+      <tr>
+        <td><code>$FF8D</code></td><td><code>VECTOR</code></td>
+        <td>C=0: X/Y=Zeiger auf eigene Vektortabelle (setzen); C=1: X/Y=Zeiger auf Puffer (lesen)</td>
+        <td>—</td>
+        <td>Eigene I/O-Vektortabelle setzen oder aktuelle lesen ($0314–$033B)</td>
+      </tr>
+      <tr>
+        <td><code>$FF90</code></td><td><code>SETMSG</code></td>
+        <td>A: Bit 7=Fehlermeldungen, Bit 6=Statusmeldungen</td>
+        <td>—</td>
+        <td>KERNAL-Meldungen ein-/ausschalten. A=$00 = alle aus (für eigene Programme empfohlen)</td>
+      </tr>
+      <tr>
+        <td><code>$FF99</code></td><td><code>MEMTOP</code></td>
+        <td>C=1: lesen; C=0: X=Lo, Y=Hi (setzen)</td>
+        <td>C=1: X=Lo, Y=Hi</td>
+        <td>Obere RAM-Grenze lesen oder setzen</td>
+      </tr>
+      <tr>
+        <td><code>$FF9C</code></td><td><code>MEMBOT</code></td>
+        <td>C=1: lesen; C=0: X=Lo, Y=Hi (setzen)</td>
+        <td>C=1: X=Lo, Y=Hi</td>
+        <td>Untere RAM-Grenze lesen oder setzen</td>
+      </tr>
+      <tr>
+        <td><code>$FFA2</code></td><td><code>SETTMO</code></td>
+        <td>A=$00: Timeout aktiv; A=$80: kein Timeout</td>
+        <td>—</td>
+        <td>IEC-Bus Timeout-Verhalten steuern</td>
+      </tr>
+      <tr>
+        <td><code>$FFF3</code></td><td><code>IOBASE</code></td>
+        <td>—</td>
+        <td>X=$00, Y=$DC (= $DC00)</td>
+        <td>Basisadresse der CIA1 zurückgeben</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>IRQ-Vektor KERNAL-konform setzen</h3>
+<pre><span class="comment">; IRQ-Vektor KERNAL-konform über $0314/$0315 setzen</span>
+<span class="comment">; Eigene Routine: MyIRQ</span>
+
+InstallIRQ:
+        SEI                   <span class="comment">; Interrupts sperren während Umbiegung</span>
+        LDA #&lt;MyIRQ
+        STA $0314             <span class="comment">; IRQ-Vektor Lo</span>
+        LDA #&gt;MyIRQ
+        STA $0315             <span class="comment">; IRQ-Vektor Hi</span>
+        CLI                   <span class="comment">; Interrupts wieder freigeben</span>
+        RTS
+
+MyIRQ:
+        <span class="comment">; Eigene IRQ-Behandlung</span>
+        <span class="comment">; ...</span>
+        JMP $EA31             <span class="comment">; KERNAL-IRQ-Ende (Timing, Tastatur-Scan)</span>
+        <span class="comment">; Alternativ: JMP $EA7E (nur RTI, kein KERNAL)</span></pre>
+
+  <div class="box-tip">
+    <strong>$EA31 vs. $EA7E — Welcher Exit?</strong>
+    <code>JMP $EA31</code> ruft den vollständigen KERNAL-IRQ auf: Tastatur-Scan, TOD-Timer, Kassetten-Timing. Der IRQ dauert dadurch länger, aber alle KERNAL-Dienste bleiben aktiv.<br><br>
+    <code>JMP $EA7E</code> macht nur den Raster-Acknowledge und RTI — minimaler Overhead, kein Tastatur-Scan, kein TOD-Update.<br><br>
+    Faustregel: Demo-IRQs ohne Tastatur → <code>$EA7E</code>. Spiele mit Tastatur-Eingabe → <code>$EA31</code>.
+  </div>
+
+  <!-- ============================================================ -->
+  <h2>Zeit &amp; Jiffy-Timer</h2>
+
+  <p>Der KERNAL-Jiffy-Timer zählt bei PAL mit 50 Hz — jeder IRQ inkrementiert den 3-Byte-Zähler um 1. Nach 24 Stunden (86.400 Frames bei 50 Hz) läuft er auf 0 zurück. Der Timer eignet sich für einfaches Timing, Highscore-Zeitlimits oder Demo-Sync. Für präziseres Timing die CIA-Timer verwenden.</p>
+
+  <table>
+    <thead><tr><th>Adresse</th><th>Name</th><th>Eingang</th><th>Ausgang</th><th>Beschreibung</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>$FFDB</code></td><td><code>SETTIM</code></td>
+        <td>A=High, X=Mid, Y=Low</td>
+        <td>—</td>
+        <td>Jiffy-Timer setzen. 3-Byte-Wert, High-Byte nach A</td>
+      </tr>
+      <tr>
+        <td><code>$FFDE</code></td><td><code>RDTIM</code></td>
+        <td>—</td>
+        <td>A=High, X=Mid, Y=Low</td>
+        <td>Jiffy-Timer lesen. PAL: ~50 Ticks/Sek. NTSC: ~60 Ticks/Sek</td>
+      </tr>
+      <tr>
+        <td><code>$FFEA</code></td><td><code>UDTIM</code></td>
+        <td>—</td>
+        <td>—</td>
+        <td>Jiffy-Timer um 1 inkrementieren. Wird normalerweise vom KERNAL-IRQ aufgerufen</td>
+      </tr>
+      <tr>
+        <td><code>$FFE1</code></td><td><code>STOP</code></td>
+        <td>—</td>
+        <td>C=1: RUN/STOP gedrückt</td>
+        <td>RUN/STOP-Taste prüfen. Nützlich für Notausstieg in Endlosschleifen</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Timer lesen — Sekunden seit Spielstart (PAL)</h3>
+<pre><span class="comment">; Einfaches Timing: Sekunden seit Spielstart (PAL)</span>
+<span class="comment">; Am Spielstart: JSR ResetTimer</span>
+<span class="comment">; Zum Lesen: JSR GetSeconds → A = Sekunden (0–255)</span>
+
+ResetTimer:
+        LDA #0
+        LDX #0
+        LDY #0
+        JSR $FFDB    <span class="comment">; SETTIM: Timer auf 0 zurücksetzen</span>
+        RTS
+
+GetSeconds:          <span class="comment">; Gibt Sekunden seit ResetTimer zurück (PAL: /50)</span>
+        JSR $FFDE    <span class="comment">; RDTIM: A=Hi, X=Mid, Y=Lo</span>
+        <span class="comment">; Für einfaches Sekunden-Zählen: nur Mid-Byte / 50</span>
+        <span class="comment">; (vereinfacht, ~5% Fehler bei 50 Hz)</span>
+        TXA          <span class="comment">; Mid-Byte nach A</span>
+        RTS          <span class="comment">; A ≈ Sekunden (bei kurzen Zeiten)</span></pre>
+
+  <!-- ============================================================ -->
+  <h2>Vollständige Jump-Tabelle ($FF81–$FFF3)</h2>
+
+  <p>Alle stabilen KERNAL-Einstiegspunkte auf einen Blick. Jeder Eintrag ist ein 3-Byte-JMP-Befehl (Opcode $4C + 2-Byte-Zieladresse). Die Adressen sind in allen C64-Revisionen identisch.</p>
+
+  <table>
+    <thead><tr><th>Adresse</th><th>Name</th><th>Kurzbeschreibung</th></tr></thead>
+    <tbody>
+      <tr><td><code>$FF81</code></td><td><code>CINT</code></td><td>Video-Chip initialisieren (VIC-II Reset)</td></tr>
+      <tr><td><code>$FF84</code></td><td><code>IOINIT</code></td><td>CIA und andere I/O-Chips initialisieren</td></tr>
+      <tr><td><code>$FF87</code></td><td><code>RAMTAS</code></td><td>RAM testen, Zero-Page initialisieren</td></tr>
+      <tr><td><code>$FF8A</code></td><td><code>RESTOR</code></td><td>Standard-KERNAL-Vektoren wiederherstellen</td></tr>
+      <tr><td><code>$FF8D</code></td><td><code>VECTOR</code></td><td>Eigene I/O-Vektortabelle setzen/lesen</td></tr>
+      <tr><td><code>$FF90</code></td><td><code>SETMSG</code></td><td>KERNAL-Meldungsausgabe ein-/ausschalten</td></tr>
+      <tr><td><code>$FF93</code></td><td><code>SECOND</code></td><td>Sekundäradresse nach LISTEN senden</td></tr>
+      <tr><td><code>$FF96</code></td><td><code>TKSA</code></td><td>Sekundäradresse nach TALK senden</td></tr>
+      <tr><td><code>$FF99</code></td><td><code>MEMTOP</code></td><td>Obere RAM-Grenze lesen/setzen</td></tr>
+      <tr><td><code>$FF9C</code></td><td><code>MEMBOT</code></td><td>Untere RAM-Grenze lesen/setzen</td></tr>
+      <tr><td><code>$FF9F</code></td><td><code>SCNKEY</code></td><td>Tastaturmatrix scannen</td></tr>
+      <tr><td><code>$FFA2</code></td><td><code>SETTMO</code></td><td>IEC-Bus Timeout steuern</td></tr>
+      <tr><td><code>$FFA5</code></td><td><code>ACPTR</code></td><td>Byte von seriellem Bus empfangen</td></tr>
+      <tr><td><code>$FFA8</code></td><td><code>CIOUT</code></td><td>Byte auf seriellen Bus senden</td></tr>
+      <tr><td><code>$FFAB</code></td><td><code>UNTLK</code></td><td>UNTALK — beendet TALK-Sequenz</td></tr>
+      <tr><td><code>$FFAE</code></td><td><code>UNLSN</code></td><td>UNLISTEN — beendet LISTEN-Sequenz</td></tr>
+      <tr><td><code>$FFB1</code></td><td><code>LISTEN</code></td><td>Gerät in LISTEN-Modus versetzen</td></tr>
+      <tr><td><code>$FFB4</code></td><td><code>TALK</code></td><td>Gerät in TALK-Modus versetzen</td></tr>
+      <tr><td><code>$FFB7</code></td><td><code>READST</code></td><td>I/O-Statuswort lesen ($90)</td></tr>
+      <tr><td><code>$FFBA</code></td><td><code>SETLFS</code></td><td>Logische Dateinummer, Gerät, SA setzen</td></tr>
+      <tr><td><code>$FFBD</code></td><td><code>SETNAM</code></td><td>Dateinamen setzen</td></tr>
+      <tr><td><code>$FFC0</code></td><td><code>OPEN</code></td><td>Datei öffnen</td></tr>
+      <tr><td><code>$FFC3</code></td><td><code>CLOSE</code></td><td>Datei schließen</td></tr>
+      <tr><td><code>$FFC6</code></td><td><code>CHKIN</code></td><td>Eingabekanal setzen</td></tr>
+      <tr><td><code>$FFC9</code></td><td><code>CHKOUT</code></td><td>Ausgabekanal setzen</td></tr>
+      <tr><td><code>$FFCC</code></td><td><code>CLRCHN</code></td><td>Alle Kanäle zurücksetzen</td></tr>
+      <tr><td><code>$FFCF</code></td><td><code>CHRIN</code></td><td>Zeichen vom Eingabekanal lesen (blockierend)</td></tr>
+      <tr><td><code>$FFD2</code></td><td><code>CHROUT</code></td><td>Zeichen auf Ausgabekanal schreiben</td></tr>
+      <tr><td><code>$FFD5</code></td><td><code>LOAD</code></td><td>Datei laden</td></tr>
+      <tr><td><code>$FFD8</code></td><td><code>SAVE</code></td><td>Speicherbereich sichern</td></tr>
+      <tr><td><code>$FFDB</code></td><td><code>SETTIM</code></td><td>Jiffy-Timer setzen</td></tr>
+      <tr><td><code>$FFDE</code></td><td><code>RDTIM</code></td><td>Jiffy-Timer lesen</td></tr>
+      <tr><td><code>$FFE1</code></td><td><code>STOP</code></td><td>RUN/STOP-Taste prüfen</td></tr>
+      <tr><td><code>$FFE4</code></td><td><code>GETIN</code></td><td>Zeichen aus Tastaturpuffer (non-blocking)</td></tr>
+      <tr><td><code>$FFE7</code></td><td><code>CLALL</code></td><td>Alle offenen Dateien schließen</td></tr>
+      <tr><td><code>$FFEA</code></td><td><code>UDTIM</code></td><td>Jiffy-Timer inkrementieren</td></tr>
+      <tr><td><code>$FFED</code></td><td><code>SCREEN</code></td><td>Bildschirmgröße abfragen</td></tr>
+      <tr><td><code>$FFF0</code></td><td><code>PLOT</code></td><td>Cursor-Position lesen/setzen</td></tr>
+      <tr><td><code>$FFF3</code></td><td><code>IOBASE</code></td><td>CIA1-Basisadresse zurückgeben ($DC00)</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ============================================================ -->
+  <section class="benchmark" id="benchmark">
+    <h2>&#9733; Skill-Benchmark: Anhang H</h2>
+    <p>Du hast die KERNAL-Routinen verinnerlicht, wenn du folgendes kannst:</p>
+    <ul class="benchmark-list">
+      <li><input type="checkbox" data-bench="kernal-1"><span>Du schreibst die SETLFS → SETNAM → LOAD Sequenz für eine Datei von Gerät 8 ohne Nachschlagen korrekt auf</span></li>
+      <li><input type="checkbox" data-bench="kernal-2"><span>Du baust GETIN in einen Game-Loop ein und reagierst auf Cursor-Tasten non-blocking</span></li>
+      <li><input type="checkbox" data-bench="kernal-3"><span>Du prüfst STATUS ($90) nach LOAD korrekt auf EOF (Bit 6) und Gerät-nicht-vorhanden (Bit 7)</span></li>
+      <li><input type="checkbox" data-bench="kernal-4"><span>Du hängst deinen eigenen IRQ über $0314/$0315 ein (mit SEI/CLI) und entscheidest korrekt zwischen $EA31 und $EA7E als Exit</span></li>
+      <li><input type="checkbox" data-bench="kernal-5"><span>Du weißt welchen Wert $01 haben muss damit KERNAL erreichbar ist ($37 = Standard) und wie du prüfst ob es aktiv ist</span></li>
+      <li><input type="checkbox" data-bench="kernal-6"><span>Du liest den Disk-Fehlerkanal (LFN 15, SA 15) mit OPEN/CHKIN/CHRIN/CLRCHN korrekt aus</span></li>
+    </ul>
+  </section>
+
+</main>
+  <script src="assets/c64-interactive.js"></script>
+</body>
+</html>
