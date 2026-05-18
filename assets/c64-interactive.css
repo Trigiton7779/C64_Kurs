@@ -65,6 +65,121 @@ body.dark-mode .chapter-number {
   color: #6688dd;
 }
 
+/* ── Dark Mode: inline code ────────────────────────────────────── */
+body.dark-mode code {
+  background: #2a2a3e;
+  color: #ff8866;
+}
+body.dark-mode pre code {
+  background: none;
+  color: inherit;
+}
+
+/* ── Dark Mode: Info-Boxen (neues Format .box-*) ───────────────── */
+body.dark-mode .box-tip,
+body.dark-mode .box-warning,
+body.dark-mode .box-info,
+body.dark-mode .box-important {
+  background: #1a1a30;
+  color: var(--text);
+}
+
+/* ── Dark Mode: Info-Boxen (altes Format .box.tip/.warning etc.) ── */
+body.dark-mode .box.tip,
+body.dark-mode .box.warning,
+body.dark-mode .box.note,
+body.dark-mode .box.important {
+  background: #1a1a30;
+  color: var(--text);
+}
+body.dark-mode .box.tip      { border-color: #2e7d32; }
+body.dark-mode .box.warning  { border-color: #f0a000; }
+body.dark-mode .box.note     { border-color: #1565c0; }
+body.dark-mode .box.important{ border-color: #c62828; }
+body.dark-mode .box.tip      .box-title { color: #66bb6a; }
+body.dark-mode .box.warning  .box-title { color: #ffa726; }
+body.dark-mode .box.note     .box-title { color: #64b5f6; }
+body.dark-mode .box.important.box-title { color: #ef5350; }
+
+/* ── Dark Mode: Lernziele (altes Format .objectives) ───────────── */
+body.dark-mode .objectives {
+  background: #0f1a2e;
+  border-color: #2255aa;
+  color: var(--text);
+}
+body.dark-mode .objectives h3 { color: #64b5f6; }
+
+/* ── Dark Mode: Register-Block (stufe_01) ──────────────────────── */
+body.dark-mode .register-block {
+  background: #1a1a2e;
+  border-color: #3355cc;
+}
+body.dark-mode .register-block .reg-body { background: #1a1a2e; }
+body.dark-mode .register-block .bit.unused {
+  background: #2a2a40;
+  color: #555577;
+}
+
+/* ── Dark Mode: Exercise-Items (stufe_08–12) ───────────────────── */
+body.dark-mode .exercise-item { background: #1e1e36; }
+
+/* ── Dark Mode: Übungen (altes Format .exercise) ───────────────── */
+body.dark-mode .exercise { background: #1e1e36; }
+body.dark-mode .exercises-section { border-color: #3355cc; }
+
+/* ── Dark Mode: Karten mit weißem Hintergrund ─────────────────── */
+body.dark-mode .resource-card,
+body.dark-mode .timing-card,
+body.dark-mode .chip-card {
+  background: #1e1e36;
+  border-color: #2a2a4a;
+}
+body.dark-mode .chip-header { background: #2a3a6a; }
+body.dark-mode .chip-body   { background: #1e1e36; }
+
+/* ── Dark Mode: Stufen-Karten (index.html) ─────────────────────── */
+body.dark-mode .stufe-card,
+body.dark-mode .tool-card,
+body.dark-mode .prereq-item,
+body.dark-mode .phase-block {
+  background: #1e1e36;
+  border-color: #2a2a4a;
+  color: var(--text);
+}
+body.dark-mode .stufe-card:hover {
+  border-color: #3355cc;
+  box-shadow: 0 8px 24px rgba(50,80,220,0.3);
+}
+
+/* ── Dark Mode: Branch-Tabelle / Timing-Grid (stufe_01) ────────── */
+body.dark-mode .branch-table { background: #1a1a2e; border-color: #2a2a4a; }
+body.dark-mode .branch-table td { border-color: #2a2a4a; }
+body.dark-mode .branch-table tr:nth-child(even) td { background: #1e1e36; }
+
+/* ── Dark Mode: Memory-Map farbige Zeilen ──────────────────────── */
+body.dark-mode .mem-row.highlight .mem-desc { background: #0f1a3a; }
+body.dark-mode .mem-row.io        .mem-desc { background: #231500; }
+body.dark-mode .mem-row.rom       .mem-desc { background: #0a180a; }
+
+/* ── Dark Mode: Sonstige strukturierte Karten ──────────────────── */
+body.dark-mode .prereq-item strong { color: #7799ee; }
+body.dark-mode .phase-block h4     { color: #7799ee; }
+body.dark-mode .resource-card h4   { color: #7799ee; }
+body.dark-mode .stufe-card h3      { color: #aaccff; }
+body.dark-mode .stufe-card .stufe-num { color: #7799ee; }
+body.dark-mode .tool-card .tool-name  { color: #7799ee; }
+
+/* ── Dark Mode: Speicherkarte farbige Bereiche (stufe_02) ─────── */
+body.dark-mode .mem-zp     { background: #0a1a0f; }
+body.dark-mode .mem-stack  { background: #1a1200; }
+body.dark-mode .mem-sys    { background: #0a1020; }
+body.dark-mode .mem-screen { background: #1a0a10; }
+body.dark-mode .mem-basic  { background: #150a1a; }
+body.dark-mode .mem-io     { background: #1a1500; }
+
+/* ── Dark Mode: table row hover fix (war #dde8ff) ──────────────── */
+body.dark-mode tbody tr:hover td { background: #22223a !important; }
+
 /* ── Dark Mode Toggle Button ───────────────────────────────────── */
 #c64-dark-toggle {
   position: fixed;
