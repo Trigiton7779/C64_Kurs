@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>C64 Mastery — Stufe 16: Tastatur &amp; Joystick</title>
+  <link rel="stylesheet" href="assets/c64-base.css">
+  <style>
+    .joy-bit-table thead th { background: var(--theme-dark); }
+    .matrix-table { font-family: 'Courier New', monospace; font-size: 12px; }
+    .matrix-table th { background: var(--theme-dark); color: #aaccff; padding: 6px 8px; text-align: center; }
+    .matrix-table td { text-align: center; padding: 5px 8px; border: 1px solid #d0ccc0; }
+    .matrix-table .row-header { background: var(--theme-color); color: white; font-weight: bold; }
+    .matrix-table .col-header { background: var(--theme-dark); color: #aaccff; }
+    .input-demo {
+      background: #0a0a14; color: #00cc66;
+      font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.7;
+      padding: 18px 22px; border-radius: 6px;
+      border-left: 4px solid var(--theme-color); margin: 20px 0; overflow-x: auto;
+    }
+    .input-demo .comment { color: #446688; }
+    .input-demo .label  { color: #ffcc44; }
+    .bit-badge {
+      display: inline-block; background: var(--theme-color); color: white;
+      font-family: 'Courier New', monospace; font-size: 11px;
+      padding: 1px 6px; border-radius: 3px; margin: 0 2px;
+    }
+    .port-card {
+      background: var(--paper-dark); border-left: 4px solid var(--theme-color);
+      border-radius: 0 6px 6px 0; padding: 16px 20px; margin: 16px 0;
+    }
+    .port-card h4 { color: var(--theme-color); margin: 0 0 8px; font-family: 'Courier New', monospace; font-style: normal; }
+    body.dark-mode .matrix-table td { border-color: #2a2a4a; }
+    body.dark-mode .matrix-table .row-header { background: #2a3a6a; }
+    body.dark-mode .matrix-table .col-header { background: #1a1a30; }
+    body.dark-mode .port-card { background: #1e1e36; }
+  </style>
+  <link rel="stylesheet" href="assets/c64-interactive.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">■ C64 MASTERY</div>
+    Professioneller Lehrgang
+  </div>
+  <nav>
+    <div class="section-label">Curriculum</div>
+    <a href="index.html">◈ Übersicht &amp; Lernpfad</a>
+    <a href="stufe_00_fundament.html">00 · Fundament</a>
+    <a href="stufe_01_6510_assembler.html">01 · 6510 &amp; Assembler</a>
+    <a href="stufe_02_adressierung_speicher.html">02 · Adressierung &amp; Speicher</a>
+    <a href="stufe_03_bildschirm_zeichen.html">03 · Bildschirm &amp; Zeichen</a>
+    <a href="stufe_04_sprites_animation.html">04 · Sprites &amp; Animation</a>
+    <a href="stufe_05_bitmap_grafik.html">05 · Bitmap-Grafik</a>
+    <a href="stufe_06_sid_sound.html">06 · SID-Sound</a>
+    <a href="stufe_07_interrupts_timing.html">07 · Interrupts &amp; Timing</a>
+    <a href="stufe_08_optimierung.html">08 · Optimierung</a>
+    <a href="stufe_09_demo_effekte.html">09 · Demo-Effekte</a>
+    <a href="stufe_10_meisterschaft.html">10 · Meisterschaft</a>
+
+    <div class="section-label">Workflow &amp; Release</div>
+    <a href="stufe_11_spielentwicklung_workflow.html">11 · Spiel-Workflow</a>
+    <a href="stufe_12_demo_entwicklung_workflow.html">12 · Demo-Workflow</a>
+
+    <div class="section-label">Erweiterte Stufen</div>
+    <a href="stufe_13_hardware_erweiterungen.html">13 · Hardware-Erweiterungen</a>
+    <a href="stufe_14_modern_workflow.html">14 · Moderner Workflow</a>
+    <a href="stufe_15_debugging_deep_dive.html">15 · Deep Debugging</a>
+    <a href="stufe_16_tastatur_joystick.html" class="active">16 · Tastatur &amp; Joystick</a>
+    <a href="stufe_17_floppy_fastloader.html">17 · Floppy &amp; Fastloader</a>
+
+    <div class="section-label">Diese Seite</div>
+    <a href="#cia1-grundlagen" class="toc-link">1. CIA1-Architektur</a>
+    <a href="#joystick" class="toc-link">2. Joystick-Abfrage</a>
+    <a href="#joystick-praxis" class="toc-link">3. Joystick in der Praxis</a>
+    <a href="#tastatur-matrix" class="toc-link">4. Tastatur-Matrix</a>
+    <a href="#tastatur-scan" class="toc-link">5. Scan-Routinen</a>
+    <a href="#mehrere-tasten" class="toc-link">6. Mehrere Tasten gleichzeitig</a>
+    <a href="#kernal-vs-direkt" class="toc-link">7. KERNAL vs. direkte Abfrage</a>
+    <a href="#praxisbeispiele" class="toc-link">8. Praxisbeispiele</a>
+    <a href="#benchmark" class="toc-link">Skill-Benchmark</a>
+
+    <div class="section-label">Anhänge &amp; Referenz</div>
+    <a href="anhang_opcodes.html">A · Opcode-Referenz</a>
+    <a href="anhang_speicherkarte.html">B · Speicherkarte</a>
+    <a href="anhang_vic_register.html">C · VIC-II Register</a>
+    <a href="anhang_sid_register.html">D · SID Register</a>
+    <a href="anhang_cia_register.html">E · CIA Register</a>
+    <a href="anhang_petscii.html">F · PETSCII-Tabelle</a>
+    <a href="anhang_farben.html">G · C64-Farben</a>
+    <a href="anhang_kernal_routinen.html">H · KERNAL-Routinen</a>
+    <a href="anhang_i_acme_referenz.html">I · ACME-Referenz</a>
+
+    <div class="section-label">Downloads</div>
+    <a href="beispiele/index.html">Beispielcode (.asm)</a>
+    <a href="vice.vicerc" download>VICE Konfiguration</a>
+  </nav>
+</aside>
+
+<main>
+  <header class="chapter-header">
+    <div class="chapter-number">Stufe 16 — Eingabe</div>
+    <h1>Tastatur &amp; Joystick</h1>
+    <div class="chapter-meta">
+      <span>★★ Fortgeschritten</span>
+      <span>⏱ ca. 8–10 Stunden</span>
+      <span>📋 Voraussetzung: Stufen 07, 10</span>
+    </div>
+  </header>
+
+  <section class="learning-objectives">
+    <h3>Lernziele dieser Stufe</h3>
+    <ul>
+      <li>CIA1-Register $DC00/$DC01 direkt für Joystick und Tastatur lesen</li>
+      <li>Joystick-Port 1 und Port 2 mit korrektem Bit-Mapping abfragen</li>
+      <li>Edge Detection implementieren — Aktionen nur beim ersten Frame auslösen</li>
+      <li>Die 8×8-Tastaturmatrix vollständig verstehen und scannen</li>
+      <li>Entprellen (Debounce) und Key-Repeat korrekt implementieren</li>
+      <li>Ghosting-Problem bei mehreren gleichzeitigen Tasten verstehen</li>
+      <li>KERNAL-basierte und direkte Hardware-Abfrage situationsgerecht einsetzen</li>
+      <li>Vollständige Spieler-Steuerung, Menünavigation und Texteingabe realisieren</li>
+    </ul>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section id="cia1-grundlagen">
+    <h2>1. CIA1-Architektur für Eingabe</h2>
+
+    <p>Alle Tastatur- und Joystick-Signale des C64 laufen durch den <strong>CIA1-Chip</strong> (Complex Interface Adapter) bei $DC00. Der CIA1 hat zwei 8-Bit I/O-Ports mit konfigurierbaren Datenrichtungen. Für Eingabegeräte sind vor allem vier Register relevant:</p>
+
+    <table class="joy-bit-table">
+      <thead>
+        <tr><th>Adresse</th><th>Name</th><th>Funktion</th><th>Richtung</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>$DC00</code></td><td>CIA1 PRA (Port A)</td><td>Joystick Port 2 + Tastatur Zeilen-Select</td><td>Output (Scan)</td></tr>
+        <tr><td><code>$DC01</code></td><td>CIA1 PRB (Port B)</td><td>Joystick Port 1 + Tastatur Spalten-Read</td><td>Input (Read)</td></tr>
+        <tr><td><code>$DC02</code></td><td>CIA1 DDRA</td><td>Datenrichtung Port A (0=Input, 1=Output)</td><td>Konfig</td></tr>
+        <tr><td><code>$DC03</code></td><td>CIA1 DDRB</td><td>Datenrichtung Port B (0=Input, 1=Output)</td><td>Konfig</td></tr>
+      </tbody>
+    </table>
+
+    <p>Der C64-Startup setzt <code>$DC02 = $FF</code> (Port A = alles Output) und <code>$DC03 = $00</code> (Port B = alles Input). Das ist die korrekte Konfiguration für Tastatur-Scanning. Für reine Joystick-Abfrage reicht ein einfaches Lesen von $DC00 und $DC01, ohne die Richtungsregister anzufassen.</p>
+
+    <div class="box-info">
+      <div class="box-title">Gemeinsame Leitungen</div>
+      Die Joystick-Ports teilen Leitungen mit der Tastaturmatrix. Port 2 liegt auf $DC00 (Port A), Port 1 auf $DC01 (Port B). Ein gedrückter Joystick-Button kann daher wie eine gedrückte Taste erscheinen — und umgekehrt. Wer Joystick und Tastatur gleichzeitig nutzt, muss das im Code berücksichtigen.
+    </div>
+
+    <h3>1.1 Initialisierung</h3>
+
+    <p>Für den häufigsten Anwendungsfall — Joystick Port 2 + Tastatur — muss der CIA1 korrekt konfiguriert sein:</p>
+
+    <div class="pre-wrapper">
+      <pre><span class="comment">; CIA1 für Tastatur-Scan + Joystick initialisieren
+; Dies ist der C64-Standardzustand nach dem Reset</span>
+init_input:
+    <span class="label">lda</span> #$FF
+    <span class="label">sta</span> $DC02           <span class="comment">; DDRA: Port A = Output (Zeilen-Select)</span>
+    <span class="label">lda</span> #$00
+    <span class="label">sta</span> $DC03           <span class="comment">; DDRB: Port B = Input  (Spalten-Read + Joy1)</span>
+    <span class="label">lda</span> #$FF
+    <span class="label">sta</span> $DC00           <span class="comment">; Alle Zeilen abwählen (High = nicht selektiert)</span>
+    <span class="label">rts</span></pre>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section id="joystick">
+    <h2>2. Joystick-Abfrage</h2>
+
+    <p>Der C64 hat zwei 9-Pin-Joystick-Ports. Die Richtungs- und Feuer-Signale sind <strong>aktiv Low</strong>: 0 bedeutet gedrückt, 1 bedeutet losgelassen. Das ist ein häufiger Anfängerfehler — die Bits müssen invertiert oder mit AND-Masken ausgewertet werden.</p>
+
+    <div class="port-card">
+      <h4>Port 2 — $DC00 Bits 0–4</h4>
+      <p>Joystick Port 2 wird von fast allen C64-Spielen genutzt, weil er keine Konflikte mit der Tastatur-Schaltmatrix verursacht (Port A ist Output).</p>
+    </div>
+
+    <div class="port-card">
+      <h4>Port 1 — $DC01 Bits 0–4</h4>
+      <p>Joystick Port 1 teilt Leitungen mit dem Tastatur-Port B. Beim Scannen beider Ports gleichzeitig können Tastaturanschläge als Joy-1-Bewegungen registriert werden.</p>
+    </div>
+
+    <table class="joy-bit-table">
+      <thead>
+        <tr><th>Bit</th><th>Richtung</th><th>$DC00 (Joy 2)</th><th>$DC01 (Joy 1)</th><th>Wert wenn gedrückt</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="bit-badge">0</span></td><td>Up</td><td>Bit 0</td><td>Bit 0</td><td>0</td></tr>
+        <tr><td><span class="bit-badge">1</span></td><td>Down</td><td>Bit 1</td><td>Bit 1</td><td>0</td></tr>
+        <tr><td><span class="bit-badge">2</span></td><td>Left</td><td>Bit 2</td><td>Bit 2</td><td>0</td></tr>
+        <tr><td><span class="bit-badge">3</span></td><td>Right</td><td>Bit 3</td><td>Bit 3</td><td>0</td></tr>
+        <tr><td><span class="bit-badge">4</span></td><td>Fire</td><td>Bit 4</td><td>Bit 4</td><td>0</td></tr>
+        <tr><td><span class="bit-badge">5–7</span></td><td>—</td><td>andere Funktionen</td><td>andere Funktionen</td><td>1</td></tr>
+      </tbody>
+    </table>
+
+    <h3>2.1 Basis-Lesefunktion</h3>
+
+    <div class="pre-wrapper">
+      <pre><span class="comment">; Joystick Port 2 lesen — gibt invertierten Wert zurück
+; (0 = gedrückt → nach EOR: 1 = gedrückt, intuitiver)</span>
+read_joy2:
+    <span class="label">lda</span> $DC00           <span class="comment">; Port A lesen (Joystick Port 2)</span>
+    <span class="label">eor</span> #$FF            <span class="comment">; Invertieren: 1=gedrückt, 0=losgelassen</span>
+    <span class="label">and</span> #$1F            <span class="comment">; Nur Bits 0–4 (Up/Down/Left/Right/Fire)</span>
+    <span class="label">rts</span>                 <span class="comment">; A enthält Joystick-Zustand</span>
+
+<span class="comment">; Auswertung nach read_joy2:</span>
+<span class="comment">;   AND #$01 → Up    (Bit 0)</span>
+<span class="comment">;   AND #$02 → Down  (Bit 1)</span>
+<span class="comment">;   AND #$04 → Left  (Bit 2)</span>
+<span class="comment">;   AND #$08 → Right (Bit 3)</span>
+<span class="comment">;   AND #$10 → Fire  (Bit 4)</span>
+
+<span class="comment">; Joystick Port 1 lesen</span>
+read_joy1:
+    <span class="label">lda</span> $DC01           <span class="comment">; Port B lesen (Joystick Port 1)</span>
+    <span class="label">eor</span> #$FF
+    <span class="label">and</span> #$1F
+    <span class="label">rts</span></pre>
+    </div>
+
+    <div class="box-tip">
+      <div class="box-title">Tipp: Konstanten definieren</div>
+      Definiere Richtungs-Masken als ACME-Konstanten am Anfang deiner Quelldatei: <code>JOY_UP = $01</code>, <code>JOY_DOWN = $02</code>, <code>JOY_LEFT = $04</code>, <code>JOY_RIGHT = $08</code>, <code>JOY_FIRE = $10</code>. Das macht den Code deutlich lesbarer.
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section id="joystick-praxis">
+    <h2>3. Joystick in der Praxis</h2>
+
+    <h3>3.1 Edge Detection — nur beim ersten Frame auslösen</h3>
+
+    <p>Ohne Edge Detection wird eine Aktion so lange wiederholt, wie der Knopf gedrückt ist — 50 Mal pro Sekunde. Für Sprung, Schuss oder Menü-Auswahl soll aber nur der erste Frame reagieren. Edge Detection speichert den vorherigen Zustand und löst nur bei der positiven Flanke (losgelassen → gedrückt) aus.</p>
+
+    <div class="pre-wrapper">
+      <pre><span class="comment">; Zero-Page-Variablen</span>
+joy_curr = $02          <span class="comment">; aktueller Joystick-Zustand</span>
+joy_prev = $03          <span class="comment">; Zustand vom letzten Frame</span>
+joy_edge = $04          <span class="comment">; Bits die GERADE neu gedrückt wurden</span>
+
+<span class="comment">; Joystick-Update — einmal pro Frame im IRQ oder Game-Loop aufrufen</span>
+joy_update:
+    <span class="label">lda</span> joy_curr        <span class="comment">; vorherigen Zustand sichern</span>
+    <span class="label">sta</span> joy_prev
+    <span class="label">lda</span> $DC00
+    <span class="label">eor</span> #$FF
+    <span class="label">and</span> #$1F
+    <span class="label">sta</span> joy_curr        <span class="comment">; aktuellen Zustand speichern</span>
+    <span class="label">eor</span> joy_prev        <span class="comment">; XOR: welche Bits haben sich geändert?</span>
+    <span class="label">and</span> joy_curr        <span class="comment">; AND: nur Bits die jetzt gedrückt sind (= neue Drücke)</span>
+    <span class="label">sta</span> joy_edge        <span class="comment">; Edge-Bits speichern</span>
+    <span class="label">rts</span>
+
+<span class="comment">; Verwendung im Game-Loop:</span>
+check_fire_once:
+    <span class="label">lda</span> joy_edge
+    <span class="label">and</span> #$10            <span class="comment">; Fire-Button Edge?</span>
+    <span class="label">beq</span> .no_fire
+    <span class="label">jsr</span> player_shoot    <span class="comment">; Nur einmalig auslösen</span>
+.no_fire:
+    <span class="label">rts</span></pre>
+    </div>
+
+    <h3>3.2 Vollständiger Spieler-Handler mit Diagonal und Fire-Repeat</h3>
+
+    <div class="pre-wrapper">
+      <pre><span class="comment">; Joystick-Konstanten</span>
+JOY_UP    = $01
+JOY_DOWN  = $02
+JOY_LEFT  = $04
+JOY_RIGHT = $08
+JOY_FIRE  = $10
+
+<span class="comment">; Zero-Page</span>
+joy_curr     = $02
+joy_prev     = $03
+joy_edge     = $04
+fire_repeat  = $05      <span class="comment">; Frame-Zähler für Auto-Repeat des Feuerknopfes</span>
+player_vx    = $06      <span class="comment">; Geschwindigkeit X (-1, 0, +1)</span>
+player_vy    = $07      <span class="comment">; Geschwindigkeit Y</span>
+
+FIRE_REPEAT_DELAY = 8   <span class="comment">; Frames bis Auto-Repeat beginnt</span>
+FIRE_REPEAT_RATE  = 4   <span class="comment">; Frames zwischen wiederholten Schüssen</span>
+
+joy_full_update:
+    <span class="comment">; --- Zustand lesen + Edge Detection ---</span>
+    <span class="label">lda</span> joy_curr
+    <span class="label">sta</span> joy_prev
+    <span class="label">lda</span> $DC00
+    <span class="label">eor</span> #$FF
+    <span class="label">and</span> #$1F
+    <span class="label">sta</span> joy_curr
+    <span class="label">eor</span> joy_prev
+    <span class="label">and</span> joy_curr
+    <span class="label">sta</span> joy_edge
+
+    <span class="comment">; --- Bewegung: X-Achse ---</span>
+    <span class="label">lda</span> #0
+    <span class="label">sta</span> player_vx
+    <span class="label">lda</span> joy_curr
+    <span class="label">and</span> #JOY_LEFT
+    <span class="label">beq</span> .check_right
+    <span class="label">lda</span> #$FF             <span class="comment">; -1 (links)</span>
+    <span class="label">sta</span> player_vx
+.check_right:
+    <span class="label">lda</span> joy_curr
+    <span class="label">and</span> #JOY_RIGHT
+    <span class="label">beq</span> .check_up
+    <span class="label">lda</span> #1
+    <span class="label">sta</span> player_vx       <span class="comment">; +1 (rechts) — überschreibt links bei Konflikt</span>
+
+    <span class="comment">; --- Bewegung: Y-Achse ---</span>
+.check_up:
+    <span class="label">lda</span> #0
+    <span class="label">sta</span> player_vy
+    <span class="label">lda</span> joy_curr
+    <span class="label">and</span> #JOY_UP
+    <span class="label">beq</span> .check_down
+    <span class="label">lda</span> #$FF             <span class="comment">; -1 (oben)</span>
+    <span class="label">sta</span> player_vy
+.check_down:
+    <span class="label">lda</span> joy_curr
+    <span class="label">and</span> #JOY_DOWN
+    <span class="label">beq</span> .fire_check
+    <span class="label">lda</span> #1
+    <span class="label">sta</span> player_vy
+
+    <span class="comment">; --- Feuer mit Auto-Repeat ---</span>
+.fire_check:
+    <span class="label">lda</span> joy_curr
+    <span class="label">and</span> #JOY_FIRE
+    <span class="label">bne</span> .fire_held
+    <span class="label">lda</span> #0               <span class="comment">; Feuer losgelassen → Reset Counter</span>
+    <span class="label">sta</span> fire_repeat
+    <span class="label">rts</span>
+
+.fire_held:
+    <span class="label">lda</span> joy_edge         <span class="comment">; Gerade erst gedrückt?</span>
+    <span class="label">and</span> #JOY_FIRE
+    <span class="label">bne</span> .fire_now        <span class="comment">; Ja → sofort schießen</span>
+    <span class="label">inc</span> fire_repeat
+    <span class="label">lda</span> fire_repeat
+    <span class="label">cmp</span> #FIRE_REPEAT_DELAY
+    <span class="label">bcc</span> .no_fire_yet
+    <span class="comment">; Auto-Repeat-Phase</span>
+    <span class="label">lda</span> fire_repeat
+    <span class="label">sec</span>
+    <span class="label">sbc</span> #FIRE_REPEAT_DELAY
+    <span class="label">and</span> #(FIRE_REPEAT_RATE-1)  <span class="comment">; Modulo FIRE_REPEAT_RATE (muss Potenz von 2 sein)</span>
+    <span class="label">bne</span> .no_fire_yet
+.fire_now:
+    <span class="label">jsr</span> player_shoot
+.no_fire_yet:
+    <span class="label">rts</span></pre>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section id="tastatur-matrix">
+    <h2>4. Die Tastaturmatrix</h2>
+
+    <p>Die C64-Tastatur funktioniert nach dem <strong>Matrix-Scan-Prinzip</strong>: 64 Tasten sind in einem 8×8-Raster aus 8 Zeilen und 8 Spalten verdrahtet. Zum Scannen wird eine Zeile nach der anderen auf Low gezogen (über $DC00), und dann geprüft, welche Spalte in $DC01 auf Low reagiert — das ist die gedrückte Taste.</p>
+
+    <h3>4.1 Scan-Prinzip</h3>
+
+    <ol>
+      <li>$DC00 = $FE: Zeile 0 aktiv (Bit 0 = 0, alle anderen = 1)</li>
+      <li>$DC01 lesen: welches Bit ist 0? → das ist die Spalte der gedrückten Taste</li>
+      <li>$DC00 = $FD: Zeile 1 aktiv, $DC01 lesen …</li>
+      <li>Alle 8 Zeilen durchlaufen → 8 × 8 = 64 mögliche Tasten erkannt</li>
+    </ol>
+
+    <p>Zeilen werden durch das Schreiben eines Werts mit <em>einem einzelnen Null-Bit</em> in $DC00 selektiert:</p>
+
+    <table>
+      <thead><tr><th>Zeile</th><th>$DC00 Wert</th><th>Binär</th></tr></thead>
+      <tbody>
+        <tr><td>0</td><td><code>$FE</code></td><td>%11111110</td></tr>
+        <tr><td>1</td><td><code>$FD</code></td><td>%11111101</td></tr>
+        <tr><td>2</td><td><code>$FB</code></td><td>%11111011</td></tr>
+        <tr><td>3</td><td><code>$F7</code></td><td>%11110111</td></tr>
+        <tr><td>4</td><td><code>$EF</code></td><td>%11101111</td></tr>
+        <tr><td>5</td><td><code>$DF</code></td><td>%11011111</td></tr>
+        <tr><td>6</td><td><code>$BF</code></td><td>%10111111</td></tr>
+        <tr><td>7</td><td><code>$7F</code></td><td>%01111111</td></tr>
+      </tbody>
+    </table>
+
+    <h3>4.2 Vollständige Tastaturmatrix</h3>
+
+    <p>Die Matrix-Tabelle zeigt für jede Kombination aus Zeile (Wert in $DC00) und Spalte (Bit in $DC01) die entsprechende Taste:</p>
+
+    <table class="matrix-table">
+      <thead>
+        <tr>
+          <th class="col-header">$DC00 →</th>
+          <th>Bit 7</th><th>Bit 6</th><th>Bit 5</th><th>Bit 4</th>
+          <th>Bit 3</th><th>Bit 2</th><th>Bit 1</th><th>Bit 0</th>
+        </tr>
+        <tr>
+          <th class="col-header">$DC01 Bit:</th>
+          <th>7</th><th>6</th><th>5</th><th>4</th>
+          <th>3</th><th>2</th><th>1</th><th>0</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="row-header">$FE (Z.0)</td><td>STOP</td><td>Q</td><td>C=</td><td>SPACE</td><td>2</td><td>CTRL</td><td>←</td><td>1</td></tr>
+        <tr><td class="row-header">$FD (Z.1)</td><td>/</td><td>↑</td><td>=</td><td>RSHIFT</td><td>HOME</td><td>;</td><td>*</td><td>£</td></tr>
+        <tr><td class="row-header">$FB (Z.2)</td><td>,</td><td>@</td><td>:</td><td>.</td><td>-</td><td>L</td><td>P</td><td>+</td></tr>
+        <tr><td class="row-header">$F7 (Z.3)</td><td>N</td><td>O</td><td>K</td><td>M</td><td>0</td><td>J</td><td>I</td><td>9</td></tr>
+        <tr><td class="row-header">$EF (Z.4)</td><td>V</td><td>U</td><td>H</td><td>B</td><td>8</td><td>G</td><td>Y</td><td>7</td></tr>
+        <tr><td class="row-header">$DF (Z.5)</td><td>X</td><td>T</td><td>F</td><td>C</td><td>6</td><td>D</td><td>R</td><td>5</td></tr>
+        <tr><td class="row-header">$BF (Z.6)</td><td>LSHIFT</td><td>E</td><td>S</td><td>Z</td><td>4</td><td>A</td><td>W</td><td>3</td></tr>
+        <tr><td class="row-header">$7F (Z.7)</td><td>CUR↓</td><td>F5</td><td>F3</td><td>F1</td><td>F7</td><td>CUR→</td><td>RETURN</td><td>DEL</td></tr>
+      </tbody>
+    </table>
+
+    <p>Scan-Code einer Taste = <strong>Zeile × 8 + Spalten-Bit-Nummer</strong>. DEL hat Scan-Code 0×8+0 = 0, STOP hat 0×8+7 = 7, F1 hat 7×8+4 = 60 usw.</p>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section id="tastatur-scan">
+    <h2>5. Tastatur-Scan-Routinen</h2>
+
+    <h3>5.1 Vollständiger Matrix-Scan</h3>
+
+    <div class="pre-wrapper">
+      <pre><span class="comment">; key_state: 64-Byte-Array, 1=gedrückt, 0=losgelassen
+; key_prev:  vorheriger Zustand (für Edge Detection)
+; Beide im RAM (nicht ZP nötig, Zugriff ist unkritisch)</span>
+key_state  = $0340       <span class="comment">; 64 Bytes</span>
+key_prev   = $0380       <span class="comment">; 64 Bytes (für Edge Detection)</span>
+
+<span class="comment">; Row-Select-Tabelle: 8 Werte für $DC00</span>
+row_mask:
+    !byte $FE, $FD, $FB, $F7, $EF, $DF, $BF, $7F
+
+scan_keyboard:
+    <span class="label">sei</span>                  <span class="comment">; IRQ sperren während Scan</span>
+    <span class="label">ldx</span> #0               <span class="comment">; Zeilen-Index</span>
+.row_loop:
+    <span class="comment">; Vorherigen Zustand dieser Zeile sichern</span>
+    <span class="label">ldy</span> #7
+.save_prev:
+    <span class="label">lda</span> key_state,x      <span class="comment">; Hinweis: x+y wäre ideal, aber X ist Zeile×8</span>
+    <span class="label">sta</span> key_prev,x
+    <span class="label">inx</span>
+    <span class="label">dey</span>
+    <span class="label">bpl</span> .save_prev
+    <span class="label">txa</span>
+    <span class="label">sec</span>
+    <span class="label">sbc</span> #8
+    <span class="label">tax</span>                  <span class="comment">; X zurück auf Zeilenanfang</span>
+
+    <span class="comment">; Zeile auswählen</span>
+    <span class="label">lda</span> row_mask,x       <span class="comment">; Falsch: X ist hier Zeilen-Idx 0–7, nicht ×8</span>
+    <span class="comment">; Korrekte Implementierung mit separatem Zähler:</span>
+    <span class="label">rts</span>                  <span class="comment">; (vereinfacht — siehe vollständige Version unten)</span>
+
+<span class="comment">; ── Sauberere Implementierung ───────────────────────────────────</span>
+scan_keys_full:
+    <span class="label">sei</span>
+    <span class="label">ldx</span> #7              <span class="comment">; Zeilen-Index 7..0</span>
+.row:
+    <span class="label">lda</span> row_mask,x
+    <span class="label">sta</span> $DC00            <span class="comment">; Zeile auswählen</span>
+    <span class="label">nop</span>                  <span class="comment">; kurz warten (Signal stabilisiert sich)</span>
+    <span class="label">lda</span> $DC01            <span class="comment">; Spalten lesen</span>
+    <span class="label">eor</span> #$FF             <span class="comment">; Invertieren: 1=gedrückt</span>
+    <span class="label">sta</span> $02              <span class="comment">; zwischenspeichern</span>
+    <span class="label">ldy</span> #7              <span class="comment">; Spalten-Index 7..0</span>
+.col:
+    <span class="comment">; Scan-Code = Zeile×8 + Spalte</span>
+    <span class="label">txa</span>
+    <span class="label">asl</span>
+    <span class="label">asl</span>
+    <span class="label">asl</span>                  <span class="comment">; ×8 → Offset für diese Zeile</span>
+    <span class="label">sty</span> $03
+    <span class="label">clc</span>
+    <span class="label">adc</span> $03              <span class="comment">; + Spalte</span>
+    <span class="label">tay</span>                  <span class="comment">; Y = Scan-Code (Index ins key_state-Array)</span>
+    <span class="label">lda</span> $02
+    <span class="label">and</span> col_bit_mask,y   <span class="comment">; Spalten-Bit isolieren</span>
+    <span class="label">beq</span> .not_pressed
+    <span class="label">lda</span> #1
+    <span class="label">bne</span> .store
+.not_pressed:
+    <span class="label">lda</span> #0
+.store:
+    <span class="label">sta</span> key_state,y
+    <span class="label">ldy</span> $03
+    <span class="label">dey</span>
+    <span class="label">bpl</span> .col
+    <span class="label">dex</span>
+    <span class="label">bpl</span> .row
+    <span class="label">lda</span> #$FF
+    <span class="label">sta</span> $DC00            <span class="comment">; Alle Zeilen wieder abwählen</span>
+    <span class="label">cli</span>
+    <span class="label">rts</span>
+
+col_bit_mask: !byte $01,$02,$04,$08,$10,$20,$40,$80</pre>
+    </div>
+
+    <h3>5.2 Debounce und Key-Repeat</h3>
+
+    <p><strong>Entprellen (Debounce)</strong> verhindert, dass mechanisches Prellen einer Taste als mehrere Drücke gewertet wird. Eine einfache Methode: eine Taste gilt erst als stabil gedrückt, wenn sie in zwei aufeinanderfolgenden Frames als gedrückt gelesen wird.</p>
+
+    <div class="pre-wrapper">
+      <pre><span class="comment">; Einfaches 2-Frame-Debounce für eine einzelne Taste</span>
+<span class="comment">; key_raw: direkt vom Scan, key_db: entprellter Zustand</span>
+key_raw = $06
+key_db  = $07
+
+debounce_update:
+    <span class="label">lda</span> key_raw         <span class="comment">; neuer roher Wert</span>
+    <span class="label">and</span> key_db_prev      <span class="comment">; Taste muss in BEIDEN Frames gedrückt sein</span>
+    <span class="label">sta</span> key_db           <span class="comment">; entprellter Wert</span>
+    <span class="label">lda</span> key_raw
+    <span class="label">sta</span> key_db_prev      <span class="comment">; aktuell für nächsten Frame sichern</span>
+    <span class="label">rts</span>
+
+<span class="comment">; Key-Repeat: erst nach REPEAT_DELAY Frames, dann alle REPEAT_RATE Frames</span>
+key_repeat_cnt = $08    <span class="comment">; Frame-Zähler</span>
+REPEAT_DELAY = 20       <span class="comment">; 20 Frames ≈ 400 ms bei 50 Hz</span>
+REPEAT_RATE  = 3        <span class="comment">; alle 3 Frames ein Repeat ≈ 60 ms</span>
+
+key_repeat_tick:
+    <span class="label">lda</span> key_db           <span class="comment">; Taste gedrückt?</span>
+    <span class="label">beq</span> .reset_cnt
+    <span class="label">inc</span> key_repeat_cnt
+    <span class="label">lda</span> key_repeat_cnt
+    <span class="label">cmp</span> #REPEAT_DELAY
+    <span class="label">bcc</span> .no_repeat
+    <span class="label">lda</span> key_repeat_cnt
+    <span class="label">sec</span>
+    <span class="label">sbc</span> #REPEAT_DELAY
+    <span class="comment">; Modulo REPEAT_RATE (= 3 → nicht Potenz von 2, daher CMP)</span>
+    <span class="label">cmp</span> #REPEAT_RATE
+    <span class="label">bne</span> .no_repeat
+    <span class="label">lda</span> #REPEAT_DELAY    <span class="comment">; Zähler auf Delay-Wert zurücksetzen</span>
+    <span class="label">sta</span> key_repeat_cnt
+    <span class="label">jsr</span> handle_repeated_key
+    <span class="label">rts</span>
+.no_repeat:
+    <span class="label">rts</span>
+.reset_cnt:
+    <span class="label">lda</span> #0
+    <span class="label">sta</span> key_repeat_cnt
+    <span class="label">rts</span></pre>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section id="mehrere-tasten">
+    <h2>6. Mehrere Tasten gleichzeitig</h2>
+
+    <h3>6.1 Das Ghosting-Problem</h3>
+
+    <p>Bei mechanischen Matrix-Tastaturen ohne Dioden (wie dem C64) können bei drei gleichzeitig gedrückten Tasten Geistertasten (Ghosts) entstehen. Wenn z.B. <strong>A</strong>, <strong>B</strong> und <strong>C</strong> gedrückt sind, wobei A+B in einer Zeile und A+C in einer Spalte liegen, erscheint die vierte Ecke der "Box" auch als gedrückt.</p>
+
+    <p>Für Spielereingaben ist das in der Praxis selten ein Problem, weil:</p>
+    <ul>
+      <li>Joystick + Feuer werden über $DC00/$DC01 Bits 0–4 abgefragt — dort kein Ghosting</li>
+      <li>Die meisten Spiele nur 1–2 Tasten gleichzeitig benötigen (Cursors + SPACE)</li>
+      <li>Kritische Kombinationen (Shift + Buchstabe) liegen so in der Matrix, dass sie sicher funktionieren</li>
+    </ul>
+
+    <h3>6.2 Sichere Tastenkombinationen</h3>
+
+    <p>Folgende Kombinationen funktionieren auf jedem C64 zuverlässig gleichzeitig:</p>
+    <ul>
+      <li><strong>Cursor-Tasten</strong> (alle vier) + <strong>SPACE</strong> oder <strong>RETURN</strong></li>
+      <li><strong>LSHIFT + beliebige Buchstabentaste</strong></li>
+      <li><strong>Joystick-Richtungen</strong> (aus $DC00) + <strong>Tastatur</strong> (weitgehend unabhängig)</li>
+    </ul>
+
+    <div class="box-warning">
+      <div class="box-title">Achtung: Joystick Port 1 + Tastatur</div>
+      Joystick Port 1 liegt auf $DC01 (Port B) — demselben Register das für das Lesen der Tastaturmatrix-Spalten verwendet wird. Wenn Port 1 einen Joystick hat und gleichzeitig die Tastatur gescannt wird, können Joystick-Bewegungen als Tastenanschläge erscheinen. Für die meisten Spiele deshalb: Joystick Port 2 bevorzugen.
+    </div>
+
+    <h3>6.3 Key-State-Array für mehrere Tasten</h3>
+
+    <p>Das Key-State-Array aus Abschnitt 5.1 (64 Bytes, ein Byte pro Scan-Code) erlaubt das gleichzeitige Verfolgen beliebig vieler Tasten. Jedes Byte ist 0 (losgelassen) oder 1 (gedrückt). Abfrage einer einzelnen Taste:</p>
+
+    <div class="pre-wrapper">
+      <pre><span class="comment">; Scan-Code-Konstanten für häufige Tasten</span>
+KEY_DEL    = 0
+KEY_RETURN = 1
+KEY_F1     = 60
+KEY_F3     = 61
+KEY_F5     = 62
+KEY_F7     = 63
+KEY_SPACE  = 60     <span class="comment">; Zeile 0, Spalte 4 → 0*8+4 = 4 — Werte prüfen!</span>
+KEY_LSHIFT = 48     <span class="comment">; Zeile 6, Spalte 0 → 6*8+0 = 48</span>
+KEY_STOP   = 7      <span class="comment">; Zeile 0, Spalte 7</span>
+
+<span class="comment">; Prüfen ob RETURN gedrückt:</span>
+is_return_pressed:
+    <span class="label">lda</span> key_state + KEY_RETURN
+    <span class="label">rts</span>                  <span class="comment">; A ≠ 0 → gedrückt</span>
+
+<span class="comment">; Prüfen ob SHIFT + RETURN gedrückt (gleichzeitig):</span>
+is_shift_return:
+    <span class="label">lda</span> key_state + KEY_RETURN
+    <span class="label">beq</span> .no
+    <span class="label">lda</span> key_state + KEY_LSHIFT
+    <span class="label">rts</span>                  <span class="comment">; A ≠ 0 → Shift+Return gedrückt</span>
+.no:
+    <span class="label">lda</span> #0
+    <span class="label">rts</span></pre>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section id="kernal-vs-direkt">
+    <h2>7. KERNAL-Abfrage vs. direkte Hardware</h2>
+
+    <table>
+      <thead>
+        <tr><th>Methode</th><th>Latenz</th><th>Mehrere Tasten</th><th>Geeignet für</th><th>Nachteil</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>GETIN ($FFE4)</code></td>
+          <td>hoch (~1 ms)</td>
+          <td>Nein (1 Taste/Frame)</td>
+          <td>Texteingabe, Menü</td>
+          <td>Kein Gleichzeitig, KERNAL-Overhead</td>
+        </tr>
+        <tr>
+          <td><code>SCNKEY ($FF9F)</code></td>
+          <td>mittel</td>
+          <td>Nein</td>
+          <td>Einzeltasten-Events</td>
+          <td>Nur 1 Taste im KERNAL-Puffer</td>
+        </tr>
+        <tr>
+          <td>Direktes $DC01-Lesen</td>
+          <td>minimal (2 Zyklen)</td>
+          <td>Ja</td>
+          <td>Joystick, Action-Games</td>
+          <td>Kein Auto-Repeat, kein PETSCII</td>
+        </tr>
+        <tr>
+          <td>Vollständiger Matrix-Scan</td>
+          <td>~100 Zyklen</td>
+          <td>Ja (alle 64)</td>
+          <td>Komplexe Spiele, Textedit</td>
+          <td>Code-Aufwand, IRQ sperren</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>7.1 GETIN für einfache Eingaben</h3>
+
+    <p><code>GETIN</code> liest ein Zeichen aus dem KERNAL-Tastaturpuffer. Ist der Puffer leer, kommt A=0 zurück — ideal für Non-Blocking-Polling im Game-Loop:</p>
+
+    <div class="pre-wrapper">
+      <pre><span class="comment">; Non-blocking Tastenabfrage mit GETIN</span>
+poll_key:
+    <span class="label">jsr</span> $FFE4            <span class="comment">; GETIN</span>
+    <span class="label">tax</span>                  <span class="comment">; Taste in X sichern</span>
+    <span class="label">beq</span> .no_key          <span class="comment">; A=0 → kein Zeichen</span>
+    <span class="comment">; A enthält PETSCII-Code der Taste</span>
+    <span class="label">cmp</span> #$51             <span class="comment">; 'Q' in PETSCII</span>
+    <span class="label">beq</span> .quit
+    <span class="label">cmp</span> #$11             <span class="comment">; Cursor Down</span>
+    <span class="label">beq</span> .cursor_down
+.no_key:
+    <span class="label">rts</span></pre>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section id="praxisbeispiele">
+    <h2>8. Praxisbeispiele</h2>
+
+    <h3>8.1 Menü-Navigation</h3>
+
+    <div class="pre-wrapper">
+      <pre><span class="comment">; Menü-Steuerung: Cursor Up/Down + RETURN
+; Verwendet GETIN für einfache, robuste Implementierung</span>
+
+menu_cursor  = $C0       <span class="comment">; aktuelle Menüposition (0-basiert)</span>
+MENU_ITEMS   = 4         <span class="comment">; Anzahl Menüeinträge</span>
+
+menu_handle_input:
+    <span class="label">jsr</span> $FFE4            <span class="comment">; GETIN</span>
+    <span class="label">beq</span> .done
+
+    <span class="label">cmp</span> #$11             <span class="comment">; Cursor Down (PETSCII $11)</span>
+    <span class="label">bne</span> .check_up
+    <span class="label">inc</span> menu_cursor
+    <span class="label">lda</span> menu_cursor
+    <span class="label">cmp</span> #MENU_ITEMS
+    <span class="label">bcc</span> .draw
+    <span class="label">lda</span> #0               <span class="comment">; Wrap-around</span>
+    <span class="label">sta</span> menu_cursor
+    <span class="label">bne</span> .draw
+
+.check_up:
+    <span class="label">cmp</span> #$91             <span class="comment">; Cursor Up (PETSCII $91)</span>
+    <span class="label">bne</span> .check_fire
+    <span class="label">lda</span> menu_cursor
+    <span class="label">beq</span> .wrap_up
+    <span class="label">dec</span> menu_cursor
+    <span class="label">bne</span> .draw
+.wrap_up:
+    <span class="label">lda</span> #(MENU_ITEMS-1)
+    <span class="label">sta</span> menu_cursor
+    <span class="label">bne</span> .draw
+
+.check_fire:
+    <span class="label">cmp</span> #$0D             <span class="comment">; RETURN (PETSCII $0D)</span>
+    <span class="label">bne</span> .check_joy_fire
+    <span class="label">jsr</span> menu_select_item <span class="comment">; Auswahl bestätigen</span>
+    <span class="label">rts</span>
+
+.check_joy_fire:
+    <span class="label">lda</span> $DC00
+    <span class="label">and</span> #$10             <span class="comment">; Joy2 Fire (Bit 4, active low)</span>
+    <span class="label">bne</span> .done            <span class="comment">; Bit gesetzt = nicht gedrückt</span>
+    <span class="label">jsr</span> menu_select_item
+    <span class="label">rts</span>
+.draw:
+    <span class="label">jsr</span> menu_draw_cursor
+.done:
+    <span class="label">rts</span></pre>
+    </div>
+
+    <h3>8.2 High-Score-Namenseingabe</h3>
+
+    <div class="pre-wrapper">
+      <pre><span class="comment">; High-Score-Namenseingabe: bis zu 8 Zeichen, A–Z + RETURN
+; name_buf: 8-Byte-Puffer, name_len: aktuelle Länge</span>
+
+name_buf = $C0           <span class="comment">; 8 Bytes</span>
+name_len = $C8           <span class="comment">; aktuelle Länge 0–8</span>
+NAME_MAX = 8
+
+hiscore_input_loop:
+.poll:
+    <span class="label">jsr</span> $FFE4            <span class="comment">; GETIN (wartet nicht, Non-Blocking)</span>
+    <span class="label">beq</span> .poll            <span class="comment">; kein Zeichen → weiter warten</span>
+
+    <span class="label">cmp</span> #$0D             <span class="comment">; RETURN → fertig</span>
+    <span class="label">beq</span> .done
+
+    <span class="label">cmp</span> #$14             <span class="comment">; DEL → letztes Zeichen entfernen</span>
+    <span class="label">bne</span> .check_letter
+    <span class="label">lda</span> name_len
+    <span class="label">beq</span> .poll            <span class="comment">; schon leer</span>
+    <span class="label">dec</span> name_len
+    <span class="label">jsr</span> hiscore_draw
+    <span class="label">jmp</span> .poll
+
+.check_letter:
+    <span class="comment">; Nur A–Z (PETSCII Großbuchstaben $41–$5A) akzeptieren</span>
+    <span class="label">cmp</span> #$41
+    <span class="label">bcc</span> .poll            <span class="comment">; kleiner als 'A' → ignorieren</span>
+    <span class="label">cmp</span> #$5B
+    <span class="label">bcs</span> .poll            <span class="comment">; größer als 'Z' → ignorieren</span>
+    <span class="label">ldx</span> name_len
+    <span class="label">cpx</span> #NAME_MAX
+    <span class="label">bcs</span> .poll            <span class="comment">; Puffer voll</span>
+    <span class="label">sta</span> name_buf,x       <span class="comment">; Zeichen speichern</span>
+    <span class="label">inc</span> name_len
+    <span class="label">jsr</span> hiscore_draw
+    <span class="label">jmp</span> .poll
+
+.done:
+    <span class="label">lda</span> name_len
+    <span class="label">beq</span> .poll            <span class="comment">; leerer Name nicht erlaubt</span>
+    <span class="label">rts</span></pre>
+    </div>
+
+    <h3>8.3 Vollständiger Plattformer-Input</h3>
+
+    <p>Kombiniert Joystick Port 2 mit Edge Detection für Sprung — der klassische Anwendungsfall:</p>
+
+    <div class="pre-wrapper">
+      <pre><span class="comment">; Platform-Steuerung: Joystick Port 2
+; Links/Rechts → Bewegung, Up/Fire → Sprung (Edge-Triggered)</span>
+
+joy2_state = $02
+joy2_edge  = $03
+joy2_prev  = $04
+on_ground  = $05         <span class="comment">; 1 = Spieler steht auf Boden</span>
+
+player_update_input:
+    <span class="comment">; Joystick lesen + Edge Detection</span>
+    <span class="label">lda</span> joy2_state
+    <span class="label">sta</span> joy2_prev
+    <span class="label">lda</span> $DC00
+    <span class="label">eor</span> #$1F             <span class="comment">; Bits 0–4 invertieren</span>
+    <span class="label">and</span> #$1F
+    <span class="label">sta</span> joy2_state
+    <span class="label">eor</span> joy2_prev
+    <span class="label">and</span> joy2_state
+    <span class="label">sta</span> joy2_edge
+
+    <span class="comment">; Horizontale Bewegung (gehalten, kein Edge nötig)</span>
+    <span class="label">lda</span> joy2_state
+    <span class="label">and</span> #$04             <span class="comment">; Links</span>
+    <span class="label">beq</span> .chk_right
+    <span class="label">jsr</span> player_move_left
+.chk_right:
+    <span class="label">lda</span> joy2_state
+    <span class="label">and</span> #$08             <span class="comment">; Rechts</span>
+    <span class="label">beq</span> .chk_jump
+    <span class="label">jsr</span> player_move_right
+
+    <span class="comment">; Sprung: nur bei Edge, nur wenn auf dem Boden</span>
+.chk_jump:
+    <span class="label">lda</span> on_ground
+    <span class="label">beq</span> .done            <span class="comment">; in der Luft → kein Sprung</span>
+    <span class="label">lda</span> joy2_edge
+    <span class="label">and</span> #$11             <span class="comment">; Up (Bit 0) ODER Fire (Bit 4)</span>
+    <span class="label">beq</span> .done
+    <span class="label">jsr</span> player_jump      <span class="comment">; Sprung einleiten</span>
+.done:
+    <span class="label">rts</span></pre>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section id="benchmark" class="benchmark">
+    <h2>Skill-Benchmark: Stufe 16</h2>
+    <ul class="benchmark-list">
+      <li>Du liest Joystick Port 2 aus $DC00, invertierst die Bits korrekt und wertest Up/Down/Left/Right/Fire mit AND-Masken aus</li>
+      <li>Du implementierst Edge Detection für Joystick-Buttons und löst Aktionen (Sprung, Schuss) nur beim ersten Frame aus</li>
+      <li>Du erklärst das 8×8-Matrix-Prinzip der C64-Tastatur und kannst die Zeilen-Select-Werte für $DC00 aus dem Kopf nennen</li>
+      <li>Du scannst die vollständige Tastaturmatrix per Schleife und speicherst den Zustand in einem 64-Byte-Array</li>
+      <li>Du implementierst 2-Frame-Debounce und Key-Repeat mit konfigurierbarem Delay und Rate</li>
+      <li>Du erklärst das Ghosting-Problem und weißt welche Tastenkombinationen auf dem C64 sicher gleichzeitig funktionieren</li>
+      <li>Du implementierst eine vollständige Menü-Navigation (Cursor Up/Down + RETURN + Joy2 Fire)</li>
+      <li>Du baust eine High-Score-Namenseingabe (A–Z, DEL, RETURN, Längenbegrenzung) auf Basis von GETIN</li>
+    </ul>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section class="exercises">
+    <h2>Übungsaufgaben</h2>
+
+    <div class="exercise-item">
+      <h4>Übung 16.1 — Joystick-Tester</h4>
+      <p>Schreibe ein Programm das beide Joystick-Ports liest und den Zustand auf dem Bildschirm anzeigt: Pfeile für die Richtungen (↑↓←→), ein gefülltes Quadrat für Fire. Zeige beide Ports nebeneinander. Aktualisiere die Anzeige jeden Frame über einen Raster-IRQ. Verwende direkte Bildschirmspeicher-Ausgabe ohne KERNAL.</p>
+    </div>
+
+    <div class="exercise-item">
+      <h4>Übung 16.2 — Tastatur-Monitor</h4>
+      <p>Implementiere den vollständigen Matrix-Scan aus Abschnitt 5.1. Zeige den Scan-Code der aktuell gedrückten Taste dezimal im Bildschirmspeicher an. Baue eine einfache Scan-Code-zu-PETSCII-Lookup-Tabelle für Buchstaben A–Z, Ziffern 0–9 und SPACE. Teste die gleichzeitige Erkennung von Shift + Buchstabe.</p>
+    </div>
+
+    <div class="exercise-item">
+      <h4>Übung 16.3 — Plattformer-Eingabe</h4>
+      <p>Erweitere den Plattformer-Input aus Abschnitt 8.3 um: (1) Links/Rechts-Richtung als Sprite-Flip-Flag speichern, (2) Sprung-Hold (länger halten = höher springen, bis zu 20 Frames), (3) Dash-Bewegung bei Doppeltipp auf Links/Rechts innerhalb von 8 Frames. Teste mit dem VICE-Monitor: Setze einen Watchpoint auf <code>on_ground</code> und verifiziere, dass Springen nur auf dem Boden ausgelöst wird.</p>
+    </div>
+  </section>
+
+  <nav class="chapter-nav">
+    <a href="stufe_15_debugging_deep_dive.html">← Stufe 15: Deep Debugging</a>
+    <a href="stufe_17_floppy_fastloader.html">Stufe 17: Floppy &amp; Fastloader →</a>
+  </nav>
+</main>
+
+  <script src="assets/c64-interactive.js"></script>
+</body>
+</html>
