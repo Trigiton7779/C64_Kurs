@@ -240,6 +240,7 @@
     <a href="#plasma" class="toc-link">6. Plasma-Effekt</a>
     <a href="#dysp" class="toc-link">7. DYSP &amp; Tricks</a>
     <a href="#charset-anim" class="toc-link">8. Charset-Animation</a>
+    <a href="#open-border" class="toc-link">9. Open Border &amp; Vollbild</a>
     <a href="#benchmark" class="toc-link">Skill-Benchmark</a>
     <a href="#exercises" class="toc-link">Übungen</a>
   </nav>
@@ -1160,6 +1161,243 @@ GetInactiveBase:
 .return2: LDA #$28 : RTS     <span class="comment">; High-Byte von $2800</span></pre>
   </section>
 
+
+  <!-- ============================================================ -->
+  <section id="open-border">
+    <h2>9. Offener Rahmen — Open Border &amp; Vollbild-Effekte</h2>
+
+    <p>Der C64-Rahmen (Border) scheint fest — aber der VIC-II berechnet ihn jede Rasterzeile neu. Mit dem richtigen Timing lässt er sich komplett ausblenden: Effekte laufen dann über die volle PAL-Breite von 403 Pixeln und die volle Höhe von 284 sichtbaren Zeilen.</p>
+
+    <h3>9.1 Theorie: Wie der VIC-II den Rahmen erzeugt</h3>
+
+    <p>Der VIC-II besitzt intern zwei <em>Border-Flip-Flops</em> — eines für oben/unten, eines für links/rechts. Sie werden gesetzt und gelöscht basierend auf aktueller Rasterzeile und den Modus-Bits:</p>
+
+    <table>
+      <thead><tr><th>Richtung</th><th>Register-Bit</th><th>PAL: Grenze öffnet bei</th><th>PAL: Grenze schließt bei</th></tr></thead>
+      <tbody>
+        <tr><td>Unten</td><td><code>$D011</code> Bit 3 (25/24 Zeilen)</td><td>Rasterline 251</td><td>Rasterline 255</td></tr>
+        <tr><td>Oben</td><td><code>$D011</code> Bit 3</td><td>Rasterline 51</td><td>Rasterline 55</td></tr>
+        <tr><td>Links/Rechts</td><td><code>$D016</code> Bit 3 (40/38 Spalten)</td><td>Pixel-Zyklus 24 (HBlank)</td><td>Pixel-Zyklus 344</td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>Der Trick:</strong> Innerhalb des kritischen Fensters einmalig in den jeweils anderen Modus wechseln — das Border-Flip-Flop bemerkt den Wechsel nicht und bleibt inaktiv. Sofort zurückschalten, und der normale Bildmodus läuft weiter.</p>
+
+    <div class="box-info">
+      <strong>PAL vs. NTSC</strong>
+      PAL hat 312 Rasterzeilen (0–311), NTSC nur 263 (0–262). Die kritischen Zeilen für den vertikalen Border unterscheiden sich. PAL: Bottom bei 251/255, Top bei 51/55. NTSC: Bottom bei 226/229, Top bei 31/34. Immer PAL-Detect (stufe_12) nutzen und entsprechend anpassen.
+    </div>
+
+    <h3>9.2 Vertikaler Open Border (oben und unten)</h3>
+
+    <pre><span class="comment">; Vertikalen Border öffnen: oben UND unten</span>
+<span class="comment">; Zwei IRQ-Ebenen bei den kritischen Rasterzeilen</span>
+
+<span class="comment">; --- Setup: IRQ installieren ---</span>
+InitOpenBorder:
+          SEI
+          LDA #&lt;IRQ_Bottom   <span class="comment">; Zuerst: Bottom-Border-IRQ</span>
+          STA $0314
+          LDA #&gt;IRQ_Bottom
+          STA $0315
+          LDA #251           <span class="comment">; PAL: Bottom-Border beginnt bei 251</span>
+          STA $D012
+          LDA $D011
+          AND #$7F           <span class="comment">; Bit 7 von $D012 (Raster-Hi-Bit) löschen</span>
+          STA $D011
+          LDA #$01
+          STA $D01A          <span class="comment">; Raster-IRQ erlauben</span>
+          CLI
+          RTS
+
+<span class="comment">; --- IRQ bei Rasterline 251: Bottom-Border öffnen ---</span>
+IRQ_Bottom:
+          LDA $D011
+          AND #$F7           <span class="comment">; Bit 3 löschen → 24-Zeilen-Modus</span>
+          STA $D011
+          <span class="comment">; Sofort auf nächste kritische Zeile vorbereiten</span>
+          LDA #255
+          STA $D012
+          LDA #&lt;IRQ_BottomRestore
+          STA $0314
+          LDA #&gt;IRQ_BottomRestore
+          STA $0315
+          ASL $D019          <span class="comment">; IRQ-Flag löschen</span>
+          RTI
+
+<span class="comment">; --- IRQ bei Rasterline 255: Modus zurücksetzen ---</span>
+IRQ_BottomRestore:
+          LDA $D011
+          ORA #$08           <span class="comment">; Bit 3 setzen → 25-Zeilen-Modus (normal)</span>
+          STA $D011
+          <span class="comment">; Umschalten zu Top-Border-IRQ</span>
+          LDA #51            <span class="comment">; PAL: Top-Border-Ende bei Rasterline 51</span>
+          STA $D012
+          LDA #&lt;IRQ_Top
+          STA $0314
+          LDA #&gt;IRQ_Top
+          STA $0315
+          ASL $D019
+          RTI
+
+<span class="comment">; --- IRQ bei Rasterline 51: Top-Border öffnen ---</span>
+IRQ_Top:
+          LDA $D011
+          AND #$F7           <span class="comment">; Kurz in 24-Zeilen-Modus</span>
+          STA $D011
+          LDA #55
+          STA $D012
+          LDA #&lt;IRQ_TopRestore
+          STA $0314
+          LDA #&gt;IRQ_TopRestore
+          STA $0315
+          ASL $D019
+          RTI
+
+<span class="comment">; --- IRQ bei Rasterline 55: zurückschalten, dann wieder zu 251 ---</span>
+IRQ_TopRestore:
+          LDA $D011
+          ORA #$08           <span class="comment">; zurück zu 25-Zeilen (normal)</span>
+          STA $D011
+          LDA #251           <span class="comment">; Zyklus neu starten</span>
+          STA $D012
+          LDA #&lt;IRQ_Bottom
+          STA $0314
+          LDA #&gt;IRQ_Bottom
+          STA $0315
+          ASL $D019
+          RTI</pre>
+
+    <h3>9.3 Horizontaler Open Border ($D016 38-Spalten)</h3>
+
+    <p>Der horizontale Border wird durch einen kurzen Wechsel zu 38-Spalten-Modus (<code>$D016 Bit 3 = 0</code>) im horizontalen Blanking-Intervall geöffnet. Das Timing ist äußerst präzise: der Wechsel muss in einem Fenster von ca. 17 Zyklen stattfinden.</p>
+
+    <div class="box-warn">
+      <strong>Warnung: Timing-kritisch!</strong>
+      Der horizontale Open-Border erfordert ±1-Zyklus-Genauigkeit. Im VICE-Emulator funktioniert er in der Regel problemlos; auf echter Hardware können minimale Abweichungen zu Artefakten führen. Unbedingt auf echter Hardware testen. Der Effekt funktioniert nur wenn der IRQ <em>jede</em> betroffene Zeile exakt trifft.
+    </div>
+
+    <pre><span class="comment">; Horizontalen Border öffnen — für JEDE betroffene Rasterzeile</span>
+<span class="comment">; Aufruf aus einem stabilen Raster-IRQ (mit Double-IRQ-Stabilisierung)</span>
+<span class="comment">; $D016 Bit 3 = 0 → 38-Spalten = Side Borders offen</span>
+<span class="comment">; Soft-Scroll-Bits (0-2) müssen erhalten bleiben!</span>
+
+<span class="comment">; Aktuellen Soft-Scroll-Wert merken:</span>
+HBorderOpen:
+          LDA $D016
+          AND #$F7           <span class="comment">; Bit 3 löschen → 38 Spalten, Border offen</span>
+          STA $D016
+          <span class="comment">; ... hier hat man ~17 Zyklen HBlank ...</span>
+          <span class="comment">; (Sprites, Farb-Wechsel, etc. für Border-Bereich)</span>
+          LDA $D016
+          ORA #$08           <span class="comment">; Bit 3 setzen → 40 Spalten zurück</span>
+          STA $D016
+          RTS</pre>
+
+    <h3>9.4 Vollbild-Rasterbalken (H + V kombiniert)</h3>
+
+    <p>Mit offenem vertikalen und horizontalen Border laufen Rasterbars über den gesamten Bildschirm — von linkem bis rechtem Bildrand, von oben bis unten. Der IRQ muss beide Techniken kombinieren.</p>
+
+    <pre><span class="comment">; Vollbild-Rasterbalken: H-Border offen, Farbe wechseln</span>
+<span class="comment">; Jede Zeile: $D016 kurz auf 38 Spalten, $D020 = neue Farbe</span>
+
+FullwidthBar_IRQ:
+          LDY $D012          <span class="comment">; aktuelle Rasterzeile</span>
+          LDA ColorTable,Y   <span class="comment">; Farbe für diese Zeile</span>
+          <span class="comment">; H-Border öffnen + Farbe setzen (in einem Atemzug)</span>
+          LDX $D016
+          TXA
+          AND #$F7           <span class="comment">; 38-Spalten</span>
+          STA $D016
+          STA $D020          <span class="comment">; Border-Farbe</span>
+          STA $D021          <span class="comment">; Hintergrund-Farbe (optional)</span>
+          <span class="comment">; Kurze Verzögerung (bleibt im HBlank)</span>
+          NOP : NOP : NOP
+          TXA
+          ORA #$08           <span class="comment">; zurück zu 40 Spalten</span>
+          STA $D016
+          ASL $D019
+          JMP $EA7E          <span class="comment">; IRQ-Ende (ohne KERNAL)</span>
+
+ColorTable:
+          <span class="directive">!fill</span> 312, 0         <span class="comment">; 312 Einträge für alle PAL-Zeilen</span></pre>
+
+    <h3>9.5 Vollbild-Laufschrift inkl. Border-Bereich</h3>
+
+    <p>Das klassische Demo-Highlight: Eine Laufschrift läuft über die volle Bildbreite einschließlich beider seitlicher Rahmen. Es gibt zwei Techniken — Sprite-Scroller (einfacher) und Charset-Scroller mit H-Open-Border (timing-kritisch).</p>
+
+    <div class="box-info">
+      <strong>Sprites ignorieren den Border</strong>
+      Hardware-Sprites haben kein Border-Clipping: sie erscheinen auch im Rahmen. Sprite-X läuft von 0 bis 511 (9 Bit via $D010). Ein Sprite bei X=8 liegt im linken Border; X=344 liegt im rechten Border. Das macht Sprites zur <em>einfachsten Methode</em> für Vollbild-Laufschriften — kein IRQ-Timing nötig.
+    </div>
+
+    <pre><span class="comment">; Vollbild-Sprite-Scroller: 8 Sprites nebeneinander</span>
+<span class="comment">; Jedes Sprite = 24 Pixel breit. Mit Stretch (Double-Width): 48 Pixel</span>
+<span class="comment">; 8 × 48 = 384 Pixel — deckt volle PAL-Breite (403 Pixel) fast komplett</span>
+
+<span class="comment">; --- Sprite-Initialisierung ---</span>
+ScrollInit:
+          LDA #$FF
+          STA $D015          <span class="comment">; alle 8 Sprites ein</span>
+          LDA #$FF
+          STA $D01D          <span class="comment">; alle Sprites doppelt breit (X-Stretch)</span>
+          LDA #1             <span class="comment">; Farbe: Weiß</span>
+          LDX #7
+.colloop: STA $D027,X        <span class="comment">; Sprite 0–7 Farbe setzen</span>
+          DEX : BPL .colloop
+
+          <span class="comment">; Sprite Y-Position: Zeile 240 (unterer Bereich)</span>
+          LDA #240
+          LDX #0
+.yloop:   STA $D001,X        <span class="comment">; Y-Position (ungerade Adressen $D001,$D003,...)</span>
+          INX : INX
+          CPX #16 : BNE .yloop
+          RTS
+
+<span class="comment">; --- Scroll-Update (einmal pro Frame im VBlank) ---</span>
+ScrollX:  <span class="directive">!byte</span> 0, 0         <span class="comment">; Lo/Hi des globalen X-Offsets (0–511)</span>
+
+ScrollUpdate:
+          <span class="comment">; Alle 8 Sprites gleichmäßig nach links schieben</span>
+          <span class="comment">; Sprite 0 beginnt bei ScrollX, jedes weitere +48 (Double-Width-Abstand)</span>
+          LDA ScrollX
+          SEC
+          SBC #2             <span class="comment">; 2 Pixel pro Frame nach links</span>
+          STA ScrollX
+          BCS .no_borrow
+          DEC ScrollX+1
+.no_borrow:
+          LDX #0
+          LDA #0
+          STA $D010          <span class="comment">; X-MSB-Register zurücksetzen</span>
+
+.sprloop: <span class="comment">; X-Position für Sprite X berechnen</span>
+          LDA ScrollX        <span class="comment">; Basis-X</span>
+          CLC
+          ADC SprOffsets,X   <span class="comment">; + Sprite-Abstand (0,48,96,144,...)</span>
+          STA $D000,X        <span class="comment">; X-Position Lo (gerade Adressen)</span>
+          <span class="comment">; X-Bit 8 korrekt setzen</span>
+          LDA ScrollX+1
+          ADC #0             <span class="comment">; Carry aus Addition</span>
+          AND #1
+          BEQ .no_msb
+          LDA $D010
+          ORA BitTable,X     <span class="comment">; Bit für dieses Sprite setzen</span>
+          STA $D010
+.no_msb:  INX : INX
+          CPX #16 : BNE .sprloop
+          RTS
+
+SprOffsets: <span class="directive">!byte</span>  0,  0, 48,  0, 96,  0,144,  0   <span class="comment">; Lo-Bytes der Abstände</span>
+BitTable:   <span class="directive">!byte</span> $01,$02,$04,$08,$10,$20,$40,$80</pre>
+
+    <div class="box-info">
+      <strong>Variante B: Charset-Scroller mit H-Open-Border</strong>
+      Für einen Charset-basierten Vollbild-Scroller: Hardware-Scroll per <code>$D016 Bits 0–2</code> kombinieren mit H-Border-Opening. Der kombinierte Wert: <code>LDA #(scroll_value AND $07)</code> → kein Bit 3 → 38 Spalten automatisch gesetzt. Nach dem Scroll-Update: <code>ORA #$08</code> zurücksetzen. Vorteil: Zeichen sind schärfer als Sprites. Nachteil: timing-kritisch pro Zeile.
+    </div>
+
+  </section>
+
   <!-- ============================================================ -->
   <section class="benchmark" id="benchmark">
     <h2>Skill-Benchmark: Stufe 9</h2>
@@ -1171,6 +1409,8 @@ GetInactiveBase:
       <li><span class="check">✓</span> Du verstehst FLD und kannst einen Wellen-Effekt erzeugen, der Textzeilen "verbiegt"</li>
       <li><span class="check">✓</span> Dein Plasma-Effekt läuft mit 25 FPS oder besser über das volle Color-RAM (40×25)</li>
       <li><span class="check">✓</span> Du hast eine vollständige Demo-Sequenz aus drei Parts mit Übergängen und passender Musik</li>
+      <li><span class="check">✓</span> Dein Open-Border-IRQ (oben und unten) läuft auf PAL ohne sichtbaren Jitter — du verstehst die kritischen Rasterzeilen 51/55 und 251/255</li>
+      <li><span class="check">✓</span> Dein Vollbild-Sprite-Scroller läuft mit PETSCII-Text über beide Side Borders und verwendet $D010 korrekt für die 9-Bit-X-Position</li>
     </ul>
   </section>
 
