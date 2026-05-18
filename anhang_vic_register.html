@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>C64 Mastery — Anhang: VIC-II Register</title>
+  <style>
+    :root { --c64-blue:#0033aa;--c64-green:#00ff88;--c64-dark:#1a1a2e;--c64-darker:#0d0d1a;--paper:#f8f6f0;--paper-dark:#ede9df;--text:#1a1a2e;--text-light:#444466;--accent:#cc3300; }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Georgia',serif;font-size:15px;line-height:1.7;color:var(--text);background:var(--paper);display:grid;grid-template-columns:270px 1fr;min-height:100vh;}
+    .sidebar{background:var(--c64-dark);color:#ccc;position:sticky;top:0;height:100vh;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--c64-blue) var(--c64-darker);}
+    .sidebar::-webkit-scrollbar{width:6px;}.sidebar::-webkit-scrollbar-thumb{background:var(--c64-blue);}
+    .sidebar-header{background:var(--c64-blue);padding:18px 20px;font-family:'Courier New',monospace;font-size:13px;font-weight:bold;color:white;}
+    .sidebar-header .logo{font-size:22px;margin-bottom:4px;color:var(--c64-green);}
+    .sidebar nav{padding:12px 0;}
+    .sidebar nav a{display:block;padding:7px 20px;color:#aab;text-decoration:none;font-family:'Courier New',monospace;font-size:12.5px;border-left:3px solid transparent;transition:all 0.2s;}
+    .sidebar nav a:hover{color:white;background:rgba(255,255,255,0.05);border-left-color:var(--c64-green);}
+    .sidebar nav a.active{color:var(--c64-green);border-left-color:var(--c64-green);background:rgba(0,255,136,0.07);font-weight:bold;}
+    .sidebar nav .section-label{padding:12px 20px 4px;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:#556;font-family:'Courier New',monospace;}
+    main{max-width:980px;padding:40px 48px;}
+    h1{font-size:32px;color:var(--c64-dark);margin-bottom:8px;}
+    .chapter-number{font-family:'Courier New',monospace;font-size:13px;color:var(--c64-blue);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;}
+    .chapter-meta{display:flex;gap:16px;font-family:'Courier New',monospace;font-size:12px;color:var(--text-light);margin:12px 0 28px;flex-wrap:wrap;}
+    .chapter-meta span{background:var(--paper-dark);padding:4px 10px;border-radius:3px;}
+    h2{font-size:22px;color:var(--c64-blue);margin:36px 0 14px;padding-bottom:6px;border-bottom:1px solid #d0ccc0;}
+    h3{font-size:17px;color:var(--c64-dark);margin:22px 0 10px;}
+    p{margin-bottom:14px;}
+    code{font-family:'Courier New',monospace;font-size:13px;background:#e8e4da;padding:2px 5px;border-radius:3px;color:var(--accent);}
+    pre{background:var(--c64-dark);color:var(--c64-green);font-family:'Courier New',monospace;font-size:13px;padding:20px 24px;border-radius:6px;overflow-x:auto;margin:16px 0;border-left:4px solid var(--c64-blue);}
+    table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13.5px;}
+    thead{background:var(--c64-blue);color:white;}
+    thead th{padding:9px 10px;text-align:left;font-family:'Courier New',monospace;font-size:12px;}
+    tbody tr:nth-child(even){background:var(--paper-dark);}
+    tbody tr:hover{background:#e0dbd0;}
+    tbody td{padding:7px 10px;border-bottom:1px solid #d0ccc0;vertical-align:top;}
+    td code{font-size:12px;}
+    /* Bit diagram */
+    .bit-diagram{display:flex;flex-direction:column;gap:4px;margin:16px 0;font-family:'Courier New',monospace;font-size:12px;}
+    .bit-row{display:flex;gap:0;}
+    .bit-cell{flex:1;border:1px solid #888;padding:4px 2px;text-align:center;min-width:36px;}
+    .bit-cell.header{background:var(--c64-dark);color:var(--c64-green);font-size:10px;}
+    .bit-cell.r{background:#002244;color:#88aaff;}
+    .bit-cell.w{background:#002200;color:#88cc88;}
+    .bit-cell.rw{background:#221122;color:#cc88dd;}
+    .bit-cell.const{background:#222200;color:#cccc44;}
+    .bit-label{display:flex;gap:0;}
+    .bit-label-cell{flex:1;text-align:center;font-size:10px;color:var(--text-light);padding:2px;min-width:36px;}
+    .box-info{background:#cce5ff;border:1px solid #0066cc;border-left:5px solid #0066cc;border-radius:6px;padding:14px 18px;margin:16px 0;}
+    .box-info strong{color:#004085;font-family:'Courier New',monospace;font-size:13px;display:block;margin-bottom:6px;}
+  </style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-header"><div class="logo">■ C64 MASTERY</div>Referenz</div>
+  <nav>
+    <div class="section-label">Curriculum</div>
+    <a href="index.html">◈ Übersicht</a>
+    <a href="stufe_03_bildschirm_zeichen.html">03 · VIC-II Zeichen</a>
+    <a href="stufe_04_sprites_animation.html">04 · Sprites</a>
+    <a href="stufe_05_bitmap_grafik.html">05 · Bitmap</a>
+    <a href="stufe_07_interrupts_timing.html">07 · Interrupts</a>
+    <div class="section-label">Anhänge</div>
+    <a href="anhang_opcodes.html">Opcode-Referenz</a>
+    <a href="anhang_speicherkarte.html">Speicherkarte</a>
+    <a href="anhang_vic_register.html" class="active">VIC-II Register</a>
+    <a href="anhang_sid_register.html">SID Register</a>
+    <a href="anhang_cia_register.html">CIA Register</a>
+    <a href="anhang_petscii.html">PETSCII-Tabelle</a>
+    <a href="anhang_farben.html">C64-Farben</a>
+  </nav>
+</aside>
+<main>
+  <div class="chapter-number">Anhang C</div>
+  <h1>VIC-II Register-Referenz</h1>
+  <div class="chapter-meta">
+    <span>$D000 – $D02E</span><span>47 Register</span><span>6569 PAL / 6567 NTSC</span>
+  </div>
+  <p>Der VIC-II (MOS 6569 PAL, 6567 NTSC) liegt bei <code>$D000–$D02E</code>. Der gesamte I/O-Bereich <code>$D000–$D3FF</code> spiegelt den VIC alle 64 Bytes. Zugriff nur bei aktivem I/O (<code>$01 Bits 0–2</code> ≠ %100).</p>
+
+  <h2>Sprite-Positionsregister ($D000–$D00F)</h2>
+  <table>
+    <thead><tr><th>Adresse</th><th>R/W</th><th>Funktion</th><th>Wertebereich</th><th>Notizen</th></tr></thead>
+    <tbody>
+      <tr><td><code>$D000</code></td><td>R/W</td><td>Sprite 0 X-Position (Low)</td><td>0–255</td><td>Bit 0 von $D010 = X-Bit 8</td></tr>
+      <tr><td><code>$D001</code></td><td>R/W</td><td>Sprite 0 Y-Position</td><td>0–255</td><td>50 = oben sichtbar (PAL)</td></tr>
+      <tr><td><code>$D002</code></td><td>R/W</td><td>Sprite 1 X (Low)</td><td>0–255</td><td>Bit 1 von $D010</td></tr>
+      <tr><td><code>$D003</code></td><td>R/W</td><td>Sprite 1 Y</td><td>0–255</td><td></td></tr>
+      <tr><td><code>$D004–$D00D</code></td><td>R/W</td><td>Sprites 2–6 X/Y (je 2 Bytes)</td><td>0–255</td><td>Gleiches Muster</td></tr>
+      <tr><td><code>$D00E</code></td><td>R/W</td><td>Sprite 7 X (Low)</td><td>0–255</td><td>Bit 7 von $D010</td></tr>
+      <tr><td><code>$D00F</code></td><td>R/W</td><td>Sprite 7 Y</td><td>0–255</td><td></td></tr>
+      <tr><td><code>$D010</code></td><td>R/W</td><td>Sprite X-MSB (alle 8 Sprites)</td><td>Bit 0–7</td><td>Bit N = Sprite N X-Bit 8. X = 0–511!</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Steuer- und Bildmodus-Register</h2>
+  <table>
+    <thead><tr><th>Adresse</th><th>R/W</th><th>Bits 7–0</th><th>Funktion</th></tr></thead>
+    <tbody>
+      <tr><td><code>$D011</code></td><td>R/W</td><td>RST8 · ECM · BMM · DEN · RSEL · YSCROLL[2:0]</td><td>Vertikal-Steuerung. RST8=Raster-Bit8, ECM=Extended Color, BMM=Bitmap-Mode, DEN=Display-Enable, RSEL=25/24 Zeilen, YSCROLL=0–7</td></tr>
+      <tr><td><code>$D012</code></td><td>R/W</td><td>RASTER[7:0]</td><td>Lesen: aktuelle Rasterzeile (Bits 0–7). Schreiben: IRQ-Zeile (kombiniert mit $D011 Bit 7 = RST8)</td></tr>
+      <tr><td><code>$D013</code></td><td>R</td><td>LPX[7:0]</td><td>Lightpen X-Position (bei Trigger)</td></tr>
+      <tr><td><code>$D014</code></td><td>R</td><td>LPY[7:0]</td><td>Lightpen Y-Position</td></tr>
+      <tr><td><code>$D015</code></td><td>R/W</td><td>SprEn[7:0]</td><td>Sprite Enable. Bit N=1 → Sprite N aktiviert</td></tr>
+      <tr><td><code>$D016</code></td><td>R/W</td><td>– · – · RES · MCM · CSEL · XSCROLL[2:0]</td><td>Horizontal-Steuerung. MCM=Multicolor-Mode, CSEL=40/38 Spalten, XSCROLL=0–7 (Hardware-Scroll)</td></tr>
+      <tr><td><code>$D017</code></td><td>R/W</td><td>SprExpY[7:0]</td><td>Sprite Y-Expansion (Doppelhöhe). Bit N=1 → Sprite N 2× höher</td></tr>
+      <tr><td><code>$D018</code></td><td>R/W</td><td>VM13·VM12·VM11·VM10 · CB13·CB12·CB11 · –</td><td>Speicher-Zeiger. Bits 7–4: Screen-RAM Basis (÷ $0400). Bits 3–1: Charset/Bitmap Basis (÷ $0800/$2000)</td></tr>
+      <tr><td><code>$D019</code></td><td>R/W</td><td>IRQ · – · – · – · ILP·IMMC·IMBC·IRST</td><td>IRQ-Status. Bit 7: IRQ ausgelöst. Bits 3–0: LP/Sprite-Sprite/Sprite-BG/Raster. Schreibe 1 zum Löschen!</td></tr>
+      <tr><td><code>$D01A</code></td><td>R/W</td><td>– · – · – · – · ELP·EMMC·EMBC·ERST</td><td>IRQ-Enable. Bit N=1 aktiviert entsprechenden IRQ aus $D019</td></tr>
+      <tr><td><code>$D01B</code></td><td>R/W</td><td>SprBgPri[7:0]</td><td>Sprite-Hintergrund-Priorität. Bit N=1 → Sprite N hinter Hintergrund (Hintergrund vor Sprite)</td></tr>
+      <tr><td><code>$D01C</code></td><td>R/W</td><td>SprMC[7:0]</td><td>Sprite Multicolor-Mode. Bit N=1 → Sprite N im Multicolor-Modus (12×21, 4 Farben)</td></tr>
+      <tr><td><code>$D01D</code></td><td>R/W</td><td>SprExpX[7:0]</td><td>Sprite X-Expansion (Doppelbreite). Bit N=1 → Sprite N 2× breiter</td></tr>
+      <tr><td><code>$D01E</code></td><td>R</td><td>SprSprColl[7:0]</td><td>Sprite-Sprite Kollision. Bit N=1 wenn Sprite N kollidiert. LESEN LÖSCHT DAS REGISTER!</td></tr>
+      <tr><td><code>$D01F</code></td><td>R</td><td>SprBgColl[7:0]</td><td>Sprite-Hintergrund Kollision. LESEN LÖSCHT!</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Farb-Register</h2>
+  <table>
+    <thead><tr><th>Adresse</th><th>R/W</th><th>Funktion</th><th>Werte</th></tr></thead>
+    <tbody>
+      <tr><td><code>$D020</code></td><td>R/W</td><td>Rahmen-Farbe (Border)</td><td>0–15 (nur unteres Nibble)</td></tr>
+      <tr><td><code>$D021</code></td><td>R/W</td><td>Hintergrund-Farbe 0 (BG0)</td><td>0–15 — Rasterbar-Effekte hier!</td></tr>
+      <tr><td><code>$D022</code></td><td>R/W</td><td>Hintergrund-Farbe 1 (BG1, ECM)</td><td>0–15</td></tr>
+      <tr><td><code>$D023</code></td><td>R/W</td><td>Hintergrund-Farbe 2 (BG2, ECM)</td><td>0–15</td></tr>
+      <tr><td><code>$D024</code></td><td>R/W</td><td>Hintergrund-Farbe 3 (BG3, ECM)</td><td>0–15</td></tr>
+      <tr><td><code>$D025</code></td><td>R/W</td><td>Sprite Multicolor 0 (alle Sprites)</td><td>0–15 — geteilt von allen MC-Sprites</td></tr>
+      <tr><td><code>$D026</code></td><td>R/W</td><td>Sprite Multicolor 1 (alle Sprites)</td><td>0–15</td></tr>
+      <tr><td><code>$D027</code></td><td>R/W</td><td>Sprite 0 Farbe</td><td>0–15 — individuell pro Sprite</td></tr>
+      <tr><td><code>$D028–$D02E</code></td><td>R/W</td><td>Sprite 1–7 Farben</td><td>0–15</td></tr>
+    </tbody>
+  </table>
+
+  <h2>$D018 — Speicher-Zeiger im Detail</h2>
+  <div class="bit-diagram">
+    <div class="bit-label"><div class="bit-label-cell">Bit 7</div><div class="bit-label-cell">Bit 6</div><div class="bit-label-cell">Bit 5</div><div class="bit-label-cell">Bit 4</div><div class="bit-label-cell">Bit 3</div><div class="bit-label-cell">Bit 2</div><div class="bit-label-cell">Bit 1</div><div class="bit-label-cell">Bit 0</div></div>
+    <div class="bit-row">
+      <div class="bit-cell rw">VM13</div><div class="bit-cell rw">VM12</div><div class="bit-cell rw">VM11</div><div class="bit-cell rw">VM10</div>
+      <div class="bit-cell r">CB13</div><div class="bit-cell r">CB12</div><div class="bit-cell r">CB11</div><div class="bit-cell const">–</div>
+    </div>
+  </div>
+  <table>
+    <thead><tr><th>$D018 Bits 7–4 (VM13–VM10)</th><th>Screen-RAM Adresse (in VIC-Bank)</th></tr></thead>
+    <tbody>
+      <tr><td><code>%0000</code> = 0</td><td>+$0000 (z.B. $0000 in Bank 0)</td></tr>
+      <tr><td><code>%0001</code> = 1</td><td>+$0400 ← Standard Screen-RAM</td></tr>
+      <tr><td><code>%0010</code> = 2</td><td>+$0800</td></tr>
+      <tr><td><code>%0100</code> = 4</td><td>+$1000</td></tr>
+      <tr><td><code>%1000</code> = 8</td><td>+$2000</td></tr>
+      <tr><td><code>%1100</code> = 12</td><td>+$3000</td></tr>
+    </tbody>
+  </table>
+  <table>
+    <thead><tr><th>$D018 Bits 3–1 (CB13–CB11)</th><th>Charset/Bitmap Adresse (in VIC-Bank)</th></tr></thead>
+    <tbody>
+      <tr><td><code>%000</code> = 0</td><td>+$0000</td></tr>
+      <tr><td><code>%001</code> = 1</td><td>+$0800</td></tr>
+      <tr><td><code>%010</code> = 2</td><td>+$1000 ← Standard Charset (ROM in Bank 0/2)</td></tr>
+      <tr><td><code>%011</code> = 3</td><td>+$1800</td></tr>
+      <tr><td><code>%100</code> = 4</td><td>+$2000 ← Bitmap-Startadresse 1</td></tr>
+      <tr><td><code>%110</code> = 6</td><td>+$3000</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box-info">
+    <strong>$D018 Beispielwerte</strong>
+    <code>$10</code> = Standard (Screen=$0400, Charset=$1000 ROM) |
+    <code>$18</code> = Screen=$0400, Bitmap=$2000 |
+    <code>$78</code> = Screen=$1C00, Bitmap=$2000 (typisch FLI)
+  </div>
+
+  <h2>Anzeigemodi — Kombination $D011 und $D016</h2>
+  <table>
+    <thead><tr><th>Modus</th><th>ECM ($D011 Bit 6)</th><th>BMM ($D011 Bit 5)</th><th>MCM ($D016 Bit 4)</th><th>Beschreibung</th></tr></thead>
+    <tbody>
+      <tr><td>Standard Character</td><td>0</td><td>0</td><td>0</td><td>40×25 Zeichen, 2 Farben pro Zelle (BG0 + Color-RAM)</td></tr>
+      <tr><td>Multicolor Character</td><td>0</td><td>0</td><td>1</td><td>20×25 (2× breite Pixel), 4 Farben: BG0, BG1, BG2, Color-RAM</td></tr>
+      <tr><td>Standard Bitmap</td><td>0</td><td>1</td><td>0</td><td>320×200, 2 Farben pro 8×8-Zelle (Screen-RAM Hi/Lo)</td></tr>
+      <tr><td>Multicolor Bitmap</td><td>0</td><td>1</td><td>1</td><td>160×200 (2× Pixel), 4 Farben: BG0, Screen-Hi, Screen-Lo, Color-RAM</td></tr>
+      <tr><td>Extended Color</td><td>1</td><td>0</td><td>0</td><td>40×25, 4 Hintergrundfarben (BG0–BG3), aber nur 64 Zeichen!</td></tr>
+    </tbody>
+  </table>
+
+  <h2>PAL vs. NTSC Timing</h2>
+  <table>
+    <thead><tr><th>Parameter</th><th>PAL (6569)</th><th>NTSC (6567)</th></tr></thead>
+    <tbody>
+      <tr><td>Taktfrequenz</td><td>985.248 Hz</td><td>1.022.727 Hz</td></tr>
+      <tr><td>Rasterzeilen gesamt</td><td>312</td><td>263</td></tr>
+      <tr><td>Zyklen pro Zeile</td><td>63</td><td>65</td></tr>
+      <tr><td>Sichtbare Zeilen</td><td>200 (50–249)</td><td>200 (51–250)</td></tr>
+      <tr><td>Frames pro Sekunde</td><td>~50 Hz</td><td>~60 Hz</td></tr>
+      <tr><td>First Bad Line</td><td>Zeile 48+YSCROLL</td><td>Zeile 48+YSCROLL</td></tr>
+    </tbody>
+  </table>
+
+  <pre><span style="color:#6688aa">; Häufige VIC-II Konfigurationen</span>
+
+<span style="color:#6688aa">; Standard-Zeichenmodus (bereits aktiv nach Reset):</span>
+          LDA #$1B : STA $D011   <span style="color:#6688aa">; ECM=0 BMM=0 DEN=1 RSEL=1 YSCROLL=3</span>
+          LDA #$C8 : STA $D016   <span style="color:#6688aa">; MCM=0 CSEL=1 XSCROLL=0</span>
+          LDA #$14 : STA $D018   <span style="color:#6688aa">; Screen=$0400 Charset=$1000</span>
+
+<span style="color:#6688aa">; Hires Bitmap Mode:</span>
+          LDA #$3B : STA $D011   <span style="color:#6688aa">; BMM=1 (Bit 5 gesetzt)</span>
+          LDA #$C8 : STA $D016
+          LDA #$18 : STA $D018   <span style="color:#6688aa">; Screen=$0400 Bitmap=$2000</span>
+
+<span style="color:#6688aa">; Raster-IRQ auf Zeile 100 setzen:</span>
+          LDA #100 : STA $D012
+          LDA $D011 : AND #$7F : STA $D011  <span style="color:#6688aa">; RST8=0 (Zeile < 256)</span>
+          LDA #$01 : STA $D01A   <span style="color:#6688aa">; Raster-IRQ enable</span></pre>
+</main>
+</body>
+</html>

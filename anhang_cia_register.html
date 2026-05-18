@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>C64 Mastery — Anhang: CIA Register &amp; Tastaturmatrix</title>
+  <style>
+    :root{--c64-blue:#0033aa;--c64-green:#00ff88;--c64-dark:#1a1a2e;--c64-darker:#0d0d1a;--paper:#f8f6f0;--paper-dark:#ede9df;--text:#1a1a2e;--text-light:#444466;--accent:#cc3300;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Georgia',serif;font-size:15px;line-height:1.7;color:var(--text);background:var(--paper);display:grid;grid-template-columns:270px 1fr;min-height:100vh;}
+    .sidebar{background:var(--c64-dark);color:#ccc;position:sticky;top:0;height:100vh;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--c64-blue) var(--c64-darker);}
+    .sidebar::-webkit-scrollbar{width:6px;}.sidebar::-webkit-scrollbar-thumb{background:var(--c64-blue);}
+    .sidebar-header{background:var(--c64-blue);padding:18px 20px;font-family:'Courier New',monospace;font-size:13px;font-weight:bold;color:white;}
+    .sidebar-header .logo{font-size:22px;margin-bottom:4px;color:var(--c64-green);}
+    .sidebar nav{padding:12px 0;}
+    .sidebar nav a{display:block;padding:7px 20px;color:#aab;text-decoration:none;font-family:'Courier New',monospace;font-size:12.5px;border-left:3px solid transparent;transition:all 0.2s;}
+    .sidebar nav a:hover{color:white;background:rgba(255,255,255,0.05);border-left-color:var(--c64-green);}
+    .sidebar nav a.active{color:var(--c64-green);border-left-color:var(--c64-green);background:rgba(0,255,136,0.07);font-weight:bold;}
+    .sidebar nav .section-label{padding:12px 20px 4px;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:#556;font-family:'Courier New',monospace;}
+    main{max-width:980px;padding:40px 48px;}
+    h1{font-size:32px;color:var(--c64-dark);margin-bottom:8px;}
+    .chapter-number{font-family:'Courier New',monospace;font-size:13px;color:var(--c64-blue);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;}
+    .chapter-meta{display:flex;gap:16px;font-family:'Courier New',monospace;font-size:12px;color:var(--text-light);margin:12px 0 28px;flex-wrap:wrap;}
+    .chapter-meta span{background:var(--paper-dark);padding:4px 10px;border-radius:3px;}
+    h2{font-size:22px;color:var(--c64-blue);margin:36px 0 14px;padding-bottom:6px;border-bottom:1px solid #d0ccc0;}
+    h3{font-size:17px;color:var(--c64-dark);margin:22px 0 10px;}
+    p{margin-bottom:14px;}
+    code{font-family:'Courier New',monospace;font-size:13px;background:#e8e4da;padding:2px 5px;border-radius:3px;color:var(--accent);}
+    pre{background:var(--c64-dark);color:var(--c64-green);font-family:'Courier New',monospace;font-size:13px;padding:20px 24px;border-radius:6px;overflow-x:auto;margin:16px 0;border-left:4px solid var(--c64-blue);}
+    table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px;}
+    thead{background:var(--c64-blue);color:white;}
+    thead th{padding:9px 10px;text-align:left;font-family:'Courier New',monospace;font-size:12px;}
+    tbody tr:nth-child(even){background:var(--paper-dark);}
+    tbody tr:hover{background:#e0dbd0;}
+    tbody td{padding:7px 10px;border-bottom:1px solid #d0ccc0;vertical-align:top;}
+    td code{font-size:12px;}
+    /* Keyboard matrix */
+    .kbd-matrix{display:grid;grid-template-columns:auto repeat(8,1fr);gap:2px;margin:16px 0;font-family:'Courier New',monospace;font-size:11px;}
+    .kbd-header{background:var(--c64-dark);color:var(--c64-green);padding:6px;text-align:center;border-radius:3px;font-size:10px;}
+    .kbd-cell{background:#e8e4da;border:1px solid #c0bbb0;padding:5px 3px;text-align:center;border-radius:2px;font-size:11px;}
+    .kbd-row-label{background:var(--c64-dark);color:#ffcc44;padding:6px;text-align:right;border-radius:3px;white-space:nowrap;}
+    /* Joystick */
+    .joy-grid{display:grid;grid-template-columns:repeat(3,80px);gap:4px;margin:16px 0;font-family:'Courier New',monospace;}
+    .joy-btn{background:var(--c64-dark);color:white;padding:10px;text-align:center;border-radius:4px;font-size:12px;}
+    .joy-center{background:#333;color:#888;}
+    .joy-active{background:#002244;color:#88aaff;}
+  </style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-header"><div class="logo">■ C64 MASTERY</div>Referenz</div>
+  <nav>
+    <div class="section-label">Curriculum</div>
+    <a href="index.html">◈ Übersicht</a>
+    <a href="stufe_07_interrupts_timing.html">07 · Interrupts</a>
+    <div class="section-label">Anhänge</div>
+    <a href="anhang_opcodes.html">Opcode-Referenz</a>
+    <a href="anhang_speicherkarte.html">Speicherkarte</a>
+    <a href="anhang_vic_register.html">VIC-II Register</a>
+    <a href="anhang_sid_register.html">SID Register</a>
+    <a href="anhang_cia_register.html" class="active">CIA Register</a>
+    <a href="anhang_petscii.html">PETSCII-Tabelle</a>
+    <a href="anhang_farben.html">C64-Farben</a>
+  </nav>
+</aside>
+<main>
+  <div class="chapter-number">Anhang E</div>
+  <h1>CIA Register &amp; Tastaturmatrix</h1>
+  <div class="chapter-meta">
+    <span>CIA1: $DC00–$DCFF</span><span>CIA2: $DD00–$DDFF</span><span>MOS 6526</span>
+  </div>
+  <p>Zwei CIA-Chips (Complex Interface Adapter) steuern Tastatur, Joysticks, serielle Schnittstelle, Timer und Interrupts. CIA1 bei <code>$DC00</code>, CIA2 bei <code>$DD00</code>. Jeder hat 16 Register (gespiegelt bis +FF).</p>
+
+  <h2>CIA Register-Übersicht (gilt für CIA1 und CIA2)</h2>
+  <table>
+    <thead><tr><th>Offset</th><th>CIA1 ($DC__)</th><th>CIA2 ($DD__)</th><th>Funktion</th></tr></thead>
+    <tbody>
+      <tr><td><code>+00</code></td><td><code>$DC00</code> Port A</td><td><code>$DD00</code> Port A</td><td>CIA1: Tastatur-Spalten (Ausgabe) / Joy2. CIA2: VIC-Bank, IEC Serial</td></tr>
+      <tr><td><code>+01</code></td><td><code>$DC01</code> Port B</td><td><code>$DD01</code> Port B</td><td>CIA1: Tastatur-Zeilen (Eingang) / Joy1. CIA2: RS-232</td></tr>
+      <tr><td><code>+02</code></td><td><code>$DC02</code> DDRA</td><td><code>$DD02</code> DDRA</td><td>Port A Richtungsregister (1=Ausgang, 0=Eingang). CIA1: $FF (alles Ausgang)</td></tr>
+      <tr><td><code>+03</code></td><td><code>$DC03</code> DDRB</td><td><code>$DD03</code> DDRB</td><td>Port B Richtungsregister. CIA1: $00 (alles Eingang)</td></tr>
+      <tr><td><code>+04</code></td><td><code>$DC04</code> Timer A Lo</td><td><code>$DD04</code></td><td>Timer A — Low Byte (Latch und Zähler)</td></tr>
+      <tr><td><code>+05</code></td><td><code>$DC05</code> Timer A Hi</td><td><code>$DD05</code></td><td>Timer A — High Byte</td></tr>
+      <tr><td><code>+06</code></td><td><code>$DC06</code> Timer B Lo</td><td><code>$DD06</code></td><td>Timer B — Low Byte</td></tr>
+      <tr><td><code>+07</code></td><td><code>$DC07</code> Timer B Hi</td><td><code>$DD07</code></td><td>Timer B — High Byte</td></tr>
+      <tr><td><code>+08</code></td><td><code>$DC08</code> TOD 1/10s</td><td><code>$DD08</code></td><td>Uhr: 1/10-Sekunden (0–9)</td></tr>
+      <tr><td><code>+09</code></td><td><code>$DC09</code> TOD Sek.</td><td><code>$DD09</code></td><td>Uhr: Sekunden (BCD 00–59)</td></tr>
+      <tr><td><code>+0A</code></td><td><code>$DC0A</code> TOD Min.</td><td><code>$DD0A</code></td><td>Uhr: Minuten (BCD 00–59)</td></tr>
+      <tr><td><code>+0B</code></td><td><code>$DC0B</code> TOD Std.</td><td><code>$DD0B</code></td><td>Uhr: Stunden (BCD 1–12, Bit 7=PM)</td></tr>
+      <tr><td><code>+0C</code></td><td><code>$DC0C</code> SDR</td><td><code>$DD0C</code></td><td>Schieberegister für seriellen Transfer</td></tr>
+      <tr><td><code>+0D</code></td><td><code>$DC0D</code> ICR</td><td><code>$DD0D</code></td><td>Interrupt Control (Lesen: Status, Schreiben: Mask setzen/löschen)</td></tr>
+      <tr><td><code>+0E</code></td><td><code>$DC0E</code> CRA</td><td><code>$DD0E</code></td><td>Control Register A (Timer A Start/Stop, One-Shot, Load)</td></tr>
+      <tr><td><code>+0F</code></td><td><code>$DC0F</code> CRB</td><td><code>$DD0F</code></td><td>Control Register B (Timer B)</td></tr>
+    </tbody>
+  </table>
+
+  <h2>ICR — Interrupt Control Register ($DC0D / $DD0D)</h2>
+  <p><strong>Lesen:</strong> gibt Interrupt-Status zurück (Bit 7=IRQ ausgelöst, Bits 4–0=Quellen). <strong>Lesen löscht</strong> alle gesetzten Bits!<br>
+  <strong>Schreiben:</strong> Bit 7=1 → gesetzte Bits in Maske <em>aktivieren</em>. Bit 7=0 → gesetzte Bits <em>deaktivieren</em>.</p>
+  <table>
+    <thead><tr><th>Bit</th><th>Name</th><th>Funktion</th></tr></thead>
+    <tbody>
+      <tr><td>7</td><td>IR</td><td>Lesen: 1 = IRQ ausgelöst. Schreiben: 1=Mask-Set, 0=Mask-Clear</td></tr>
+      <tr><td>4</td><td>FLG</td><td>FLAG-Pin-Interrupt (NMI-Kassette bei CIA1)</td></tr>
+      <tr><td>3</td><td>SP</td><td>Schieberegister voll (serielle Übertragung)</td></tr>
+      <tr><td>2</td><td>ALRM</td><td>TOD-Alarm</td></tr>
+      <tr><td>1</td><td>TB</td><td>Timer B Unterlauf</td></tr>
+      <tr><td>0</td><td>TA</td><td>Timer A Unterlauf</td></tr>
+    </tbody>
+  </table>
+
+  <h2>CRA / CRB — Control Register ($DC0E/$DC0F)</h2>
+  <table>
+    <thead><tr><th>Bit</th><th>Name</th><th>Funktion</th></tr></thead>
+    <tbody>
+      <tr><td>0</td><td>START</td><td>1 = Timer starten, 0 = stoppen</td></tr>
+      <tr><td>1</td><td>PBON</td><td>Timer-Ausgang auf Port B sichtbar machen</td></tr>
+      <tr><td>2</td><td>OUTMODE</td><td>0 = Toggle, 1 = Puls auf Port B</td></tr>
+      <tr><td>3</td><td>RUNMODE</td><td>0 = Continuous (Neustart nach Unterlauf), 1 = One-Shot</td></tr>
+      <tr><td>4</td><td>LOAD</td><td>1 = Latch in Zähler laden (sofort, keine Wirkung beim Lesen)</td></tr>
+      <tr><td>5</td><td>INMODE</td><td>CRA: 0=Phi2-Takt, 1=CNT-Pin. CRB: 00=Phi2, 01=CNT, 10=TimerA-UF, 11=TimerA-UF+CNT</td></tr>
+      <tr><td>6</td><td>SPMODE</td><td>SDR: 0=Eingang, 1=Ausgang</td></tr>
+      <tr><td>7</td><td>TODIN</td><td>TOD-Takt: 0=60Hz, 1=50Hz</td></tr>
+    </tbody>
+  </table>
+
+  <pre><span style="color:#6688aa">; Timer A auf 50Hz konfigurieren (PAL: 985248 / 50 = 19704 = $4CC8)</span>
+          LDA #$C8 : STA $DC04  <span style="color:#6688aa">; Timer A Low = $C8</span>
+          LDA #$4C : STA $DC05  <span style="color:#6688aa">; Timer A High = $4C</span>
+          LDA #$7F : STA $DC0D  <span style="color:#6688aa">; Alle CIA-IRQs deaktivieren</span>
+          LDA #$81 : STA $DC0D  <span style="color:#6688aa">; Timer A IRQ aktivieren (Bit7=set, Bit0=TA)</span>
+          LDA #$11 : STA $DC0E  <span style="color:#6688aa">; LOAD + START (Bits 4+0)</span></pre>
+
+  <h2>CIA1 Port A ($DC00) — Tastatur-Spalten &amp; Joystick 2</h2>
+  <table>
+    <thead><tr><th>Bit</th><th>Tastatur</th><th>Joystick 2</th></tr></thead>
+    <tbody>
+      <tr><td>0</td><td>Spalte 0 (DEL, 3, 5, 7, 9, +, £, 1)</td><td>Up (aktiv LOW)</td></tr>
+      <tr><td>1</td><td>Spalte 1 (RETURN, W, R, Y, I, P, *, RESTORE)</td><td>Down</td></tr>
+      <tr><td>2</td><td>Spalte 2 (CRSR←, A, D, G, J, L, ;, CTRL)</td><td>Left</td></tr>
+      <tr><td>3</td><td>Spalte 3 (F7, 4, 6, 8, 0, -, HOME, 2)</td><td>Right</td></tr>
+      <tr><td>4</td><td>Spalte 4 (F1, Z, C, B, M, ., RSHIFT, SPACE)</td><td>Fire</td></tr>
+      <tr><td>5</td><td>Spalte 5 (F3, S, F, H, K, :, =, CBM)</td><td>–</td></tr>
+      <tr><td>6</td><td>Spalte 6 (F5, E, T, U, O, @, ↑, Q)</td><td>–</td></tr>
+      <tr><td>7</td><td>Spalte 7 (CRSR↓, LSHIFT, X, V, N, ,, /, RUNSTOP)</td><td>–</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Tastaturmatrix (8×8)</h2>
+  <p>Zeilen über <code>$DC01</code> lesen, Spalten über <code>$DC00</code> setzen (0=aktiv LOW).</p>
+  <div class="kbd-matrix" id="kbdMatrix"></div>
+
+  <h2>CIA2 Port A ($DD00) — VIC-Bank und IEC</h2>
+  <table>
+    <thead><tr><th>Bit</th><th>Funktion</th></tr></thead>
+    <tbody>
+      <tr><td>0</td><td>VIC-Bank Bit 0 (invertiert: 0=Bank3, 1=Bank2 für Bit0)</td></tr>
+      <tr><td>1</td><td>VIC-Bank Bit 1 (invertiert: Bits 1–0: %11=Bank0, %10=Bank1, %01=Bank2, %00=Bank3)</td></tr>
+      <tr><td>2</td><td>IEC Serial Bus: DATA-In</td></tr>
+      <tr><td>3</td><td>IEC Serial Bus: CLK-In</td></tr>
+      <tr><td>4</td><td>IEC Serial Bus: DATA-Out</td></tr>
+      <tr><td>5</td><td>IEC Serial Bus: CLK-Out</td></tr>
+      <tr><td>6</td><td>IEC Serial Bus: ATN-Out</td></tr>
+      <tr><td>7</td><td>Seriell: TXD (RS-232)</td></tr>
+    </tbody>
+  </table>
+
+  <pre><span style="color:#6688aa">; Joystick Port 2 lesen ($DC00)</span>
+ReadJoy2:
+          LDA $DC00
+          EOR #$FF       <span style="color:#6688aa">; Invertieren (active LOW → active HIGH)</span>
+          AND #$1F       <span style="color:#6688aa">; Bits 0-4: Up/Down/Left/Right/Fire</span>
+          RTS
+
+<span style="color:#6688aa">; Tastatur scannen: Prüfe ob SPACE gedrückt</span>
+<span style="color:#6688aa">; SPACE ist in Spalte 4, Zeile 7</span>
+CheckSpace:
+          LDA #%11101111  <span style="color:#6688aa">; Alle Spalten ein, außer Spalte 4 (Bit 4=0)</span>
+          STA $DC00
+          LDA $DC01       <span style="color:#6688aa">; Zeilen lesen</span>
+          AND #%10000000  <span style="color:#6688aa">; Zeile 7 prüfen</span>
+          BEQ .pressed    <span style="color:#6688aa">; 0 = gedrückt (active LOW)</span>
+          CLC : RTS       <span style="color:#6688aa">; Nicht gedrückt</span>
+.pressed: SEC : RTS       <span style="color:#6688aa">; Gedrückt</span></pre>
+
+<script>
+// Keyboard matrix: rows (Port B $DC01) × columns (Port A $DC00)
+const matrix = [
+  ['DEL','3','5','7','9','+','£','1'],
+  ['RET','W','R','Y','I','P','*','←'],
+  ['←','A','D','G','J','L',';','CTRL'],
+  ['F7','4','6','8','0','-','HOME','2'],
+  ['F1','Z','C','B','M','.','RSHFT','SPC'],
+  ['F3','S','F','H','K',':','=','CBM'],
+  ['F5','E','T','U','O','@','↑','Q'],
+  ['↓','LSHFT','X','V','N',',','/','STOP']
+];
+const grid = document.getElementById('kbdMatrix');
+// Header row
+const empty = document.createElement('div');
+empty.className = 'kbd-header';
+empty.textContent = 'ZL\\SP';
+grid.appendChild(empty);
+for (let c = 0; c < 8; c++) {
+  const h = document.createElement('div');
+  h.className = 'kbd-header';
+  h.textContent = `SP${c}`;
+  grid.appendChild(h);
+}
+for (let r = 0; r < 8; r++) {
+  const rl = document.createElement('div');
+  rl.className = 'kbd-row-label';
+  rl.textContent = `ZL${r}`;
+  grid.appendChild(rl);
+  for (let c = 0; c < 8; c++) {
+    const cell = document.createElement('div');
+    cell.className = 'kbd-cell';
+    cell.textContent = matrix[r][c];
+    cell.title = `Spalte ${c} (Port A Bit ${c}=0), Zeile ${r} (Port B Bit ${r})`;
+    grid.appendChild(cell);
+  }
+}
+</script>
+</main>
+</body>
+</html>

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>C64 Mastery — Anhang: PETSCII-Tabelle</title>
+  <style>
+    :root{--c64-blue:#0033aa;--c64-green:#00ff88;--c64-dark:#1a1a2e;--c64-darker:#0d0d1a;--paper:#f8f6f0;--paper-dark:#ede9df;--text:#1a1a2e;--text-light:#444466;--accent:#cc3300;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Georgia',serif;font-size:15px;line-height:1.7;color:var(--text);background:var(--paper);display:grid;grid-template-columns:270px 1fr;min-height:100vh;}
+    .sidebar{background:var(--c64-dark);color:#ccc;position:sticky;top:0;height:100vh;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--c64-blue) var(--c64-darker);}
+    .sidebar::-webkit-scrollbar{width:6px;}.sidebar::-webkit-scrollbar-thumb{background:var(--c64-blue);}
+    .sidebar-header{background:var(--c64-blue);padding:18px 20px;font-family:'Courier New',monospace;font-size:13px;font-weight:bold;color:white;}
+    .sidebar-header .logo{font-size:22px;margin-bottom:4px;color:var(--c64-green);}
+    .sidebar nav{padding:12px 0;}
+    .sidebar nav a{display:block;padding:7px 20px;color:#aab;text-decoration:none;font-family:'Courier New',monospace;font-size:12.5px;border-left:3px solid transparent;transition:all 0.2s;}
+    .sidebar nav a:hover{color:white;background:rgba(255,255,255,0.05);border-left-color:var(--c64-green);}
+    .sidebar nav a.active{color:var(--c64-green);border-left-color:var(--c64-green);background:rgba(0,255,136,0.07);font-weight:bold;}
+    .sidebar nav .section-label{padding:12px 20px 4px;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:#556;font-family:'Courier New',monospace;}
+    main{max-width:980px;padding:40px 48px;}
+    h1{font-size:32px;color:var(--c64-dark);margin-bottom:8px;}
+    .chapter-number{font-family:'Courier New',monospace;font-size:13px;color:var(--c64-blue);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;}
+    .chapter-meta{display:flex;gap:16px;font-family:'Courier New',monospace;font-size:12px;color:var(--text-light);margin:12px 0 28px;flex-wrap:wrap;}
+    .chapter-meta span{background:var(--paper-dark);padding:4px 10px;border-radius:3px;}
+    h2{font-size:22px;color:var(--c64-blue);margin:36px 0 14px;padding-bottom:6px;border-bottom:1px solid #d0ccc0;}
+    p{margin-bottom:14px;}
+    code{font-family:'Courier New',monospace;font-size:13px;background:#e8e4da;padding:2px 5px;border-radius:3px;color:var(--accent);}
+    table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px;}
+    thead{background:var(--c64-blue);color:white;}
+    thead th{padding:9px 10px;text-align:left;font-family:'Courier New',monospace;font-size:12px;}
+    tbody tr:nth-child(even){background:var(--paper-dark);}
+    tbody td{padding:7px 10px;border-bottom:1px solid #d0ccc0;vertical-align:top;}
+    /* PETSCII Grid */
+    .petscii-grid{display:grid;grid-template-columns:repeat(16,1fr);gap:2px;margin:16px 0;font-family:'Courier New',monospace;}
+    .petscii-col-header{background:var(--c64-dark);color:var(--c64-green);text-align:center;padding:4px 2px;font-size:11px;border-radius:2px;}
+    .petscii-row-header{background:var(--c64-dark);color:#ffcc44;text-align:right;padding:4px 6px;font-size:11px;border-radius:2px;display:flex;align-items:center;justify-content:flex-end;}
+    .petscii-cell{background:var(--c64-dark);border:1px solid #333;padding:3px 2px;text-align:center;font-size:15px;min-height:32px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;border-radius:2px;transition:background 0.1s;line-height:1;}
+    .petscii-cell:hover{background:#2a2a5e;border-color:var(--c64-blue);}
+    .petscii-cell .dec{font-size:8px;color:#556;margin-top:2px;}
+    .petscii-cell.ctrl{background:#1a1a2e;border-color:#333;}
+    .petscii-cell.ctrl .sym{color:#445;}
+    .petscii-cell.printable .sym{color:var(--c64-green);}
+    .petscii-cell.graphic .sym{color:#ffcc44;font-size:13px;}
+    /* Tooltip */
+    #tooltip{position:fixed;background:#000;color:var(--c64-green);font-family:'Courier New',monospace;font-size:13px;padding:8px 12px;border-radius:4px;border:1px solid var(--c64-blue);pointer-events:none;display:none;z-index:1000;}
+    .screen-code-note{background:linear-gradient(to right,#f0f4ff,#f8f6f0);border:1px solid #c0cce8;border-radius:6px;padding:16px 20px;margin:16px 0;}
+    .screen-code-note h3{color:var(--c64-blue);font-family:'Courier New',monospace;font-size:14px;margin-bottom:8px;}
+  </style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-header"><div class="logo">■ C64 MASTERY</div>Referenz</div>
+  <nav>
+    <div class="section-label">Curriculum</div>
+    <a href="index.html">◈ Übersicht</a>
+    <a href="stufe_03_bildschirm_zeichen.html">03 · VIC-II Zeichen</a>
+    <div class="section-label">Anhänge</div>
+    <a href="anhang_opcodes.html">Opcode-Referenz</a>
+    <a href="anhang_speicherkarte.html">Speicherkarte</a>
+    <a href="anhang_vic_register.html">VIC-II Register</a>
+    <a href="anhang_sid_register.html">SID Register</a>
+    <a href="anhang_cia_register.html">CIA Register</a>
+    <a href="anhang_petscii.html" class="active">PETSCII-Tabelle</a>
+    <a href="anhang_farben.html">C64-Farben</a>
+  </nav>
+</aside>
+<main>
+  <div class="chapter-number">Anhang F</div>
+  <h1>PETSCII-Tabelle</h1>
+  <div class="chapter-meta">
+    <span>Codes 0–255</span><span>PETSCII = PET Standard Code</span><span>Hover für Details</span>
+  </div>
+  <p>PETSCII ist der Zeichensatz des C64. Codes 32–90 entsprechen Großbuchstaben und Grafiksymbolen. Codes 65–90 sind im Screen-RAM als 1–26 gespeichert (PETSCII - 64 = Screen Code). Klicke auf ein Zeichen für Details.</p>
+
+  <div class="screen-code-note">
+    <h3>PETSCII → Screen Code Umrechnung</h3>
+    <table>
+      <thead><tr><th>PETSCII-Bereich</th><th>Screen Code</th><th>Zeichen</th></tr></thead>
+      <tbody>
+        <tr><td>32–63</td><td>32–63</td><td>Leerzeichen, Sonderzeichen, Ziffern</td></tr>
+        <tr><td>64–95 ($40–$5F)</td><td>0–31</td><td>@ A-Z [ £ ] ↑ ←</td></tr>
+        <tr><td>96–127 ($60–$7F)</td><td>96–127</td><td>Grafikzeichen</td></tr>
+        <tr><td>128–159 ($80–$9F)</td><td>128–159</td><td>Steuerzeichen (Farben, Cursor etc.)</td></tr>
+        <tr><td>160–191 ($A0–$BF)</td><td>96–127 (gespiegelt)</td><td>Grafikzeichen (SHIFT-Version)</td></tr>
+        <tr><td>192–223 ($C0–$DF)</td><td>64–95</td><td>Grafikzeichen (obere Hälfte)</td></tr>
+        <tr><td>224–254 ($E0–$FE)</td><td>192–222</td><td>Grafikzeichen gespiegelt</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:10px;font-size:13px">Formel: Screen Code = PETSCII - 64 (für Buchstaben A-Z). Buchstabe 'A' = PETSCII $41 = Screen Code $01.</p>
+  </div>
+
+  <h2>PETSCII Zeichentabelle (Codes 0–255)</h2>
+  <p>Zeige: <button onclick="setView('petscii')" id="btn-petscii" style="font-family:'Courier New';padding:4px 10px;background:var(--c64-blue);color:white;border:none;border-radius:3px;cursor:pointer;margin-right:6px">PETSCII</button>
+  <button onclick="setView('screen')" id="btn-screen" style="font-family:'Courier New';padding:4px 10px;background:#555;color:white;border:none;border-radius:3px;cursor:pointer">Screen Codes</button></p>
+
+  <div class="petscii-grid" id="petsciiGrid"></div>
+  <div id="tooltip"></div>
+
+  <h2>Wichtige PETSCII-Steuercodes</h2>
+  <table>
+    <thead><tr><th>PETSCII</th><th>Hex</th><th>Funktion</th></tr></thead>
+    <tbody>
+      <tr><td>13</td><td>$0D</td><td>RETURN (Zeilenumbruch)</td></tr>
+      <tr><td>14</td><td>$0E</td><td>Umschalten auf Kleinbuchstaben+Grafikmodus</td></tr>
+      <tr><td>17</td><td>$11</td><td>Cursor unten</td></tr>
+      <tr><td>18</td><td>$12</td><td>Reverse Video Ein</td></tr>
+      <tr><td>19</td><td>$13</td><td>HOME (Cursor nach oben-links)</td></tr>
+      <tr><td>20</td><td>$14</td><td>DEL (Zeichen löschen)</td></tr>
+      <tr><td>28</td><td>$1C</td><td>Farbe Rot</td></tr>
+      <tr><td>29</td><td>$1D</td><td>Cursor rechts</td></tr>
+      <tr><td>30</td><td>$1E</td><td>Farbe Grün</td></tr>
+      <tr><td>31</td><td>$1F</td><td>Farbe Blau</td></tr>
+      <tr><td>32</td><td>$20</td><td>Leerzeichen (Screen Code 32)</td></tr>
+      <tr><td>142</td><td>$8E</td><td>Umschalten auf Großbuchstaben+Grafikmodus</td></tr>
+      <tr><td>144</td><td>$90</td><td>Farbe Schwarz</td></tr>
+      <tr><td>145</td><td>$91</td><td>Cursor hoch</td></tr>
+      <tr><td>146</td><td>$92</td><td>Reverse Video Aus</td></tr>
+      <tr><td>147</td><td>$93</td><td>CLR (Bildschirm löschen)</td></tr>
+      <tr><td>148</td><td>$94</td><td>INSERT</td></tr>
+      <tr><td>154</td><td>$9A</td><td>Farbe Hellgrün</td></tr>
+      <tr><td>156</td><td>$9C</td><td>Farbe Lila</td></tr>
+      <tr><td>157</td><td>$9D</td><td>Cursor links</td></tr>
+      <tr><td>158</td><td>$9E</td><td>Farbe Gelb</td></tr>
+      <tr><td>159</td><td>$9F</td><td>Farbe Cyan</td></tr>
+    </tbody>
+  </table>
+
+<script>
+// PETSCII symbols (simplified representation for web)
+// True PETSCII graphics require C64 font, so we use Unicode approximations
+const petsciiNames = {
+  0:'(NULL)',8:'(CRSR DOWN off)',13:'RETURN',14:'LC+GFX',17:'↓ CRSR',18:'RVS ON',
+  19:'HOME',20:'DEL',28:'RED',29:'→ CRSR',30:'GREEN',31:'BLUE',
+  32:'SPACE',33:'!',34:'"',35:'#',36:'$',37:'%',38:'&',39:"'",40:'(',41:')',
+  42:'*',43:'+',44:',',45:'-',46:'.',47:'/',
+  48:'0',49:'1',50:'2',51:'3',52:'4',53:'5',54:'6',55:'7',56:'8',57:'9',
+  58:':',59:';',60:'<',61:'=',62:'>',63:'?',
+  64:'@',65:'A',66:'B',67:'C',68:'D',69:'E',70:'F',71:'G',72:'H',73:'I',
+  74:'J',75:'K',76:'L',77:'M',78:'N',79:'O',80:'P',81:'Q',82:'R',83:'S',
+  84:'T',85:'U',86:'V',87:'W',88:'X',89:'Y',90:'Z',
+  91:'[',92:'£',93:']',94:'↑',95:'←',
+  128:'(ctrl)',142:'UC+GFX',144:'BLACK',145:'↑ CRSR',146:'RVS OFF',147:'CLR',
+  148:'INS',154:'LT GRN',156:'PURPLE',157:'← CRSR',158:'YELLOW',159:'CYAN',
+};
+
+function petsciiToChar(code) {
+  if (code in petsciiNames) return petsciiNames[code];
+  if (code >= 48 && code <= 57) return String.fromCharCode(code);
+  if (code >= 65 && code <= 90) return String.fromCharCode(code);
+  if (code >= 32 && code <= 47) return String.fromCharCode(code);
+  if (code >= 58 && code <= 64) return String.fromCharCode(code);
+  if (code >= 91 && code <= 95) return ['[','£',']','↑','←'][code-91];
+  // Graphics
+  const graphicsMap = {96:'─',97:'♠',98:'│',99:'─',100:'─',105:'╮',106:'╰',107:'╯',
+    108:'╭',109:'╱',110:'╲',111:'●',112:'─',113:'♥',116:'─',117:'╭',123:'♦',126:'▒'};
+  if (code in graphicsMap) return graphicsMap[code];
+  if (code >= 160 && code <= 191) return '▓';
+  if (code >= 192 && code <= 223) return '░';
+  return '·';
+}
+
+function getClass(code) {
+  if (code < 32) return 'ctrl';
+  if (code >= 128 && code <= 159) return 'ctrl';
+  if (code >= 32 && code <= 127) return 'printable';
+  return 'graphic';
+}
+
+let currentView = 'petscii';
+function setView(v) {
+  currentView = v;
+  document.getElementById('btn-petscii').style.background = v==='petscii' ? 'var(--c64-blue)' : '#555';
+  document.getElementById('btn-screen').style.background = v==='screen' ? 'var(--c64-blue)' : '#555';
+  buildGrid();
+}
+
+function buildGrid() {
+  const grid = document.getElementById('petsciiGrid');
+  grid.innerHTML = '';
+  // Col headers
+  const blank = document.createElement('div');
+  grid.appendChild(blank);
+  for (let c = 0; c < 16; c++) {
+    const h = document.createElement('div');
+    h.className = 'petscii-col-header';
+    h.textContent = c.toString(16).toUpperCase();
+    grid.appendChild(h);
+  }
+  for (let row = 0; row < 16; row++) {
+    const rh = document.createElement('div');
+    rh.className = 'petscii-row-header';
+    rh.textContent = (row*16).toString(16).toUpperCase().padStart(2,'0');
+    grid.appendChild(rh);
+    for (let col = 0; col < 16; col++) {
+      const code = row * 16 + col;
+      const displayCode = currentView === 'screen' ? ((code + 256 - 64) % 256) : code;
+      const ch = petsciiToChar(code);
+      const cell = document.createElement('div');
+      cell.className = `petscii-cell ${getClass(code)}`;
+      cell.innerHTML = `<span class="sym">${ch.length > 3 ? '·' : ch}</span><span class="dec">${code}</span>`;
+      cell.title = `PETSCII ${code} ($${code.toString(16).toUpperCase().padStart(2,'0')})`;
+      cell.onmouseenter = (e) => showTip(e, code, ch);
+      cell.onmouseleave = () => document.getElementById('tooltip').style.display='none';
+      grid.appendChild(cell);
+    }
+  }
+}
+
+function showTip(e, code, ch) {
+  const t = document.getElementById('tooltip');
+  const sc = (code >= 64 && code <= 95) ? code - 64 : (code >= 96 && code <= 127) ? code : code;
+  t.innerHTML = `PETSCII: ${code} / $${code.toString(16).toUpperCase().padStart(2,'0')}<br>Zeichen: "${ch}"<br>Screen Code: $${sc.toString(16).toUpperCase().padStart(2,'0')}`;
+  t.style.display = 'block';
+  t.style.left = (e.clientX + 14) + 'px';
+  t.style.top = (e.clientY - 10) + 'px';
+}
+document.onmousemove = (e) => {
+  const t = document.getElementById('tooltip');
+  if (t.style.display !== 'none') { t.style.left=(e.clientX+14)+'px'; t.style.top=(e.clientY-10)+'px'; }
+};
+
+buildGrid();
+</script>
+</main>
+</body>
+</html>

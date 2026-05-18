@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>C64 Mastery — Anhang: 6510 Opcode-Referenz</title>
+  <style>
+    :root {
+      --c64-blue: #0033aa;
+      --c64-green: #00ff88;
+      --c64-dark: #1a1a2e;
+      --c64-darker: #0d0d1a;
+      --paper: #f8f6f0;
+      --paper-dark: #ede9df;
+      --text: #1a1a2e;
+      --text-light: #444466;
+      --accent: #cc3300;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Georgia', serif;
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--text);
+      background: var(--paper);
+      display: grid;
+      grid-template-columns: 270px 1fr;
+      min-height: 100vh;
+    }
+    .sidebar {
+      background: var(--c64-dark);
+      color: #ccc;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--c64-blue) var(--c64-darker);
+    }
+    .sidebar::-webkit-scrollbar { width: 6px; }
+    .sidebar::-webkit-scrollbar-thumb { background: var(--c64-blue); }
+    .sidebar-header { background: var(--c64-blue); padding: 18px 20px; font-family: 'Courier New', monospace; font-size: 13px; font-weight: bold; color: white; }
+    .sidebar-header .logo { font-size: 22px; margin-bottom: 4px; color: var(--c64-green); }
+    .sidebar nav { padding: 12px 0; }
+    .sidebar nav a { display: block; padding: 7px 20px; color: #aab; text-decoration: none; font-family: 'Courier New', monospace; font-size: 12.5px; border-left: 3px solid transparent; transition: all 0.2s; }
+    .sidebar nav a:hover { color: white; background: rgba(255,255,255,0.05); border-left-color: var(--c64-green); }
+    .sidebar nav a.active { color: var(--c64-green); border-left-color: var(--c64-green); background: rgba(0,255,136,0.07); font-weight: bold; }
+    .sidebar nav .section-label { padding: 12px 20px 4px; font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: #556; font-family: 'Courier New', monospace; }
+    main { max-width: 1000px; padding: 40px 48px; }
+    h1 { font-size: 32px; color: var(--c64-dark); margin-bottom: 8px; }
+    .chapter-number { font-family: 'Courier New', monospace; font-size: 13px; color: var(--c64-blue); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+    .chapter-meta { display: flex; gap: 16px; font-family: 'Courier New', monospace; font-size: 12px; color: var(--text-light); margin: 12px 0 28px; flex-wrap: wrap; }
+    .chapter-meta span { background: var(--paper-dark); padding: 4px 10px; border-radius: 3px; }
+    h2 { font-size: 22px; color: var(--c64-blue); margin: 36px 0 14px; padding-bottom: 6px; border-bottom: 1px solid #d0ccc0; }
+    p { margin-bottom: 14px; }
+    code { font-family: 'Courier New', monospace; font-size: 13px; background: #e8e4da; padding: 2px 5px; border-radius: 3px; color: var(--accent); }
+
+    /* Filter bar */
+    .filter-bar {
+      display: flex;
+      gap: 10px;
+      margin: 20px 0;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .filter-bar input[type="text"] {
+      flex: 1;
+      min-width: 200px;
+      padding: 9px 14px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      border: 2px solid #c0bbb0;
+      border-radius: 4px;
+      background: white;
+      color: var(--text);
+      outline: none;
+    }
+    .filter-bar input:focus { border-color: var(--c64-blue); }
+    .filter-bar select {
+      padding: 9px 14px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      border: 2px solid #c0bbb0;
+      border-radius: 4px;
+      background: white;
+      color: var(--text);
+      cursor: pointer;
+    }
+    .filter-bar select:focus { border-color: var(--c64-blue); outline: none; }
+    .filter-bar .count { font-family: 'Courier New', monospace; font-size: 13px; color: var(--text-light); white-space: nowrap; }
+    .filter-bar button {
+      padding: 9px 16px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      background: var(--c64-blue);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .filter-bar button:hover { background: #0044cc; }
+
+    /* Opcode table */
+    .opcode-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      font-family: 'Courier New', monospace;
+    }
+    .opcode-table thead { background: var(--c64-dark); color: white; position: sticky; top: 0; z-index: 10; }
+    .opcode-table thead th { padding: 10px 10px; text-align: left; font-size: 12px; letter-spacing: 0.5px; cursor: pointer; user-select: none; white-space: nowrap; }
+    .opcode-table thead th:hover { background: #2a2a4e; }
+    .opcode-table thead th.sort-asc::after { content: " ▲"; color: var(--c64-green); }
+    .opcode-table thead th.sort-desc::after { content: " ▼"; color: var(--c64-green); }
+    .opcode-table tbody tr { border-bottom: 1px solid #d8d4c8; }
+    .opcode-table tbody tr:nth-child(even) { background: var(--paper-dark); }
+    .opcode-table tbody tr:hover { background: #ddd8cc; }
+    .opcode-table tbody tr.hidden { display: none; }
+    .opcode-table td { padding: 6px 10px; vertical-align: middle; }
+    .opcode-table td:first-child { color: #ffcc44; }
+    .col-mnem { font-weight: bold; color: var(--c64-green) !important; min-width: 80px; }
+    .col-mode { color: #aaddff !important; min-width: 120px; }
+    .col-hex { color: #ff88aa !important; min-width: 45px; }
+    .col-bytes { text-align: center; min-width: 40px; }
+    .col-cycles { text-align: center; min-width: 60px; }
+    .col-flags { min-width: 80px; letter-spacing: 1px; }
+    .col-desc { color: #ccc !important; }
+    .flag-set { color: var(--c64-green); font-weight: bold; }
+    .flag-clear { color: #555; }
+
+    /* Cycles badge */
+    .cyc { display: inline-block; background: #334; border-radius: 3px; padding: 1px 6px; font-size: 12px; }
+    .cyc-2 { background: #143314; color: #88ff88; }
+    .cyc-3 { background: #1a3320; color: #66dd66; }
+    .cyc-4 { background: #332800; color: #ddbb44; }
+    .cyc-5 { background: #331800; color: #dd8833; }
+    .cyc-6 { background: #330000; color: #dd4444; }
+    .cyc-7 { background: #220000; color: #cc2222; }
+
+    /* Category badges */
+    .cat { display: inline-block; font-size: 10px; padding: 2px 6px; border-radius: 10px; font-weight: bold; letter-spacing: 0.5px; }
+    .cat-load { background: #002244; color: #88aaff; }
+    .cat-store { background: #002200; color: #88cc88; }
+    .cat-arith { background: #220022; color: #cc88cc; }
+    .cat-logic { background: #222200; color: #cccc44; }
+    .cat-shift { background: #002222; color: #44cccc; }
+    .cat-branch { background: #220011; color: #dd6688; }
+    .cat-jump { background: #110022; color: #8866dd; }
+    .cat-stack { background: #221100; color: #dd9944; }
+    .cat-sys { background: #221122; color: #cc66aa; }
+    .cat-trans { background: #002211; color: #44bb88; }
+    .cat-undoc { background: #331100; color: #ff6600; }
+    .cat-nop { background: #221111; color: #888888; }
+
+    .no-results { padding: 40px; text-align: center; color: var(--text-light); font-family: 'Courier New', monospace; display: none; }
+
+    /* Legend */
+    .legend { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; font-family: 'Courier New', monospace; }
+
+    @media print { .sidebar { display: none; } body { grid-template-columns: 1fr; } .filter-bar { display: none; } }
+  </style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">■ C64 MASTERY</div>
+    Referenz
+  </div>
+  <nav>
+    <div class="section-label">Curriculum</div>
+    <a href="index.html">◈ Übersicht</a>
+    <a href="stufe_00_fundament.html">00 · Fundament</a>
+    <a href="stufe_01_6510_assembler.html">01 · 6510 &amp; Assembler</a>
+    <a href="stufe_02_adressierung_speicher.html">02 · Adressierung</a>
+    <a href="stufe_03_bildschirm_zeichen.html">03 · VIC-II Zeichen</a>
+    <a href="stufe_04_sprites_animation.html">04 · Sprites</a>
+    <a href="stufe_05_bitmap_grafik.html">05 · Bitmap</a>
+    <a href="stufe_06_sid_sound.html">06 · SID-Sound</a>
+    <a href="stufe_07_interrupts_timing.html">07 · Interrupts</a>
+    <a href="stufe_08_optimierung.html">08 · Optimierung</a>
+    <a href="stufe_09_demo_effekte.html">09 · Demo-Effekte</a>
+    <a href="stufe_10_meisterschaft.html">10 · Meisterschaft</a>
+    <div class="section-label">Anhänge</div>
+    <a href="anhang_opcodes.html" class="active">Opcode-Referenz</a>
+    <a href="anhang_speicherkarte.html">Speicherkarte</a>
+    <a href="anhang_vic_register.html">VIC-II Register</a>
+    <a href="anhang_sid_register.html">SID Register</a>
+    <a href="anhang_cia_register.html">CIA Register</a>
+    <a href="anhang_petscii.html">PETSCII-Tabelle</a>
+    <a href="anhang_farben.html">C64-Farben</a>
+  </nav>
+</aside>
+
+<main>
+  <div class="chapter-number">Anhang A</div>
+  <h1>6510 Opcode-Referenz</h1>
+  <div class="chapter-meta">
+    <span>151 dokumentierte Opcodes</span>
+    <span>+ wichtige undokumentierte</span>
+    <span>Sortierbar · Filterbar</span>
+  </div>
+
+  <p>Vollständige Befehlssatz-Referenz für den MOS 6510. Klicke auf Spaltenköpfe zum Sortieren. Suche nach Mnemonik, Adressierungsart oder Beschreibung. <strong>+1</strong> bei Zyklen = Page-Crossing kostet einen Extrazyklus.</p>
+
+  <div class="legend">
+    <span class="legend-item"><span class="cat cat-load">LOAD</span> Laden</span>
+    <span class="legend-item"><span class="cat cat-store">STORE</span> Speichern</span>
+    <span class="legend-item"><span class="cat cat-arith">ARITH</span> Arithmetik</span>
+    <span class="legend-item"><span class="cat cat-logic">LOGIC</span> Logik</span>
+    <span class="legend-item"><span class="cat cat-shift">SHIFT</span> Schieben/Rotieren</span>
+    <span class="legend-item"><span class="cat cat-branch">BRANCH</span> Verzweigung</span>
+    <span class="legend-item"><span class="cat cat-jump">JUMP</span> Sprung</span>
+    <span class="legend-item"><span class="cat cat-stack">STACK</span> Stack</span>
+    <span class="legend-item"><span class="cat cat-trans">TRANS</span> Transfer</span>
+    <span class="legend-item"><span class="cat cat-sys">SYS</span> System</span>
+    <span class="legend-item"><span class="cat cat-undoc">UNDOC</span> Undokumentiert</span>
+  </div>
+
+  <div class="filter-bar">
+    <input type="text" id="searchInput" placeholder="Suchen: LDA, Zero Page, Carry …" oninput="filterTable()">
+    <select id="catFilter" onchange="filterTable()">
+      <option value="">Alle Kategorien</option>
+      <option value="LOAD">LOAD</option>
+      <option value="STORE">STORE</option>
+      <option value="ARITH">ARITH</option>
+      <option value="LOGIC">LOGIC</option>
+      <option value="SHIFT">SHIFT</option>
+      <option value="BRANCH">BRANCH</option>
+      <option value="JUMP">JUMP</option>
+      <option value="STACK">STACK</option>
+      <option value="TRANS">TRANS</option>
+      <option value="SYS">SYS</option>
+      <option value="UNDOC">UNDOC</option>
+    </select>
+    <select id="modeFilter" onchange="filterTable()">
+      <option value="">Alle Adressierungsarten</option>
+      <option value="Impl">Implizit</option>
+      <option value="Akk">Akkumulator</option>
+      <option value="Imm">Unmittelbar (#)</option>
+      <option value="ZP">Zero Page</option>
+      <option value="ZP,X">Zero Page,X</option>
+      <option value="ZP,Y">Zero Page,Y</option>
+      <option value="Abs">Absolut</option>
+      <option value="Abs,X">Absolut,X</option>
+      <option value="Abs,Y">Absolut,Y</option>
+      <option value="(Ind">Indirekt</option>
+      <option value="Rel">Relativ</option>
+    </select>
+    <button onclick="clearFilters()">✕ Zurücksetzen</button>
+    <span class="count" id="rowCount"></span>
+  </div>
+
+  <table class="opcode-table" id="opcodeTable">
+    <thead>
+      <tr>
+        <th onclick="sortTable(0)" title="Kategorie">Kat.</th>
+        <th onclick="sortTable(1)" title="Mnemonik">Mnem.</th>
+        <th onclick="sortTable(2)" title="Adressierungsart">Adressierungsart</th>
+        <th onclick="sortTable(3)" title="Opcode Hex">Hex</th>
+        <th onclick="sortTable(4)" title="Bytes">B</th>
+        <th onclick="sortTable(5)" title="Taktzyklen">Zyklen</th>
+        <th onclick="sortTable(6)" title="Flags N V - B D I Z C">Flags N V − B D I Z C</th>
+        <th onclick="sortTable(7)" title="Beschreibung">Beschreibung</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody">
+    </tbody>
+  </table>
+  <div class="no-results" id="noResults">Keine Opcodes gefunden. Suchbegriff ändern oder Filter zurücksetzen.</div>
+</main>
+
+<script>
+// Opcode-Datenbank
+// Format: [Kategorie, Mnemonik, Adressierungsart, Hex, Bytes, Zyklen, Flags (N V - B D I Z C), Beschreibung]
+// Flags: 1=gesetzt, 0=gelöscht, *=beeinflusst, -=unverändert
+const opcodes = [
+  // LDA
+  ["LOAD","LDA","Imm #","$A9",2,"2","* - - - - - * -","Lade Akkumulator mit Direktwert"],
+  ["LOAD","LDA","ZP","$A5",2,"3","* - - - - - * -","Lade A aus Zero Page"],
+  ["LOAD","LDA","ZP,X","$B5",2,"4","* - - - - - * -","Lade A aus Zero Page + X"],
+  ["LOAD","LDA","Abs","$AD",3,"4","* - - - - - * -","Lade A aus absolutem Speicher"],
+  ["LOAD","LDA","Abs,X","$BD",3,"4+1","* - - - - - * -","Lade A aus Speicher + X (Page Cross +1)"],
+  ["LOAD","LDA","Abs,Y","$B9",3,"4+1","* - - - - - * -","Lade A aus Speicher + Y (Page Cross +1)"],
+  ["LOAD","LDA","(Ind,X)","$A1",2,"6","* - - - - - * -","Lade A indirekt (ZP + X) vor Dereferenz"],
+  ["LOAD","LDA","(Ind),Y","$B1",2,"5+1","* - - - - - * -","Lade A indirekt ZP, dann + Y"],
+  // LDX
+  ["LOAD","LDX","Imm #","$A2",2,"2","* - - - - - * -","Lade X-Register mit Direktwert"],
+  ["LOAD","LDX","ZP","$A6",2,"3","* - - - - - * -","Lade X aus Zero Page"],
+  ["LOAD","LDX","ZP,Y","$B6",2,"4","* - - - - - * -","Lade X aus Zero Page + Y"],
+  ["LOAD","LDX","Abs","$AE",3,"4","* - - - - - * -","Lade X absolut"],
+  ["LOAD","LDX","Abs,Y","$BE",3,"4+1","* - - - - - * -","Lade X absolut + Y"],
+  // LDY
+  ["LOAD","LDY","Imm #","$A0",2,"2","* - - - - - * -","Lade Y-Register mit Direktwert"],
+  ["LOAD","LDY","ZP","$A4",2,"3","* - - - - - * -","Lade Y aus Zero Page"],
+  ["LOAD","LDY","ZP,X","$B4",2,"4","* - - - - - * -","Lade Y aus Zero Page + X"],
+  ["LOAD","LDY","Abs","$AC",3,"4","* - - - - - * -","Lade Y absolut"],
+  ["LOAD","LDY","Abs,X","$BC",3,"4+1","* - - - - - * -","Lade Y absolut + X"],
+  // STA
+  ["STORE","STA","ZP","$85",2,"3","- - - - - - - -","Speichere A in Zero Page"],
+  ["STORE","STA","ZP,X","$95",2,"4","- - - - - - - -","Speichere A in Zero Page + X"],
+  ["STORE","STA","Abs","$8D",3,"4","- - - - - - - -","Speichere A absolut"],
+  ["STORE","STA","Abs,X","$9D",3,"5","- - - - - - - -","Speichere A absolut + X (immer 5!)"],
+  ["STORE","STA","Abs,Y","$99",3,"5","- - - - - - - -","Speichere A absolut + Y"],
+  ["STORE","STA","(Ind,X)","$81",2,"6","- - - - - - - -","Speichere A indirekt (ZP + X)"],
+  ["STORE","STA","(Ind),Y","$91",2,"6","- - - - - - - -","Speichere A indirekt ZP, dann + Y"],
+  // STX
+  ["STORE","STX","ZP","$86",2,"3","- - - - - - - -","Speichere X in Zero Page"],
+  ["STORE","STX","ZP,Y","$96",2,"4","- - - - - - - -","Speichere X in Zero Page + Y"],
+  ["STORE","STX","Abs","$8E",3,"4","- - - - - - - -","Speichere X absolut"],
+  // STY
+  ["STORE","STY","ZP","$84",2,"3","- - - - - - - -","Speichere Y in Zero Page"],
+  ["STORE","STY","ZP,X","$94",2,"4","- - - - - - - -","Speichere Y in Zero Page + X"],
+  ["STORE","STY","Abs","$8C",3,"4","- - - - - - - -","Speichere Y absolut"],
+  // Transfer
+  ["TRANS","TAX","Impl","$AA",1,"2","* - - - - - * -","Transfer A → X"],
+  ["TRANS","TAY","Impl","$A8",1,"2","* - - - - - * -","Transfer A → Y"],
+  ["TRANS","TXA","Impl","$8A",1,"2","* - - - - - * -","Transfer X → A"],
+  ["TRANS","TYA","Impl","$98",1,"2","* - - - - - * -","Transfer Y → A"],
+  ["TRANS","TSX","Impl","$BA",1,"2","* - - - - - * -","Transfer SP → X"],
+  ["TRANS","TXS","Impl","$9A",1,"2","- - - - - - - -","Transfer X → SP (keine Flags!)"],
+  // Stack
+  ["STACK","PHA","Impl","$48",1,"3","- - - - - - - -","Push A auf Stack"],
+  ["STACK","PLA","Impl","$68",1,"4","* - - - - - * -","Pull A vom Stack"],
+  ["STACK","PHP","Impl","$08",1,"3","- - - - - - - -","Push Prozessor-Status auf Stack"],
+  ["STACK","PLP","Impl","$28",1,"4","* * - * * * * *","Pull Prozessor-Status vom Stack"],
+  // Arithmetik
+  ["ARITH","ADC","Imm #","$69",2,"2","* * - - - - * *","Addiere mit Carry (A + M + C)"],
+  ["ARITH","ADC","ZP","$65",2,"3","* * - - - - * *","Addiere ZP-Wert + Carry"],
+  ["ARITH","ADC","ZP,X","$75",2,"4","* * - - - - * *","Addiere ZP + X + Carry"],
+  ["ARITH","ADC","Abs","$6D",3,"4","* * - - - - * *","Addiere absolut + Carry"],
+  ["ARITH","ADC","Abs,X","$7D",3,"4+1","* * - - - - * *","Addiere absolut+X + Carry"],
+  ["ARITH","ADC","Abs,Y","$79",3,"4+1","* * - - - - * *","Addiere absolut+Y + Carry"],
+  ["ARITH","ADC","(Ind,X)","$61",2,"6","* * - - - - * *","Addiere indirekt(ZP+X) + Carry"],
+  ["ARITH","ADC","(Ind),Y","$71",2,"5+1","* * - - - - * *","Addiere indirekt(ZP)+Y + Carry"],
+  ["ARITH","SBC","Imm #","$E9",2,"2","* * - - - - * *","Subtrahiere mit Borrow (A - M - !C)"],
+  ["ARITH","SBC","ZP","$E5",2,"3","* * - - - - * *","Subtrahiere ZP"],
+  ["ARITH","SBC","ZP,X","$F5",2,"4","* * - - - - * *","Subtrahiere ZP + X"],
+  ["ARITH","SBC","Abs","$ED",3,"4","* * - - - - * *","Subtrahiere absolut"],
+  ["ARITH","SBC","Abs,X","$FD",3,"4+1","* * - - - - * *","Subtrahiere absolut+X"],
+  ["ARITH","SBC","Abs,Y","$F9",3,"4+1","* * - - - - * *","Subtrahiere absolut+Y"],
+  ["ARITH","SBC","(Ind,X)","$E1",2,"6","* * - - - - * *","Subtrahiere indirekt(ZP+X)"],
+  ["ARITH","SBC","(Ind),Y","$F1",2,"5+1","* * - - - - * *","Subtrahiere indirekt(ZP)+Y"],
+  ["ARITH","INC","ZP","$E6",2,"5","* - - - - - * -","Inkrementiere ZP-Byte"],
+  ["ARITH","INC","ZP,X","$F6",2,"6","* - - - - - * -","Inkrementiere ZP + X"],
+  ["ARITH","INC","Abs","$EE",3,"6","* - - - - - * -","Inkrementiere absolut"],
+  ["ARITH","INC","Abs,X","$FE",3,"7","* - - - - - * -","Inkrementiere absolut + X"],
+  ["ARITH","INX","Impl","$E8",1,"2","* - - - - - * -","Inkrementiere X"],
+  ["ARITH","INY","Impl","$C8",1,"2","* - - - - - * -","Inkrementiere Y"],
+  ["ARITH","DEC","ZP","$C6",2,"5","* - - - - - * -","Dekrementiere ZP-Byte"],
+  ["ARITH","DEC","ZP,X","$D6",2,"6","* - - - - - * -","Dekrementiere ZP + X"],
+  ["ARITH","DEC","Abs","$CE",3,"6","* - - - - - * -","Dekrementiere absolut"],
+  ["ARITH","DEC","Abs,X","$DE",3,"7","* - - - - - * -","Dekrementiere absolut + X"],
+  ["ARITH","DEX","Impl","$CA",1,"2","* - - - - - * -","Dekrementiere X"],
+  ["ARITH","DEY","Impl","$88",1,"2","* - - - - - * -","Dekrementiere Y"],
+  // Compare
+  ["ARITH","CMP","Imm #","$C9",2,"2","* - - - - - * *","Vergleiche A mit Wert (A - M → Flags)"],
+  ["ARITH","CMP","ZP","$C5",2,"3","* - - - - - * *","Vergleiche A mit ZP"],
+  ["ARITH","CMP","ZP,X","$D5",2,"4","* - - - - - * *","Vergleiche A mit ZP+X"],
+  ["ARITH","CMP","Abs","$CD",3,"4","* - - - - - * *","Vergleiche A absolut"],
+  ["ARITH","CMP","Abs,X","$DD",3,"4+1","* - - - - - * *","Vergleiche A absolut+X"],
+  ["ARITH","CMP","Abs,Y","$D9",3,"4+1","* - - - - - * *","Vergleiche A absolut+Y"],
+  ["ARITH","CMP","(Ind,X)","$C1",2,"6","* - - - - - * *","Vergleiche A indirekt"],
+  ["ARITH","CMP","(Ind),Y","$D1",2,"5+1","* - - - - - * *","Vergleiche A indirekt+Y"],
+  ["ARITH","CPX","Imm #","$E0",2,"2","* - - - - - * *","Vergleiche X mit Wert"],
+  ["ARITH","CPX","ZP","$E4",2,"3","* - - - - - * *","Vergleiche X mit ZP"],
+  ["ARITH","CPX","Abs","$EC",3,"4","* - - - - - * *","Vergleiche X absolut"],
+  ["ARITH","CPY","Imm #","$C0",2,"2","* - - - - - * *","Vergleiche Y mit Wert"],
+  ["ARITH","CPY","ZP","$C4",2,"3","* - - - - - * *","Vergleiche Y mit ZP"],
+  ["ARITH","CPY","$CC",3,"4","* - - - - - * *","Vergleiche Y absolut"],
+  // Logik
+  ["LOGIC","AND","Imm #","$29",2,"2","* - - - - - * -","A = A AND Wert"],
+  ["LOGIC","AND","ZP","$25",2,"3","* - - - - - * -","A = A AND ZP"],
+  ["LOGIC","AND","ZP,X","$35",2,"4","* - - - - - * -","A = A AND ZP+X"],
+  ["LOGIC","AND","Abs","$2D",3,"4","* - - - - - * -","A = A AND absolut"],
+  ["LOGIC","AND","Abs,X","$3D",3,"4+1","* - - - - - * -","A = A AND absolut+X"],
+  ["LOGIC","AND","Abs,Y","$39",3,"4+1","* - - - - - * -","A = A AND absolut+Y"],
+  ["LOGIC","AND","(Ind,X)","$21",2,"6","* - - - - - * -","A = A AND indirekt"],
+  ["LOGIC","AND","(Ind),Y","$31",2,"5+1","* - - - - - * -","A = A AND indirekt+Y"],
+  ["LOGIC","ORA","Imm #","$09",2,"2","* - - - - - * -","A = A OR Wert"],
+  ["LOGIC","ORA","ZP","$05",2,"3","* - - - - - * -","A = A OR ZP"],
+  ["LOGIC","ORA","ZP,X","$15",2,"4","* - - - - - * -","A = A OR ZP+X"],
+  ["LOGIC","ORA","Abs","$0D",3,"4","* - - - - - * -","A = A OR absolut"],
+  ["LOGIC","ORA","Abs,X","$1D",3,"4+1","* - - - - - * -","A = A OR absolut+X"],
+  ["LOGIC","ORA","Abs,Y","$19",3,"4+1","* - - - - - * -","A = A OR absolut+Y"],
+  ["LOGIC","ORA","(Ind,X)","$01",2,"6","* - - - - - * -","A = A OR indirekt"],
+  ["LOGIC","ORA","(Ind),Y","$11",2,"5+1","* - - - - - * -","A = A OR indirekt+Y"],
+  ["LOGIC","EOR","Imm #","$49",2,"2","* - - - - - * -","A = A XOR Wert"],
+  ["LOGIC","EOR","ZP","$45",2,"3","* - - - - - * -","A = A XOR ZP"],
+  ["LOGIC","EOR","ZP,X","$55",2,"4","* - - - - - * -","A = A XOR ZP+X"],
+  ["LOGIC","EOR","Abs","$4D",3,"4","* - - - - - * -","A = A XOR absolut"],
+  ["LOGIC","EOR","Abs,X","$5D",3,"4+1","* - - - - - * -","A = A XOR absolut+X"],
+  ["LOGIC","EOR","Abs,Y","$59",3,"4+1","* - - - - - * -","A = A XOR absolut+Y"],
+  ["LOGIC","EOR","(Ind,X)","$41",2,"6","* - - - - - * -","A = A XOR indirekt"],
+  ["LOGIC","EOR","(Ind),Y","$51",2,"5+1","* - - - - - * -","A = A XOR indirekt+Y"],
+  ["LOGIC","BIT","ZP","$24",2,"3","* * - - - - * -","Bit-Test: N=M7 V=M6 Z=(A AND M)=0"],
+  ["LOGIC","BIT","Abs","$2C",3,"4","* * - - - - * -","Bit-Test absolut"],
+  // Schieben/Rotieren
+  ["SHIFT","ASL","Akk","$0A",1,"2","* - - - - - * *","Arithmetic Shift Left A (Bit 7 → C)"],
+  ["SHIFT","ASL","ZP","$06",2,"5","* - - - - - * *","ASL Zero Page"],
+  ["SHIFT","ASL","ZP,X","$16",2,"6","* - - - - - * *","ASL ZP+X"],
+  ["SHIFT","ASL","Abs","$0E",3,"6","* - - - - - * *","ASL absolut"],
+  ["SHIFT","ASL","Abs,X","$1E",3,"7","* - - - - - * *","ASL absolut+X"],
+  ["SHIFT","LSR","Akk","$4A",1,"2","0 - - - - - * *","Logical Shift Right A (Bit 0 → C, 0 → Bit 7)"],
+  ["SHIFT","LSR","ZP","$46",2,"5","0 - - - - - * *","LSR Zero Page"],
+  ["SHIFT","LSR","ZP,X","$56",2,"6","0 - - - - - * *","LSR ZP+X"],
+  ["SHIFT","LSR","Abs","$4E",3,"6","0 - - - - - * *","LSR absolut"],
+  ["SHIFT","LSR","Abs,X","$5E",3,"7","0 - - - - - * *","LSR absolut+X"],
+  ["SHIFT","ROL","Akk","$2A",1,"2","* - - - - - * *","Rotate Left A (Carry → Bit 0, Bit 7 → Carry)"],
+  ["SHIFT","ROL","ZP","$26",2,"5","* - - - - - * *","ROL Zero Page"],
+  ["SHIFT","ROL","ZP,X","$36",2,"6","* - - - - - * *","ROL ZP+X"],
+  ["SHIFT","ROL","Abs","$2E",3,"6","* - - - - - * *","ROL absolut"],
+  ["SHIFT","ROL","Abs,X","$3E",3,"7","* - - - - - * *","ROL absolut+X"],
+  ["SHIFT","ROR","Akk","$6A",1,"2","* - - - - - * *","Rotate Right A (Carry → Bit 7, Bit 0 → Carry)"],
+  ["SHIFT","ROR","ZP","$66",2,"5","* - - - - - * *","ROR Zero Page"],
+  ["SHIFT","ROR","ZP,X","$76",2,"6","* - - - - - * *","ROR ZP+X"],
+  ["SHIFT","ROR","Abs","$6E",3,"6","* - - - - - * *","ROR absolut"],
+  ["SHIFT","ROR","Abs,X","$7E",3,"7","* - - - - - * *","ROR absolut+X"],
+  // Branches
+  ["BRANCH","BCC","Rel","$90",2,"2+1+1","- - - - - - - -","Branch wenn Carry=0 (+1 genommen, +1 Page)"],
+  ["BRANCH","BCS","Rel","$B0",2,"2+1+1","- - - - - - - -","Branch wenn Carry=1"],
+  ["BRANCH","BEQ","Rel","$F0",2,"2+1+1","- - - - - - - -","Branch wenn Zero=1 (gleich)"],
+  ["BRANCH","BNE","Rel","$D0",2,"2+1+1","- - - - - - - -","Branch wenn Zero=0 (ungleich) — häufigster Branch!"],
+  ["BRANCH","BMI","Rel","$30",2,"2+1+1","- - - - - - - -","Branch wenn Negativ=1 (Minus)"],
+  ["BRANCH","BPL","Rel","$10",2,"2+1+1","- - - - - - - -","Branch wenn Negativ=0 (Plus/Zero)"],
+  ["BRANCH","BVC","Rel","$50",2,"2+1+1","- - - - - - - -","Branch wenn Overflow=0"],
+  ["BRANCH","BVS","Rel","$70",2,"2+1+1","- - - - - - - -","Branch wenn Overflow=1"],
+  // Sprünge
+  ["JUMP","JMP","Abs","$4C",3,"3","- - - - - - - -","Sprung absolut (schnellster Sprung!)"],
+  ["JUMP","JMP","(Ind)","$6C",3,"5","- - - - - - - -","Sprung indirekt — Bug: $xxFF liest High von $xx00!"],
+  ["JUMP","JSR","Abs","$20",3,"6","- - - - - - - -","Sprung zu Subroutine, PC-1 auf Stack"],
+  ["JUMP","RTS","Impl","$60",1,"6","- - - - - - - -","Rücksprung aus Subroutine"],
+  ["JUMP","RTI","Impl","$40",1,"6","* * - * * * * *","Rücksprung aus Interrupt (P + PC vom Stack)"],
+  ["JUMP","BRK","Impl","$00",1,"7","- - - 1 - 1 - -","Software-Interrupt, B-Flag gesetzt"],
+  // Carry/Flags
+  ["SYS","CLC","Impl","$18",1,"2","- - - - - - - 0","Lösche Carry-Flag"],
+  ["SYS","SEC","Impl","$38",1,"2","- - - - - - - 1","Setze Carry-Flag"],
+  ["SYS","CLI","Impl","$58",1,"2","- - - - - 0 - -","Lösche Interrupt-Disable-Flag"],
+  ["SYS","SEI","Impl","$78",1,"2","- - - - - 1 - -","Setze Interrupt-Disable — maskiert IRQ"],
+  ["SYS","CLV","Impl","$B8",1,"2","- 0 - - - - - -","Lösche Overflow-Flag"],
+  ["SYS","CLD","Impl","$D8",1,"2","- - - - 0 - - -","Lösche Dezimal-Flag (BCD-Modus aus)"],
+  ["SYS","SED","Impl","$F8",1,"2","- - - - 1 - - -","Setze Dezimal-Flag (BCD-Addition/Subtraktion)"],
+  ["SYS","NOP","Impl","$EA",1,"2","- - - - - - - -","Keine Operation — nützlich für Timing-Pads"],
+  // Undokumentierte
+  ["UNDOC","LAX","ZP","$A7",2,"3","* - - - - - * -","Lade A UND X gleichzeitig aus ZP"],
+  ["UNDOC","LAX","ZP,Y","$B7",2,"4","* - - - - - * -","Lade A und X aus ZP+Y"],
+  ["UNDOC","LAX","Abs","$AF",3,"4","* - - - - - * -","Lade A und X absolut"],
+  ["UNDOC","LAX","Abs,Y","$BF",3,"4+1","* - - - - - * -","Lade A und X absolut+Y"],
+  ["UNDOC","LAX","(Ind,X)","$A3",2,"6","* - - - - - * -","Lade A und X indirekt"],
+  ["UNDOC","LAX","(Ind),Y","$B3",2,"5+1","* - - - - - * -","Lade A und X indirekt+Y"],
+  ["UNDOC","SAX","ZP","$87",2,"3","- - - - - - - -","Speichere (A AND X) in ZP"],
+  ["UNDOC","SAX","ZP,Y","$97",2,"4","- - - - - - - -","Speichere (A AND X) in ZP+Y"],
+  ["UNDOC","SAX","Abs","$8F",3,"4","- - - - - - - -","Speichere (A AND X) absolut"],
+  ["UNDOC","SAX","(Ind,X)","$83",2,"6","- - - - - - - -","Speichere (A AND X) indirekt"],
+  ["UNDOC","DCP","ZP","$C7",2,"5","* - - - - - * *","DEC + CMP (verringere, dann vergleiche mit A)"],
+  ["UNDOC","DCP","ZP,X","$D7",2,"6","* - - - - - * *","DCP ZP+X"],
+  ["UNDOC","DCP","Abs","$CF",3,"6","* - - - - - * *","DCP absolut"],
+  ["UNDOC","DCP","Abs,X","$DF",3,"7","* - - - - - * *","DCP absolut+X"],
+  ["UNDOC","DCP","Abs,Y","$DB",3,"7","* - - - - - * *","DCP absolut+Y"],
+  ["UNDOC","DCP","(Ind,X)","$C3",2,"8","* - - - - - * *","DCP indirekt"],
+  ["UNDOC","DCP","(Ind),Y","$D3",2,"8","* - - - - - * *","DCP indirekt+Y"],
+  ["UNDOC","ISC","ZP","$E7",2,"5","* * - - - - * *","INC + SBC (erhöhe, dann subtrahiere von A)"],
+  ["UNDOC","ISC","Abs","$EF",3,"6","* * - - - - * *","ISC absolut"],
+  ["UNDOC","SLO","ZP","$07",2,"5","* - - - - - * *","ASL + ORA (schiebe links, dann OR mit A)"],
+  ["UNDOC","SLO","Abs","$0F",3,"6","* - - - - - * *","SLO absolut"],
+  ["UNDOC","SRE","ZP","$47",2,"5","* - - - - - * *","LSR + EOR (schiebe rechts, dann XOR mit A)"],
+  ["UNDOC","SRE","Abs","$4F",3,"6","* - - - - - * *","SRE absolut"],
+  ["UNDOC","RLA","ZP","$27",2,"5","* - - - - - * *","ROL + AND (rotiere links, dann AND mit A)"],
+  ["UNDOC","RLA","Abs","$2F",3,"6","* - - - - - * *","RLA absolut"],
+  ["UNDOC","RRA","ZP","$67",2,"5","* * - - - - * *","ROR + ADC (rotiere rechts, dann addiere zu A)"],
+  ["UNDOC","RRA","Abs","$6F",3,"6","* * - - - - * *","RRA absolut"],
+  ["UNDOC","ANC","Imm #","$0B",2,"2","* - - - - - * *","AND imm, Bit 7 von Ergebnis → Carry"],
+  ["UNDOC","ALR","Imm #","$4B",2,"2","* - - - - - * *","AND imm + LSR Akkumulator"],
+  ["UNDOC","ARR","Imm #","$6B",2,"2","* * - - - - * *","AND imm + ROR Akkumulator"],
+  ["UNDOC","AXS","Imm #","$CB",2,"2","* - - - - - * *","(A AND X) - imm → X, kein Borrow"],
+];
+
+const catClasses = {
+  LOAD:"load", STORE:"store", ARITH:"arith", LOGIC:"logic", SHIFT:"shift",
+  BRANCH:"branch", JUMP:"jump", STACK:"stack", TRANS:"trans", SYS:"sys",
+  UNDOC:"undoc", NOP:"nop"
+};
+
+let sortCol = -1, sortDir = 1;
+
+function buildTable() {
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '';
+  opcodes.forEach((op, idx) => {
+    const [cat, mnem, mode, hex, bytes, cycles, flags, desc] = op;
+    const cycNum = parseInt(cycles);
+    const tr = document.createElement('tr');
+    tr.dataset.cat = cat;
+    tr.dataset.search = [cat,mnem,mode,hex,bytes,cycles,flags,desc].join(' ').toLowerCase();
+    tr.innerHTML = `
+      <td><span class="cat cat-${catClasses[cat]||'nop'}">${cat}</span></td>
+      <td class="col-mnem">${mnem}</td>
+      <td class="col-mode">${mode}</td>
+      <td class="col-hex">${hex}</td>
+      <td class="col-bytes" style="text-align:center">${bytes}</td>
+      <td style="text-align:center"><span class="cyc cyc-${Math.min(cycNum,7)}">${cycles}</span></td>
+      <td class="col-flags" style="font-size:11px">${flags}</td>
+      <td class="col-desc" style="color:#ccc;font-size:12px">${desc}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+  updateCount();
+}
+
+function filterTable() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const cat = document.getElementById('catFilter').value;
+  const mode = document.getElementById('modeFilter').value.toLowerCase();
+  let visible = 0;
+  document.querySelectorAll('#tableBody tr').forEach(tr => {
+    const matchSearch = !search || tr.dataset.search.includes(search);
+    const matchCat = !cat || tr.dataset.cat === cat;
+    const matchMode = !mode || tr.dataset.search.includes(mode);
+    const show = matchSearch && matchCat && matchMode;
+    tr.classList.toggle('hidden', !show);
+    if (show) visible++;
+  });
+  document.getElementById('noResults').style.display = visible === 0 ? 'block' : 'none';
+  updateCount(visible);
+}
+
+function updateCount(visible) {
+  const total = opcodes.length;
+  const shown = visible !== undefined ? visible : total;
+  document.getElementById('rowCount').textContent = shown === total ? `${total} Opcodes` : `${shown} / ${total} Opcodes`;
+}
+
+function clearFilters() {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('catFilter').value = '';
+  document.getElementById('modeFilter').value = '';
+  filterTable();
+}
+
+function sortTable(col) {
+  const ths = document.querySelectorAll('.opcode-table thead th');
+  ths.forEach((th,i) => { th.classList.remove('sort-asc','sort-desc'); });
+  if (sortCol === col) sortDir *= -1; else { sortCol = col; sortDir = 1; }
+  ths[col].classList.add(sortDir === 1 ? 'sort-asc' : 'sort-desc');
+  const tbody = document.getElementById('tableBody');
+  const rows = Array.from(tbody.querySelectorAll('tr'));
+  rows.sort((a,b) => {
+    const av = a.cells[col]?.textContent.trim() || '';
+    const bv = b.cells[col]?.textContent.trim() || '';
+    const an = parseFloat(av), bn = parseFloat(bv);
+    if (!isNaN(an) && !isNaN(bn)) return (an - bn) * sortDir;
+    return av.localeCompare(bv) * sortDir;
+  });
+  rows.forEach(r => tbody.appendChild(r));
+}
+
+buildTable();
+</script>
+</body>
+</html>
