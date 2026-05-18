@@ -48,6 +48,7 @@
     .box-info{background:#cce5ff;border:1px solid #0066cc;border-left:5px solid #0066cc;border-radius:6px;padding:14px 18px;margin:16px 0;}
     .box-info strong{color:#004085;font-family:'Courier New',monospace;font-size:13px;display:block;margin-bottom:6px;}
   </style>
+  <link rel="stylesheet" href="assets/c64-interactive.css">
 </head>
 <body>
 <aside class="sidebar">
@@ -210,5 +211,6 @@
           LDA $D011 : AND #$7F : STA $D011  <span style="color:#6688aa">; RST8=0 (Zeile < 256)</span>
           LDA #$01 : STA $D01A   <span style="color:#6688aa">; Raster-IRQ enable</span></pre>
 </main>
+  <script src="assets/c64-interactive.js"></script>
 </body>
 </html>
