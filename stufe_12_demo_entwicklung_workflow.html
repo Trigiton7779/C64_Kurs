@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>C64 Mastery — Stufe 12: Demo-Entwicklung Workflow</title>
+  <link rel="stylesheet" href="assets/c64-base.css">
+  <style>
+    :root { --theme-color: #6633aa; --theme-dark: #1a0033; --theme-light: #cc99ff; }
+    .sidebar { scrollbar-color: var(--theme-color) var(--c64-darker); }
+    .sidebar::-webkit-scrollbar-thumb { background: var(--theme-color); }
+    .sidebar-header { background: var(--theme-color); }
+    .part-diagram { background: var(--c64-dark); color: var(--theme-light); font-family: 'Courier New', monospace; font-size: 13px; padding: 20px 24px; border-radius: 6px; margin: 20px 0; border-left: 4px solid var(--theme-color); }
+    .sync-table { margin: 20px 0; }
+    .sync-table table thead { background: var(--theme-dark); }
+    .sync-beat { background: rgba(200,100,255,0.15) !important; font-weight: bold; }
+    .nfo-block { background: #1e1e1e; color: #cccccc; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.5; padding: 16px 20px; border-radius: 4px; margin: 20px 0; border: 1px solid #444; overflow-x: auto; white-space: pre; }
+    .pal-ntsc-compare { margin: 20px 0; }
+    .pal-ntsc-compare table thead { background: #333366; }
+    .walkthrough-banner { background: linear-gradient(135deg, #1a0033 0%, var(--theme-color) 100%); border-radius: 8px; padding: 24px 28px; color: white; margin: 36px 0 24px; }
+    .walkthrough-banner h2 { color: var(--theme-light); border: none; margin-top: 0; font-size: 20px; letter-spacing: 1px; }
+    .walkthrough-banner p { color: #bb99ee; margin: 0; }
+    .phase-list { list-style: none; padding: 0; margin: 16px 0; }
+    .phase-list li { display: flex; gap: 14px; padding: 10px 0; border-bottom: 1px solid #e0dbd0; }
+    .phase-list li:last-child { border-bottom: none; }
+    .phase-num { flex-shrink: 0; width: 28px; height: 28px; background: var(--theme-color); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Courier New', monospace; font-size: 12px; font-weight: bold; margin-top: 2px; }
+    .scene-banner { background: linear-gradient(135deg, #001144 0%, #0033aa 100%); border: 1px solid var(--theme-color); border-radius: 8px; padding: 20px 24px; color: white; margin: 24px 0; }
+    .scene-banner h4 { color: var(--theme-light); font-style: normal; font-family: 'Courier New', monospace; margin: 0 0 8px; }
+    .scene-banner p { color: #aabb99; margin: 0; font-size: 14px; }
+  </style>
+  <link rel="stylesheet" href="assets/c64-interactive.css">
+  <link rel="stylesheet" href="assets/c64-print.css" media="print">
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">■ C64 MASTERY</div>
+    Professioneller Lehrgang
+  </div>
+  <nav>
+    <div class="section-label">Curriculum</div>
+    <a href="index.html">◈ Übersicht &amp; Lernpfad</a>
+    <a href="stufe_00_fundament.html">00 · Fundament</a>
+    <a href="stufe_01_6510_assembler.html">01 · 6510 &amp; Assembler</a>
+    <a href="stufe_02_adressierung_speicher.html">02 · Adressierung &amp; Speicher</a>
+    <a href="stufe_03_bildschirm_zeichen.html">03 · Bildschirm &amp; Zeichen</a>
+    <a href="stufe_04_sprites_animation.html">04 · Sprites &amp; Animation</a>
+    <a href="stufe_05_bitmap_grafik.html">05 · Bitmap-Grafik</a>
+    <a href="stufe_06_sid_sound.html">06 · SID-Sound</a>
+    <a href="stufe_07_interrupts_timing.html">07 · Interrupts &amp; Timing</a>
+    <a href="stufe_08_optimierung.html">08 · Optimierung</a>
+    <a href="stufe_09_demo_effekte.html">09 · Demo-Effekte</a>
+    <a href="stufe_10_meisterschaft.html">10 · Meisterschaft</a>
+
+    <div class="section-label">Workflow &amp; Release</div>
+    <a href="stufe_11_spielentwicklung_workflow.html">11 · Spiel-Workflow</a>
+    <a href="stufe_12_demo_entwicklung_workflow.html" class="active">12 · Demo-Workflow</a>
+
+    <div class="section-label">Erweiterte Stufen</div>
+    <a href="stufe_13_hardware_erweiterungen.html">13 · Hardware-Erweiterungen</a>
+    <a href="stufe_14_modern_workflow.html">14 · Moderner Workflow</a>
+    <a href="stufe_15_debugging_deep_dive.html">15 · Deep Debugging</a>
+
+    <div class="section-label">Diese Seite</div>
+    <a href="#konzept" class="toc-link">1. Konzept &amp; Stil</a>
+    <a href="#musik-sync" class="toc-link">2. Musik-Synchronisation</a>
+    <a href="#parts" class="toc-link">3. Part-Struktur &amp; Übergänge</a>
+    <a href="#entwicklung" class="toc-link">4. Entwicklungsreihenfolge</a>
+    <a href="#loader" class="toc-link">5. Loader &amp; Disk-Struktur</a>
+    <a href="#pal-ntsc" class="toc-link">6. PAL/NTSC-Kompatibilität</a>
+    <a href="#testing" class="toc-link">7. Testing &amp; Bugfixing</a>
+    <a href="#release" class="toc-link">8. Release &amp; CSDb</a>
+    <a href="#walkthrough" class="toc-link">9. Walkthrough: BITWAVE</a>
+    <a href="#benchmark" class="toc-link">Skill-Benchmark</a>
+
+    <div class="section-label">Anhänge &amp; Referenz</div>
+    <a href="anhang_opcodes.html">A · Opcode-Referenz</a>
+    <a href="anhang_speicherkarte.html">B · Speicherkarte</a>
+    <a href="anhang_vic_register.html">C · VIC-II Register</a>
+    <a href="anhang_sid_register.html">D · SID Register</a>
+    <a href="anhang_cia_register.html">E · CIA Register</a>
+    <a href="anhang_petscii.html">F · PETSCII-Tabelle</a>
+    <a href="anhang_farben.html">G · C64-Farben</a>
+    <a href="anhang_kernal_routinen.html">H · KERNAL-Routinen</a>
+
+    <div class="section-label">Downloads</div>
+    <a href="beispiele/index.html">Beispielcode (.asm)</a>
+    <a href="vice.vicerc" download>VICE Konfiguration</a>
+  </nav>
+</aside>
+
+<main>
+  <header class="chapter-header">
+    <div class="chapter-number">Stufe 12 — Workflow</div>
+    <h1>Demo-Entwicklung von A bis Z</h1>
+    <div class="chapter-meta">
+      <span>★ Meister-Niveau</span>
+      <span>⏱ ca. 14–18 Stunden</span>
+      <span>📋 Voraussetzung: Stufen 09–11</span>
+    </div>
+  </header>
+
+  <div class="scene-banner">
+    <h4>★ DEMOSCENE — KUNST AUS CODE ★</h4>
+    <p>Eine Demo ist kein Spiel, kein Werkzeug — sie ist eine Kunstform. Ihr einziger Zweck: zeigen, was möglich ist. Seit 1985 treibt die Demoscene die Grenzen der C64-Hardware weiter, und heute noch erscheinen Demos, die scheinbar Unmögliches zeigen. Diese Stufe erklärt, wie man selbst eine Demo von der Idee bis zum Release entwickelt.</p>
+  </div>
+
+  <section class="learning-objectives">
+    <h3>Lernziele dieser Stufe</h3>
+    <ul>
+      <li>Ein Demo-Konzept entwickeln und Musik-first oder Effekt-first wählen</li>
+      <li>Timing-Tabellen erstellen und Effekte frame-genau mit der Musik synchronisieren</li>
+      <li>Part-Wechsel mit Fade- und Wipe-Übergängen implementieren</li>
+      <li>Die richtige Entwicklungsreihenfolge für eine Multi-Part-Demo kennen</li>
+      <li>PAL/NTSC-Kompatibilitätsprüfung und Anpassungsroutinen schreiben</li>
+      <li>Ein D64-Image mit AUTOSTART und korrekter Datei-Reihenfolge erstellen</li>
+      <li>Eine vollständige 3-Part-Demo von Konzept bis CSDb-Upload entwickeln</li>
+    </ul>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="konzept">
+    <h2>1. Demo-Konzeption — Thema, Stil und Struktur</h2>
+
+    <p>Während ein Spiel durch seine Mechanik lebt, lebt eine Demo durch ihre visuelle und musikalische Wirkung. Das Konzept entscheidet darüber, ob die Demo kohärent wirkt oder wie eine zufällige Ansammlung von Effekten.</p>
+
+    <h3>1.1 Musik-first vs. Effekt-first — zwei Philosophien</h3>
+
+    <p>Es gibt zwei grundlegende Ansätze für die Demo-Entwicklung:</p>
+
+    <table>
+      <thead><tr><th>Ansatz</th><th>Ablauf</th><th>Vorteil</th><th>Risiko</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Musik-first</strong></td>
+          <td>Musik fertigstellen → Timing-Tabelle ableiten → Effekte passend entwickeln</td>
+          <td>Effekte folgen der Musik natürlich; wirkt harmonisch und "geplant"</td>
+          <td>Musik muss früh fertig sein; Änderungen an der Musik zwingen zur Überarbeitung aller Timings</td>
+        </tr>
+        <tr>
+          <td><strong>Effekt-first</strong></td>
+          <td>Effekte entwickeln → Musik zum bestehenden Timing komponieren/beauftragen</td>
+          <td>Effekte können frei experimentiert werden; Musik-Timing ist flexibler</td>
+          <td>Musik muss auf fertige Effekte zugeschnitten werden; weniger Kohärenz wenn nicht sorgfältig geplant</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="box box-tip">
+      <div class="box-title">Empfehlung für Soloprojekte</div>
+      Wenn du Musik und Code selbst machst: Musik-first. Wenn du ein bestehendes SID-File verwendest (z.B. aus HVSC): ebenfalls Musik-first — analysiere das Stück, bevor du einen Effekt schreibst.
+    </div>
+
+    <h3>1.2 Part-Liste und Demo-Dramaturgie</h3>
+
+    <p>Eine gute Demo hat eine Dramaturgie: sie beginnt mit einer starken Eröffnung, steigert sich zum Höhepunkt und endet mit einem befriedigenden Abschluss. Die Part-Liste ist das Drehbuch der Demo.</p>
+
+    <div class="part-diagram">
+[INTRO]           Kurz, prägnant. Logo + Musik-Einstieg. 15–30 Sekunden.
+    |
+    v
+[PART 1]          Erster großer Effekt. Aufmerksamkeit etablieren. 30–60 Sek.
+    |
+    v
+[ÜBERGANG]        Fade-to-Black. 1–2 Sekunden.
+    |
+    v
+[PART 2]          Haupteffekt. Stärkster visueller Eindruck. 60–90 Sek.
+    |
+    v
+[ÜBERGANG]        Wipe oder Screen-Scroll.
+    |
+    v
+[PART 3]          Ruhigerer Effekt oder technisches Showpiece. 30–60 Sek.
+    |
+    v
+[CREDITS / OUTRO] Text + Musik-Outro. Greetings, Credits. 30–45 Sek.
+    |
+    v
+[ENDE]            Zurück zu BASIC oder Endlosschleife.</div>
+
+    <h3>1.3 Stilentscheidungen</h3>
+
+    <p>Lege vor Entwicklungsbeginn fest, welchen Stil deine Demo hat. Diese Entscheidungen beeinflussen jede technische Wahl:</p>
+
+    <ul>
+      <li><strong>Farbpalette:</strong> Monochromatisch (eine Akzentfarbe) oder bunt (alle 16 C64-Farben)?</li>
+      <li><strong>Grafik-Modus:</strong> Zeichenmodus (flexibel, schnell) oder Bitmap (mehr Pixel, weniger Farben)?</li>
+      <li><strong>Musik-Stil:</strong> Elektronisch/Chippy oder melodisch? Tempo (BPM)?</li>
+      <li><strong>Effekt-Ästhetik:</strong> Technisch-geometrisch oder organisch-fließend?</li>
+      <li><strong>Schrift:</strong> Welcher Charset für Credits und Scroller?</li>
+    </ul>
+
+    <h3>1.4 Zeitplan und Gruppen-Rollen</h3>
+
+    <p>Soloprojekt oder Gruppe macht einen großen Unterschied im Zeitplan:</p>
+
+    <table>
+      <thead><tr><th>Rolle</th><th>Aufgaben</th><th>Werkzeuge</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Coder</strong></td><td>Alle Effekte, Loader, Part-Wechsel, Timing</td><td>ACME, VICE, eigene Tools</td></tr>
+        <tr><td><strong>Musiker</strong></td><td>SID-Komposition, Player-Optimierung</td><td>GoatTracker, SidTracker64</td></tr>
+        <tr><td><strong>Grafiker</strong></td><td>Logos, Charset-Designs, Farbgebung</td><td>CharPad, SpritePad, Pixelfolio</td></tr>
+      </tbody>
+    </table>
+
+    <p>Als Soloentwickler nimmst du alle drei Rollen ein. Das ist machbar, aber platziere deine stärkste Fähigkeit im "Part 2" — dem Herzstück der Demo.</p>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="musik-sync">
+    <h2>2. Musik-Synchronisation — Der kritische Pfad</h2>
+
+    <p>Musik-Synchronisation ist das, was eine Demo von einer bloßen Effekt-Sammlung unterscheidet. Effekte, die exakt auf Beats, Melodie-Höhepunkte und Übergänge reagieren, lassen Musik und Grafik zu einem Erlebnis verschmelzen.</p>
+
+    <h3>2.1 SID-Tickrate und Zeiteinheiten</h3>
+
+    <p>Alles in einer C64-Demo dreht sich um den Frame als Zeiteinheit:</p>
+
+    <table>
+      <thead><tr><th>Standard</th><th>Frames/Sekunde</th><th>Taktzyklen/Frame</th><th>Rasterzeilen/Frame</th></tr></thead>
+      <tbody>
+        <tr><td>PAL (Europa)</td><td>50 Hz</td><td>19.656</td><td>312</td></tr>
+        <tr><td>NTSC (USA)</td><td>60 Hz</td><td>17.030</td><td>263</td></tr>
+      </tbody>
+    </table>
+
+    <p>GoatTracker ruft seine Player-Routine einmal pro Frame auf. Das bedeutet: 50 Player-Aufrufe pro Sekunde (PAL). Ein Takt bei 125 BPM (2 Takte/Sekunde) dauert:</p>
+    <ul>
+      <li>50 Frames/Sekunde ÷ 2 Takte/Sekunde = <strong>25 Frames pro Takt</strong></li>
+      <li>Bei 4/4-Takt: 25 ÷ 4 = <strong>6,25 Frames pro Beat</strong> (gerundet: 6 oder 7)</li>
+    </ul>
+
+    <h3>2.2 Song-Struktur analysieren und Timing-Tabelle erstellen</h3>
+
+    <p>Bevor du eine einzige Zeile Effekt-Code schreibst, analysiere die Musik und erstelle eine Timing-Tabelle. Diese Tabelle ist das Herzstück der Demo-Synchronisation:</p>
+
+    <div class="sync-table">
+      <table>
+        <thead><tr><th>Frame</th><th>Sekunde</th><th>Musik-Event</th><th>Demo-Aktion</th><th>Wert</th></tr></thead>
+        <tbody>
+          <tr><td><code>0</code></td><td>0:00</td><td>Song startet</td><td>Part 1 Init</td><td>EVENT_PART1_INIT</td></tr>
+          <tr class="sync-beat"><td><code>25</code></td><td>0:30</td><td>Beat 1 (Bass)</td><td>Rasterbar-Impuls</td><td>EVENT_BEAT</td></tr>
+          <tr><td><code>50</code></td><td>1:00</td><td>Melodie-Einsatz</td><td>Scroller sichtbar</td><td>EVENT_SCROLLER_ON</td></tr>
+          <tr class="sync-beat"><td><code>75</code></td><td>1:30</td><td>Beat 3 (Höhepunkt)</td><td>Farb-Flash</td><td>EVENT_FLASH</td></tr>
+          <tr><td><code>150</code></td><td>3:00</td><td>Musik-Break</td><td>Fade-Out Part 1</td><td>EVENT_FADE_OUT</td></tr>
+          <tr><td><code>160</code></td><td>3:12</td><td>Musik-wieder-ein</td><td>Part 2 Init</td><td>EVENT_PART2_INIT</td></tr>
+          <tr class="sync-beat"><td><code>200</code></td><td>4:00</td><td>Höhepunkt</td><td>Plasma maximale Geschwindigkeit</td><td>EVENT_PLASMA_MAX</td></tr>
+          <tr><td><code>350</code></td><td>7:00</td><td>Outro beginnt</td><td>Part 3 (Credits)</td><td>EVENT_PART3_INIT</td></tr>
+          <tr><td><code>500</code></td><td>10:00</td><td>Song endet</td><td>Ende-Schirm</td><td>EVENT_END</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>2.3 Sync-Tabelle in ACME implementieren</h3>
+
+<pre><span class="comment">; ── Timing-Tabelle: Events als Frame-Nummer + Event-Code ─────</span>
+<span class="comment">; Format: !word Frame, !byte Event-Code</span>
+<span class="comment">; Abschluss: !word $FFFF (Sentinel)</span>
+
+EVENT_NONE       = <span class="number">0</span>
+EVENT_BEAT       = <span class="number">1</span>     <span class="comment">; Kurzer Farb-Impuls</span>
+EVENT_PART2_INIT = <span class="number">2</span>     <span class="comment">; Zu Part 2 wechseln</span>
+EVENT_PART3_INIT = <span class="number">3</span>     <span class="comment">; Zu Part 3 wechseln</span>
+EVENT_FLASH      = <span class="number">4</span>     <span class="comment">; Bildschirm-Flash</span>
+EVENT_PLASMA_MAX = <span class="number">5</span>     <span class="comment">; Plasma-Geschwindigkeit Maximum</span>
+EVENT_SCROLLER   = <span class="number">6</span>     <span class="comment">; Scroller ein/aus</span>
+EVENT_END        = <span class="number">$FF</span>   <span class="comment">; Demo endet</span>
+
+<span class="label">sync_table:</span>
+        <span class="directive">!word</span> <span class="number">25</span>  : <span class="directive">!byte</span> EVENT_BEAT
+        <span class="directive">!word</span> <span class="number">50</span>  : <span class="directive">!byte</span> EVENT_SCROLLER
+        <span class="directive">!word</span> <span class="number">75</span>  : <span class="directive">!byte</span> EVENT_BEAT
+        <span class="directive">!word</span> <span class="number">100</span> : <span class="directive">!byte</span> EVENT_FLASH
+        <span class="directive">!word</span> <span class="number">150</span> : <span class="directive">!byte</span> EVENT_PART2_INIT
+        <span class="directive">!word</span> <span class="number">200</span> : <span class="directive">!byte</span> EVENT_PLASMA_MAX
+        <span class="directive">!word</span> <span class="number">350</span> : <span class="directive">!byte</span> EVENT_PART3_INIT
+        <span class="directive">!word</span> <span class="number">500</span> : <span class="directive">!byte</span> EVENT_END
+        <span class="directive">!word</span> <span class="number">$FFFF</span>           <span class="comment">; Sentinel: Ende der Tabelle</span>
+
+<span class="comment">; ── Event-System im IRQ ───────────────────────────────────────</span>
+sync_index:     <span class="directive">!byte</span> <span class="number">0</span>    <span class="comment">; Zeiger in sync_table (Byte-Index)</span>
+frame_counter:  <span class="directive">!word</span> <span class="number">0</span>    <span class="comment">; Globaler Frame-Zähler (16-Bit)</span>
+
+<span class="label">check_sync_events:</span>
+        <span class="comment">; Frame-Zähler erhöhen</span>
+        <span class="directive">inc</span> frame_counter
+        <span class="directive">bne</span> .no_hi
+        <span class="directive">inc</span> frame_counter+<span class="number">1</span>
+<span class="label">.no_hi:</span>
+        <span class="comment">; Aktuellen Tabelleneintrag lesen</span>
+        <span class="directive">ldx</span> sync_index
+        <span class="directive">lda</span> sync_table,x      <span class="comment">; Low-Byte Frame-Nummer</span>
+        <span class="directive">cmp</span> frame_counter
+        <span class="directive">bne</span> .no_event
+        <span class="directive">lda</span> sync_table+<span class="number">1</span>,x    <span class="comment">; High-Byte Frame-Nummer</span>
+        <span class="directive">cmp</span> frame_counter+<span class="number">1</span>
+        <span class="directive">bne</span> .no_event
+
+        <span class="comment">; Event ausführen</span>
+        <span class="directive">lda</span> sync_table+<span class="number">2</span>,x    <span class="comment">; Event-Code lesen</span>
+        <span class="directive">jsr</span> dispatch_event
+
+        <span class="comment">; Zum nächsten Tabelleneintrag (3 Bytes pro Eintrag)</span>
+        <span class="directive">clc</span>
+        <span class="directive">txa</span>
+        <span class="directive">adc</span> #<span class="number">3</span>
+        <span class="directive">sta</span> sync_index
+<span class="label">.no_event:</span>
+        <span class="directive">rts</span>
+
+<span class="label">dispatch_event:</span>
+        <span class="comment">; Verzweigung anhand des Event-Codes</span>
+        <span class="directive">cmp</span> #EVENT_BEAT      : <span class="directive">beq</span> do_beat
+        <span class="directive">cmp</span> #EVENT_FLASH     : <span class="directive">beq</span> do_flash
+        <span class="directive">cmp</span> #EVENT_PART2_INIT: <span class="directive">beq</span> init_part2
+        <span class="directive">cmp</span> #EVENT_PART3_INIT: <span class="directive">beq</span> init_part3
+        <span class="directive">cmp</span> #EVENT_END       : <span class="directive">beq</span> demo_end
+        <span class="directive">rts</span></pre>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="parts">
+    <h2>3. Part-Struktur und Übergänge</h2>
+
+    <p>In einer Demo ist jeder "Part" eine eigenständige Sequenz mit eigenem Effekt, eigener Initialisierung und eigenem Speicher-Layout. Der Wechsel zwischen Parts muss sauber und ästhetisch ansprechend sein.</p>
+
+    <h3>3.1 Part-Speicherlayout</h3>
+
+    <p>Es gibt zwei Strategien für das Part-Speicherlayout:</p>
+    <ul>
+      <li><strong>Alles im RAM:</strong> Alle Parts gleichzeitig im Speicher. Nur möglich wenn die Demo klein genug ist. Vorteil: kein Laden nötig; Nachteil: 64 KB sind schnell voll.</li>
+      <li><strong>Streaming:</strong> Parts werden von Diskette geladen wenn sie gebraucht werden. Benötigt einen Loader. Für große, mehrminütige Demos standard.</li>
+    </ul>
+
+<pre><span class="comment">; Speicherlayout für eine kleine 3-Part-Demo (alles im RAM)</span>
+
+SHARED_CODE     = <span class="number">$0900</span>  <span class="comment">; IRQ, Musik, Sync-Tabelle, Part-Wechsel (~2 KB)</span>
+MUSIC_DATA      = <span class="number">$1000</span>  <span class="comment">; GoatTracker-Daten (~3 KB)</span>
+PART1_CODE      = <span class="number">$2000</span>  <span class="comment">; Sinusscroller + Rasterbar-Effekt (~2 KB)</span>
+PART1_DATA      = <span class="number">$2800</span>  <span class="comment">; Charset, Scroller-Text (~3 KB)</span>
+PART2_CODE      = <span class="number">$3800</span>  <span class="comment">; Plasma-Effekt (~1.5 KB)</span>
+PART2_TABLES    = <span class="number">$4000</span>  <span class="comment">; Sinustabellen für Plasma (2 × 256 Bytes)</span>
+PART3_CODE      = <span class="number">$4200</span>  <span class="comment">; DYSP Credits-Scroller (~1.5 KB)</span>
+PART3_DATA      = <span class="number">$4800</span>  <span class="comment">; Credits-Text, Sprite-Daten (~2 KB)</span>
+
+<span class="comment">; Tabellen der Part-Funktionen (Dispatch-Tabelle)</span>
+<span class="label">part_init_table:</span>
+        <span class="directive">!word</span> init_part1
+        <span class="directive">!word</span> init_part2
+        <span class="directive">!word</span> init_part3
+
+<span class="label">part_update_table:</span>
+        <span class="directive">!word</span> update_part1
+        <span class="directive">!word</span> update_part2
+        <span class="directive">!word</span> update_part3
+
+current_part:   <span class="directive">!byte</span> <span class="number">0</span>    <span class="comment">; 0 = Part 1, 1 = Part 2, 2 = Part 3</span>
+
+<span class="label">call_part_update:</span>
+        <span class="directive">lda</span> current_part
+        <span class="directive">asl</span> a                  <span class="comment">; × 2 für Word-Offset</span>
+        <span class="directive">tax</span>
+        <span class="directive">lda</span> part_update_table,x
+        <span class="directive">sta</span> ZP_PTR_LO
+        <span class="directive">lda</span> part_update_table+<span class="number">1</span>,x
+        <span class="directive">sta</span> ZP_PTR_HI
+        <span class="directive">jmp</span> (ZP_PTR_LO)        <span class="comment">; Indirekter Aufruf des aktuellen Parts</span></pre>
+
+    <h3>3.2 Übergangstypen</h3>
+
+    <table>
+      <thead><tr><th>Typ</th><th>Dauer</th><th>Wirkung</th><th>Implementierung</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Cut</strong></td><td>1 Frame</td><td>Abrupt, dramatisch</td><td>Neuen Part sofort initialisieren</td></tr>
+        <tr><td><strong>Fade-to-Black</strong></td><td>16–32 Frames</td><td>Sanft, klassisch</td><td>Schrittweise Farbe auf Schwarz setzen</td></tr>
+        <tr><td><strong>Screen-Wipe</strong></td><td>20–40 Frames</td><td>Dynamisch</td><td>Bildschirmzeilen von oben überschreiben</td></tr>
+        <tr><td><strong>Scroll-Off</strong></td><td>50+ Frames</td><td>Fließend</td><td>Aktuellen Part nach oben scrollen</td></tr>
+      </tbody>
+    </table>
+
+    <h3>3.3 Fade-to-Black implementieren</h3>
+
+<pre><span class="comment">; Fade-to-Black: 16 Frames, schrittweise alle Sprite-Farben auf 0</span>
+<span class="comment">; und Hintergrundfarbe auf 0</span>
+
+fade_counter:   <span class="directive">!byte</span> <span class="number">0</span>
+
+<span class="label">start_fade_out:</span>
+        <span class="directive">lda</span> #<span class="number">16</span>              <span class="comment">; 16 Schritte</span>
+        <span class="directive">sta</span> fade_counter
+        <span class="directive">rts</span>
+
+<span class="label">update_fade:</span>
+        <span class="directive">lda</span> fade_counter
+        <span class="directive">beq</span> .fade_done       <span class="comment">; Fertig: nichts mehr tun</span>
+
+        <span class="directive">dec</span> fade_counter
+
+        <span class="comment">; Hintergrundfarbe abdunkeln (geht nur in Schritten, da C64
+        ; keine RGB-Kontrolle hat — wir schalten einfach auf Schwarz)</span>
+        <span class="directive">lda</span> fade_counter
+        <span class="directive">cmp</span> #<span class="number">8</span>               <span class="comment">; Ab Mitte: auf Schwarz setzen</span>
+        <span class="directive">bcs</span> .bg_still_on
+        <span class="directive">lda</span> #<span class="number">0</span>               <span class="comment">; Schwarz</span>
+        <span class="directive">sta</span> <span class="number">$D021</span>            <span class="comment">; Hintergrundfarbe</span>
+        <span class="directive">sta</span> <span class="number">$D020</span>            <span class="comment">; Rahmenfarbe</span>
+<span class="label">.bg_still_on:</span>
+        <span class="comment">; Sprites deaktivieren bei 0</span>
+        <span class="directive">lda</span> fade_counter
+        <span class="directive">bne</span> .fade_done
+        <span class="directive">lda</span> #<span class="number">0</span>
+        <span class="directive">sta</span> <span class="number">$D015</span>            <span class="comment">; Alle Sprites aus</span>
+
+        <span class="comment">; Nächsten Part initialisieren</span>
+        <span class="directive">jsr</span> init_next_part
+<span class="label">.fade_done:</span>
+        <span class="directive">rts</span></pre>
+
+    <h3>3.4 Shared-Ressourcen zwischen Parts</h3>
+
+    <p>Einige Ressourcen liegen dauerhaft im RAM und werden von allen Parts geteilt — sie werden nur einmal beim Demo-Start initialisiert:</p>
+    <ul>
+      <li><strong>Musik-Player + Daten:</strong> GoatTracker-Routine läuft von Anfang bis Ende</li>
+      <li><strong>IRQ-Handler:</strong> Bleibt immer derselbe, ruft den aktuellen Part auf</li>
+      <li><strong>Sync-Tabelle + Frame-Counter:</strong> Einmalig initialisiert</li>
+      <li><strong>Zero-Page-Variablen:</strong> Gemeinsam genutzte Pointer und temporäre Werte</li>
+    </ul>
+
+    <p>Part-spezifische Ressourcen (Charset, Sprite-Daten, Effekt-Variablen) werden beim <code>init_partX</code>-Aufruf gesetzt und beim Part-Wechsel durch den Nachfolger überschrieben.</p>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="entwicklung">
+    <h2>4. Entwicklungsreihenfolge — Loader zuerst, Credits zuletzt</h2>
+
+    <p>Die Entwicklungsreihenfolge einer Demo unterscheidet sich von der eines Spiels: Du entwickelst nicht Feature für Feature, sondern Part für Part — aber in einer bestimmten Reihenfolge, die sicherstellt, dass du immer etwas Lauffähiges hast.</p>
+
+    <ul class="phase-list">
+      <li>
+        <div class="phase-num">1</div>
+        <div><strong>Loader und Bootstrap:</strong> Disk-Layout planen, Demo startet und zeigt schwarzen Bildschirm. Musik läuft. Frame-Counter zählt. Sync-Tabelle ist leer — wird später gefüllt.</div>
+      </li>
+      <li>
+        <div class="phase-num">2</div>
+        <div><strong>Musik-Player testen:</strong> GoatTracker-Export einbinden, im IRQ aufrufen. Sicherstellen, dass die Musik stabil und ohne Knackser läuft. Zyklen-Budget messen: wie viel bleibt für die Effekte?</div>
+      </li>
+      <li>
+        <div class="phase-num">3</div>
+        <div><strong>Stärksten Effekt zuerst:</strong> Part 2 (Haupteffekt) entwickeln, bevor Part 1 (Intro). Wenn der Haupteffekt nicht überzeugend ist, weißt du es früh genug um die Richtung zu ändern.</div>
+      </li>
+      <li>
+        <div class="phase-num">4</div>
+        <div><strong>Intro + weiterer Part:</strong> Part 1 entwickeln. Die Part-Wechsel-Mechanik einbauen. Übergänge implementieren.</div>
+      </li>
+      <li>
+        <div class="phase-num">5</div>
+        <div><strong>Credits/Outro:</strong> Letzter Part. Oft ein ruhigerer Scroller mit Gruppen-Namen und Greetings. Erst jetzt die finalen Texte eintragen.</div>
+      </li>
+      <li>
+        <div class="phase-num">6</div>
+        <div><strong>Timing-Feinschliff:</strong> Sync-Tabelle mit echten Frame-Nummern füllen (vorher Platzhalter). Jedes Timing in VICE prüfen und anpassen. PAL/NTSC-Test.</div>
+      </li>
+    </ul>
+
+    <div class="box box-important">
+      <div class="box-title">Wichtig: Timing erst am Ende fixieren</div>
+      Trage in die Sync-Tabelle erst dann echte Frame-Nummern ein, wenn alle Effekte fertig sind. Vorher kannst du die Demo auch ohne Sync laufen lassen — einfach Platzhalter-Werte weit in der Zukunft (z.B. <code>$7FFF</code>) eintragen.
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="loader">
+    <h2>5. Loader und Disk-Struktur</h2>
+
+    <p>Für eine Demo, die in den RAM passt, reicht der Standard-KERNAL-Loader. Für größere, mehrteilige Demos ist ein schneller Custom-Loader sinnvoll — aber dessen Implementierung übersteigt den Scope dieser Stufe. Hier das Konzept und die KERNAL-Variante.</p>
+
+    <h3>5.1 Standard-KERNAL-Loader für die Demo</h3>
+
+<pre><span class="comment">; Demo-Loader: Alle Teile von Diskette laden</span>
+<span class="comment">; Annahme: Demo startet von Disk, KERNAL aktiv</span>
+
+<span class="comment">; Konstanten für KERNAL-Aufrufe</span>
+SETLFS          = <span class="number">$FFBA</span>
+SETNAM          = <span class="number">$FFBD</span>
+LOAD            = <span class="number">$FFD5</span>
+
+<span class="label">load_file:</span>
+        <span class="comment">; Parameter: .X = Lade-Adresse Low, .Y = High, .A = Datei-Nummer</span>
+        <span class="comment">; Dateiname in filename_ptr/filename_len</span>
+        <span class="directive">pha</span>                  <span class="comment">; Dateinummer merken</span>
+
+        <span class="comment">; SETLFS: Logische Datei = A, Gerät 8, Sekundäradresse 0</span>
+        <span class="directive">lda</span> filename_len
+        <span class="directive">ldx</span> #<<filename
+        <span class="directive">ldy</span> #>filename
+        <span class="directive">jsr</span> SETNAM           <span class="comment">; Dateiname setzen</span>
+
+        <span class="directive">pla</span>                  <span class="comment">; Dateinummer zurück</span>
+        <span class="directive">ldx</span> #<span class="number">8</span>               <span class="comment">; Gerät 8 (1541)</span>
+        <span class="directive">ldy</span> #<span class="number">0</span>               <span class="comment">; Sekundäradresse 0</span>
+        <span class="directive">jsr</span> SETLFS
+
+        <span class="comment">; LOAD: A=0 (Laden), XY = Zieladresse (wenn Sek.-Adresse=0: ignoriert)</span>
+        <span class="comment">; Mit Sek.-Adresse=1: Ladeadresse aus PRG-Header verwenden</span>
+        <span class="directive">lda</span> #<span class="number">0</span>               <span class="comment">; Modus: Laden (nicht Verifizieren)</span>
+        <span class="directive">jsr</span> LOAD
+
+        <span class="comment">; Fehlerprüfung: Carry = 1 → Fehler</span>
+        <span class="directive">bcs</span> load_error
+        <span class="directive">rts</span>
+
+<span class="label">load_error:</span>
+        <span class="comment">; Fehlerbehandlung: Fehlermeldung anzeigen, Demo abbrechen</span>
+        <span class="directive">brk</span>                  <span class="comment">; Placeholder — im echten Code: Fehlermeldung</span>
+
+<span class="label">filename:</span>       <span class="directive">!text</span> <span class="label">"BITWAVE.PART2"</span>
+<span class="label">filename_len:</span>   <span class="directive">!byte</span> <span class="number">13</span></pre>
+
+    <h3>5.2 D64-Datei-Reihenfolge optimieren</h3>
+
+    <p>Die Ladereihenfolge beeinflusst, wie lange der Nutzer auf den nächsten Part warten muss. Auf einer 1541 dauert das Laden etwa 1 Sekunde pro 1 KB (KERNAL-Standard). Optimierungsregeln:</p>
+
+    <ul>
+      <li><strong>Musik zuerst:</strong> Musik-Daten sind klein (~3 KB) und müssen sofort beim Start verfügbar sein</li>
+      <li><strong>Parts in Reihenfolge:</strong> Part 2 laden, während Part 1 läuft</li>
+      <li><strong>Große Dateien zuletzt:</strong> Sinustabellen, Charset-Sets</li>
+    </ul>
+
+<pre><span class="comment"># D64-Image für BITWAVE-Demo erstellen</span>
+<span class="comment"># Reihenfolge: Loader, Musik, Part1, Part2, Part3</span>
+
+c1541 -format "bitwave,99" d64 bitwave.d64
+
+<span class="comment"># Loader zuerst (startet automatisch)</span>
+c1541 -attach bitwave.d64 -write loader.prg "loader"
+
+<span class="comment"># Musik (wird sofort nach Start geladen)</span>
+c1541 -attach bitwave.d64 -write musik.prg "musik"
+
+<span class="comment"># Parts in Laufzeit-Reihenfolge</span>
+c1541 -attach bitwave.d64 -write part1.prg "part1"
+c1541 -attach bitwave.d64 -write part2.prg "part2"
+c1541 -attach bitwave.d64 -write part3.prg "part3"
+
+<span class="comment"># Ergebnis prüfen</span>
+c1541 -attach bitwave.d64 -dir</pre>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="pal-ntsc">
+    <h2>6. PAL/NTSC-Kompatibilität</h2>
+
+    <p>Eine Demo, die nur auf PAL läuft, schließt alle nordamerikanischen C64-Nutzer aus. NTSC-Kompatibilität ist ein Zeichen von Professionalität — und technisch gar nicht so schwierig, wenn man von Anfang an daran denkt.</p>
+
+    <h3>6.1 Die wichtigsten Unterschiede</h3>
+
+    <div class="pal-ntsc-compare">
+      <table>
+        <thead><tr><th>Eigenschaft</th><th>PAL (Europa)</th><th>NTSC (USA/Kanada)</th><th>Konsequenz</th></tr></thead>
+        <tbody>
+          <tr><td>Rasterzeilen/Frame</td><td><strong>312</strong></td><td><strong>263</strong></td><td>Raster-IRQ-Zeilennummern müssen angepasst werden</td></tr>
+          <tr><td>Frames/Sekunde</td><td><strong>50 Hz</strong></td><td><strong>60 Hz</strong></td><td>Bewegungsgeschwindigkeiten 20% zu schnell auf NTSC</td></tr>
+          <tr><td>Taktfrequenz</td><td><strong>985.248 Hz</strong></td><td><strong>1.022.727 Hz</strong></td><td>SID-Frequenzen klingen auf NTSC ~4% höher</td></tr>
+          <tr><td>Sichtbarer Bereich</td><td>284 sichtbare Zeilen</td><td>235 sichtbare Zeilen</td><td>NTSC hat oben/unten weniger sichtbaren Bereich</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>6.2 PAL/NTSC-Detektion im Code</h3>
+
+<pre><span class="comment">; PAL/NTSC-Erkennung durch Zählen der Rasterzeilen</span>
+<span class="comment">; PAL hat 312 Zeilen, NTSC hat 263 Zeilen pro Frame</span>
+<span class="comment">; Methode: Warte auf Rasterzeile 0, zähle bis Rasterzeile 0 wieder erscheint</span>
+
+is_ntsc:        <span class="directive">!byte</span> <span class="number">0</span>    <span class="comment">; 0 = PAL, 1 = NTSC</span>
+
+<span class="label">detect_standard:</span>
+        <span class="comment">; Warte auf Rasterzeile 0 (Anfang eines Frames)</span>
+<span class="label">.wait_non_zero:</span>
+        <span class="directive">lda</span> <span class="number">$D012</span>
+        <span class="directive">bne</span> .wait_non_zero   <span class="comment">; Warte bis Zeile ≠ 0</span>
+<span class="label">.wait_zero:</span>
+        <span class="directive">lda</span> <span class="number">$D012</span>
+        <span class="directive">bne</span> .wait_zero       <span class="comment">; Warte bis Zeile = 0 (neuer Frame)</span>
+
+        <span class="comment">; Jetzt zählen wir die Rasterzeilen bis zum nächsten Frame-Start
+        ; Wenn in 300 Zeilen noch kein neuer Rahmen-Beginn: PAL (312 Zeilen)</span>
+        <span class="directive">ldx</span> #<span class="number">$18</span>             <span class="comment">; = 24 × 256 = 6144 Schleifendurchläufe</span>
+        <span class="directive">ldy</span> #<span class="number">0</span>
+<span class="label">.count:</span>
+        <span class="directive">lda</span> <span class="number">$D012</span>
+        <span class="directive">cmp</span> #<span class="number">263</span>-<span class="number">20</span>         <span class="comment">; NTSC: Rasterzeile 243 vor Frame-Ende</span>
+        <span class="directive">bcc</span> .not_ntsc_line   <span class="comment">; Noch nicht dort</span>
+        <span class="directive">lda</span> #<span class="number">1</span>
+        <span class="directive">sta</span> is_ntsc          <span class="comment">; NTSC erkannt!</span>
+        <span class="directive">rts</span>
+<span class="label">.not_ntsc_line:</span>
+        <span class="directive">iny</span>
+        <span class="directive">bne</span> .count
+        <span class="directive">dex</span>
+        <span class="directive">bne</span> .count
+        <span class="comment">; Schleife abgelaufen ohne NTSC-Erkennung → PAL</span>
+        <span class="directive">lda</span> #<span class="number">0</span>
+        <span class="directive">sta</span> is_ntsc
+        <span class="directive">rts</span>
+
+<span class="comment">; ── Raster-IRQ-Anpassung je nach Standard ───────────────────</span>
+<span class="label">setup_raster_irq:</span>
+        <span class="directive">lda</span> is_ntsc
+        <span class="directive">beq</span> .pal_irq
+        <span class="comment">; NTSC: Rasterzeile 240 (kurz vor Frame-Ende bei 263 Zeilen)</span>
+        <span class="directive">lda</span> #<span class="number">240</span>
+        <span class="directive">sta</span> <span class="number">$D012</span>
+        <span class="directive">rts</span>
+<span class="label">.pal_irq:</span>
+        <span class="comment">; PAL: Rasterzeile 300 (kurz vor Frame-Ende bei 312 Zeilen)</span>
+        <span class="directive">lda</span> #<span class="number">300</span>-<span class="number">256</span>         <span class="comment">; = 44 (Bit 8 wird via $D011 gesetzt)</span>
+        <span class="directive">sta</span> <span class="number">$D012</span>
+        <span class="directive">rts</span></pre>
+
+    <h3>6.3 Bewegungsgeschwindigkeiten anpassen</h3>
+
+    <p>Auf NTSC laufen Effekte 20% schneller (60 statt 50 Hz). Du kannst das mit einer einfachen Strategie kompensieren: Lade einen geschwindigkeits-Faktor abhängig vom erkannten Standard:</p>
+
+<pre><span class="comment">; Geschwindigkeits-Tabelle: PAL vs. NTSC</span>
+<span class="comment">; Auf NTSC: Effekte 5/6 so schnell bewegen wie auf PAL</span>
+<span class="comment">; Einfachste Methode: jeden 6. Frame auf NTSC überspringen</span>
+
+ntsc_skip_counter: <span class="directive">!byte</span> <span class="number">0</span>
+
+<span class="label">should_update:</span>
+        <span class="directive">lda</span> is_ntsc
+        <span class="directive">beq</span> .always_update   <span class="comment">; PAL: immer updaten</span>
+
+        <span class="comment">; NTSC: jeden 6. Frame überspringen</span>
+        <span class="directive">inc</span> ntsc_skip_counter
+        <span class="directive">lda</span> ntsc_skip_counter
+        <span class="directive">cmp</span> #<span class="number">6</span>
+        <span class="directive">bne</span> .always_update
+        <span class="directive">lda</span> #<span class="number">0</span>
+        <span class="directive">sta</span> ntsc_skip_counter
+        <span class="directive">clc</span>                  <span class="comment">; Carry = 0: diesen Frame überspringen</span>
+        <span class="directive">rts</span>
+<span class="label">.always_update:</span>
+        <span class="directive">sec</span>                  <span class="comment">; Carry = 1: normaler Frame</span>
+        <span class="directive">rts</span></pre>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="testing">
+    <h2>7. Testing und Bugfixing — Demo-spezifische Probleme</h2>
+
+    <h3>7.1 Häufige Demo-Bugs und ihre Ursachen</h3>
+
+    <table>
+      <thead><tr><th>Symptom</th><th>Ursache</th><th>Behebung</th></tr></thead>
+      <tbody>
+        <tr><td>Raster-Jitter (Wackeln der Rasterbars)</td><td>Inkonstante IRQ-Latenz, Bad Lines, DMA</td><td>Double-IRQ-Technik (Stufe 07), Sprites während Rasterzeile deaktivieren</td></tr>
+        <tr><td>Musik knackst oder stoppt</td><td>SID_PLAY wird nicht jeden Frame aufgerufen, Frame-Overrun</td><td>Cycle-Budget reduzieren, SID_PLAY absolut im IRQ halten</td></tr>
+        <tr><td>Scroller ruckelt</td><td>Update nur jeden 2. Frame, $D016-Schreiben zur falschen Zeit</td><td>Scroll-Register im IRQ, außerhalb sichtbarer Rasterzeilen schreiben</td></tr>
+        <tr><td>Sprites flackern</td><td>Sprite-Pointer oder Enable-Register während sichtbarem Bereich gesetzt</td><td>VBlank abwarten ($D011 Bit 7 = 1)</td></tr>
+        <tr><td>Part-Wechsel zeigt Artefakte</td><td>Altes Part-Update läuft noch einen Frame nach Init</td><td>Update-Flag setzen, erst ab nächstem Frame neuen Part aufrufen</td></tr>
+        <tr><td>Demo hängt auf NTSC</td><td>Raster-IRQ-Zeile außerhalb NTSC-Rasterbereich</td><td>NTSC-Erkennung + bedingte Rasterzeilen-Anpassung</td></tr>
+      </tbody>
+    </table>
+
+    <h3>7.2 Raster-Jitter mit VICE diagnostizieren</h3>
+
+    <p>Raster-Jitter — das leichte Wackeln von Rasterbars oder Raster-Effekten — ist der häufigste Demo-Bug. Er entsteht, wenn der IRQ nicht immer auf genau der gleichen Taktphase eintrifft. Die Diagnose ist einfach: Setze die Rahmenfarbe zu Beginn des IRQ auf Weiß — siehst du einen weißen Strich statt einer Linie, hast du Jitter.</p>
+
+<pre><span class="comment">; Jitter-Test: Wenn der weiße Strich unscharf oder gewellt ist → Jitter</span>
+<span class="label">raster_irq_test:</span>
+        <span class="directive">lda</span> #<span class="number">1</span>              <span class="comment">; Weiß</span>
+        <span class="directive">sta</span> <span class="number">$D020</span>
+
+        <span class="comment">; ... IRQ-Arbeit ...</span>
+
+        <span class="directive">lda</span> #<span class="number">0</span>              <span class="comment">; Schwarz</span>
+        <span class="directive">sta</span> <span class="number">$D020</span>
+        <span class="directive">jmp</span> <span class="number">$EA81</span>
+
+<span class="comment">; Lösung: Double-IRQ-Technik aus Stufe 07 anwenden
+; Erster IRQ NOP-Schleife bis zur stabilen Phase,
+; Zweiter IRQ macht die eigentliche Arbeit</span></pre>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="release">
+    <h2>8. Release — NFO, Packaging und CSDb</h2>
+
+    <h3>8.1 Die NFO-Datei — Pflichtfelder und Format</h3>
+
+    <p>Die NFO-Datei (kurz für "iNFOrmation") wird im Scene-Standard als reine ASCII-Textdatei mit Zeilenlänge ≤79 Zeichen geschrieben. Sie enthält alle Release-Informationen:</p>
+
+    <div class="nfo-block"> ╔═══════════════════════════════════════════════════════════════════════╗
+ ║                    B I T W A V E                                      ║
+ ║                  a demo for Commodore 64                              ║
+ ║                by YourGroup / 2025                                    ║
+ ╠═══════════════════════════════════════════════════════════════════════╣
+ ║                                                                       ║
+ ║  PARTS:                                                               ║
+ ║   01. Intro ........ Sinusscroller + Rasterbars                       ║
+ ║   02. Main ......... Plasma-Effekt mit Musik-Sync                     ║
+ ║   03. Credits ...... DYSP-Welle + Credits-Scroller                    ║
+ ║                                                                       ║
+ ║  REQUIREMENTS:   PAL C64 / C128 in C64-Modus                         ║
+ ║  NTSC:           Läuft, aber nicht 100% getestet                      ║
+ ║                                                                       ║
+ ║  CREDITS:                                                             ║
+ ║   Code ...... YourName                                                ║
+ ║   Music ..... YourName (GoatTracker 2.76)                             ║
+ ║   Graphics .. YourName (CharPad 2.0, SpritePad)                       ║
+ ║                                                                       ║
+ ║  GREETINGS TO: Alle C64-Enthusiasten weltweit!                        ║
+ ║                Codebase64.org — Forum64.de — CSDb.dk                  ║
+ ║                                                                       ║
+ ╚═══════════════════════════════════════════════════════════════════════╝</div>
+
+    <h3>8.2 D64-Image mit AUTOSTART finalisieren</h3>
+
+<pre><span class="comment"># Finales D64-Image mit AUTOSTART:</span>
+<span class="comment"># Wenn das Diskettenlaufwerk 8 eingelegt und LOAD"*",8 oder
+# SHIFT-RUN/STOP gedrückt wird, startet die Demo automatisch.</span>
+
+<span class="comment"># 1. Loader als ersten Eintrag im Verzeichnis:</span>
+c1541 -attach bitwave.d64 -write loader.prg "loader"
+
+<span class="comment"># 2. Einen AUTOSTART-Eintrag anlegen (BASIC-Loader):</span>
+<span class="comment"># Datei: autostart.prg mit Inhalt: 10 LOAD"LOADER",8,1:20 RUN</span>
+c1541 -attach bitwave.d64 -write autostart.prg "@"
+
+<span class="comment"># Alternativ: In VICE testen</span>
+x64sc -autostart bitwave.d64</pre>
+
+    <h3>8.3 CSDb-Einreichung</h3>
+
+    <p>Die <strong>C64 Scene Database</strong> ist das zentrale Archiv der C64-Demoscene. Jedes Release wird hier archiviert und bewertet. Eine Einreichung dauert 5 Minuten:</p>
+    <ol>
+      <li>Account auf CSDb anlegen (einmalig)</li>
+      <li><em>Submit → Production → New</em></li>
+      <li>Typ auswählen: <em>Demo</em>, <em>Intro</em>, <em>Music</em>, etc.</li>
+      <li>D64-Image hochladen, NFO einfügen</li>
+      <li>Jahr, Gruppe, Credits-Personen eintragen (nach Vorname/Handle suchen)</li>
+      <li>Screenshot aus VICE hinzufügen (<em>Snapshot → Save Screenshot</em>)</li>
+      <li>Plattform: C64 PAL (ggf. NTSC als kompatibel markieren)</li>
+    </ol>
+
+    <div class="box box-info">
+      <div class="box-title">Scene-Etikette</div>
+      In der Demoscene werden fertige Releases nicht kommentarlos verändert. Wenn nach dem Release Bugs entdeckt werden, erscheint eine neue Version als separates Release ("v1.1-fix" oder ähnlich). Original bleibt Original.
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="walkthrough">
+    <div class="walkthrough-banner">
+      <h2>9. Vollständiger Walkthrough — 3-Part-Demo "BITWAVE"</h2>
+      <p>Von der Konzeptidee bis zum CSDb-tauglichen D64-Image — jeder Schritt dokumentiert.</p>
+    </div>
+
+    <h3>9.1 Konzept und Part-Liste</h3>
+
+    <div class="box box-info">
+      <div class="box-title">BITWAVE — Demo-Konzept (eine halbe Seite)</div>
+      <p><strong>Thema:</strong> Elektronische Wellen, Frequenzen, digitaler Klang<br>
+      <strong>Ansatz:</strong> Musik-first (vorhandenes SID-File aus HVSC)<br>
+      <strong>Stil:</strong> Monochrom (Blau auf Schwarz) mit akzentuiertem Grün für Beats<br>
+      <strong>Laufzeit:</strong> ~3 Minuten<br>
+      <strong>Parts:</strong> Intro (Rasterbars + Sinus-Scroller) → Plasma (Haupteffekt) → DYSP-Credits<br>
+      <strong>Ziel:</strong> CSDb-Release, PAL-optimiert, NTSC-kompatibel</p>
+    </div>
+
+    <h3>9.2 Timing-Tabelle aus der Musik ableiten</h3>
+
+    <p>Zuerst das SID-File in VICE laden und die Musik analysieren. Notiere Frame-Nummern für wichtige Ereignisse:</p>
+    <ul>
+      <li><strong>Frame 0:</strong> Intro startet, Rasterbars langsam</li>
+      <li><strong>Frame 50:</strong> Beat 1 → Rasterbars beschleunigen</li>
+      <li><strong>Frame 100:</strong> Musik-Refrain → Scroller erscheint</li>
+      <li><strong>Frame 175:</strong> Musik-Break → Fade-Out, Part 2 startet</li>
+      <li><strong>Frame 225:</strong> Beat → Plasma-Geschwindigkeit Maximum</li>
+      <li><strong>Frame 380:</strong> Outro-Beginn → Fade-Out, Part 3 (Credits)</li>
+      <li><strong>Frame 500:</strong> Ende → Endlosschleife oder BASIC-Rückkehr</li>
+    </ul>
+
+    <h3>9.3 Part 1: Intro — Rasterbars + Sinusscroller</h3>
+
+    <p>Part 1 kombiniert einfache Rasterbars (aus Stufe 09) mit einem Hardware-Scroller. Die Rasterbar-Farben reagieren auf Beat-Events aus der Sync-Tabelle.</p>
+
+<pre><span class="comment">; Part 1: Sinus-Scroller mit Rasterbars</span>
+<span class="comment">; Scroll-Register $D016 Bits 0-2 für horizontales Soft-Scroll</span>
+
+scroll_x:       <span class="directive">!byte</span> <span class="number">7</span>    <span class="comment">; Aktuelle Scroll-Position</span>
+text_offset:    <span class="directive">!byte</span> <span class="number">0</span>    <span class="comment">; Offset in scroll_text</span>
+rasterbar_color: <span class="directive">!byte</span> <span class="number">6</span>   <span class="comment">; Aktuell Blau</span>
+
+<span class="label">update_part1:</span>
+        <span class="comment">; Scroll-Register dekrementieren</span>
+        <span class="directive">dec</span> scroll_x
+        <span class="directive">bpl</span> .no_shift        <span class="comment">; Noch positiv: nur Pixel-Scroll</span>
+
+        <span class="comment">; Auf 7 zurücksetzen und Zeichenreihe verschieben</span>
+        <span class="directive">lda</span> #<span class="number">7</span>
+        <span class="directive">sta</span> scroll_x
+        <span class="directive">jsr</span> shift_screen_left <span class="comment">; Alle 40 Zeichen in Zeile 24 um 1 links</span>
+        <span class="directive">jsr</span> append_next_char  <span class="comment">; Nächstes Zeichen des scroll_text rechts einfügen</span>
+<span class="label">.no_shift:</span>
+        <span class="comment">; Scroll-Register setzen</span>
+        <span class="directive">lda</span> scroll_x
+        <span class="directive">and</span> #<span class="number">$07</span>
+        <span class="directive">ora</span> #<span class="number">$C8</span>             <span class="comment">; Bits 7-4: Standard + 38 Spalten (schmaler Rand)</span>
+        <span class="directive">sta</span> <span class="number">$D016</span>
+        <span class="directive">rts</span>
+
+<span class="label">scroll_text:</span>
+        <span class="directive">!pet</span> <span class="label">"     bitwave by yourgroup ... music: yourtune ... greetings to the world     "</span>
+        <span class="directive">!byte</span> <span class="number">0</span>             <span class="comment">; Terminierung</span>
+
+<span class="comment">; Beat-Event-Handler: Rasterbar-Farbe kurz auf Grün (Blitz-Effekt)</span>
+<span class="label">do_beat:</span>
+        <span class="directive">lda</span> #<span class="number">5</span>              <span class="comment">; Grün</span>
+        <span class="directive">sta</span> rasterbar_color
+        <span class="directive">lda</span> #<span class="number">8</span>              <span class="comment">; 8 Frames Grün bleiben</span>
+        <span class="directive">sta</span> beat_decay
+        <span class="directive">rts</span></pre>
+
+    <h3>9.4 Part 2: Plasma mit Musik-Synchronisation</h3>
+
+    <p>Der Plasma-Effekt aus Stufe 09 wird hier mit der Musik verknüpft: die Plasma-Geschwindigkeit steigt mit dem Beat und sinkt danach wieder ab.</p>
+
+<pre><span class="comment">; Plasma-Geschwindigkeit wird durch Sync-Events gesteuert</span>
+plasma_speed:   <span class="directive">!byte</span> <span class="number">1</span>    <span class="comment">; Startet langsam</span>
+plasma_decay:   <span class="directive">!byte</span> <span class="number">0</span>    <span class="comment">; Countdown für Rückkehr zur Normalgeschwindigkeit</span>
+
+<span class="label">update_part2:</span>
+        <span class="comment">; Plasma-Geschwindigkeit abklingen lassen</span>
+        <span class="directive">lda</span> plasma_decay
+        <span class="directive">beq</span> .no_decay
+        <span class="directive">dec</span> plasma_decay
+        <span class="directive">bne</span> .no_decay
+        <span class="directive">lda</span> #<span class="number">1</span>               <span class="comment">; Zurück auf Normalgeschwindigkeit</span>
+        <span class="directive">sta</span> plasma_speed
+<span class="label">.no_decay:</span>
+        <span class="comment">; Plasma-Phase um plasma_speed erhöhen</span>
+        <span class="directive">lda</span> plasma_speed
+        <span class="directive">clc</span>
+        <span class="directive">adc</span> plasma_phase1
+        <span class="directive">sta</span> plasma_phase1
+        <span class="comment">; ... Phase 2 analog ...</span>
+        <span class="directive">jsr</span> render_plasma
+        <span class="directive">rts</span>
+
+<span class="comment">; Beat-Event im Plasma: Geschwindigkeit kurz erhöhen</span>
+<span class="label">do_event_plasma_max:</span>
+        <span class="directive">lda</span> #<span class="number">4</span>               <span class="comment">; 4× normale Geschwindigkeit</span>
+        <span class="directive">sta</span> plasma_speed
+        <span class="directive">lda</span> #<span class="number">30</span>              <span class="comment">; 30 Frames schnell, dann abklingen</span>
+        <span class="directive">sta</span> plasma_decay
+        <span class="directive">rts</span></pre>
+
+    <h3>9.5 Part 3: Credits-Scroller mit DYSP-Welle</h3>
+
+    <p>Der Credits-Part zeigt die Gruppen-Infos in einem Sprite-Scroller. DYSP (Dynamic Sprite Positioning) lässt die Sprites in einer Sinus-Welle schwingen. Die Credits werden als Zeichenkette gespeichert und Buchstabe für Buchstabe zu Sprites konvertiert.</p>
+
+    <h3>9.6 Integration und Timing-Feinschliff</h3>
+
+    <p>Nach Fertigstellung aller Parts wird die Sync-Tabelle mit echten Frame-Nummern befüllt. Methode: Demo starten, VICE pausieren (<kbd>Alt+P</kbd>), Frame-Counter auslesen und mit dem Musik-Eindruck vergleichen.</p>
+
+<pre><span class="comment">; Sync-Tabelle finalisieren (reale Werte nach Messung)</span>
+<span class="label">sync_table:</span>
+        <span class="directive">!word</span> <span class="number">50</span>  : <span class="directive">!byte</span> EVENT_BEAT        <span class="comment">; Gemessen: Frame 50</span>
+        <span class="directive">!word</span> <span class="number">100</span> : <span class="directive">!byte</span> EVENT_SCROLLER     <span class="comment">; Refrain: Frame 100</span>
+        <span class="directive">!word</span> <span class="number">175</span> : <span class="directive">!byte</span> EVENT_PART2_INIT   <span class="comment">; Break: Frame 175</span>
+        <span class="directive">!word</span> <span class="number">225</span> : <span class="directive">!byte</span> EVENT_PLASMA_MAX   <span class="comment">; Höhepunkt: Frame 225</span>
+        <span class="directive">!word</span> <span class="number">380</span> : <span class="directive">!byte</span> EVENT_PART3_INIT   <span class="comment">; Outro: Frame 380</span>
+        <span class="directive">!word</span> <span class="number">500</span> : <span class="directive">!byte</span> EVENT_END          <span class="comment">; Ende: Frame 500</span>
+        <span class="directive">!word</span> <span class="number">$FFFF</span>                           <span class="comment">; Sentinel</span></pre>
+
+    <h3>9.7 Build-Skript und Release</h3>
+
+<pre>#!/bin/bash
+<span class="comment"># build_bitwave.sh — Vollständiger Build der BITWAVE-Demo</span>
+set -e
+
+echo "=== BITWAVE BUILD ==="
+
+<span class="comment"># Alle Teile kompilieren</span>
+acme --cpu 6510 -f cbm -o loader.prg src/loader.asm
+acme --cpu 6510 -f cbm -o part1.prg  src/part1.asm
+acme --cpu 6510 -f cbm -o part2.prg  src/part2.asm
+acme --cpu 6510 -f cbm -o part3.prg  src/part3.asm
+echo "Kompilierung abgeschlossen."
+
+<span class="comment"># D64-Image erstellen</span>
+rm -f bitwave.d64
+c1541 -format "bitwave,99" d64 bitwave.d64 \
+  -write loader.prg "loader" \
+  -write musik.prg  "musik"  \
+  -write part1.prg  "part1"  \
+  -write part2.prg  "part2"  \
+  -write part3.prg  "part3"
+echo "D64-Image: bitwave.d64 ($(du -k bitwave.d64 | cut -f1) KB)"
+
+<span class="comment"># VICE starten</span>
+x64sc bitwave.d64 &
+echo "VICE gestartet."</pre>
+
+    <p>Nach erfolgreichem Build und vollständigem Playtest: NFO schreiben (Vorlage von oben), D64 und NFO als ZIP packen, auf CSDb einreichen. Die Demo ist fertig.</p>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="benchmark" class="benchmark">
+    <h2>★ Skill-Benchmark: Stufe 12</h2>
+    <ul class="benchmark-list">
+      <li><span class="check">▸</span>Du kannst entscheiden, ob Musik-first oder Effekt-first für dein Projekt besser ist</li>
+      <li><span class="check">▸</span>Du erstellst eine Timing-Tabelle mit Frame-genauen Event-Nummern aus einer Musik-Analyse</li>
+      <li><span class="check">▸</span>Du implementierst ein Event-Dispatching-System für Musik-Synchronisation im IRQ</li>
+      <li><span class="check">▸</span>Du entwickelst saubere Part-Wechsel mit Fade-to-Black-Übergang</li>
+      <li><span class="check">▸</span>Du erkennst PAL/NTSC via Rasterzeilen-Zählung und passt IRQ-Zeilen an</li>
+      <li><span class="check">▸</span>Du diagnostizierst Raster-Jitter mit der Rahmenfarben-Methode</li>
+      <li><span class="check">▸</span>Du erstellst ein D64-Image mit korrekter Datei-Reihenfolge und AUTOSTART</li>
+      <li><span class="check">▸</span>Du schreibst eine vollständige NFO-Datei im Scene-Standard</li>
+      <li><span class="check">▸</span>Du hast eine vollständige 3-Part-Demo auf CSDb oder Forum64 veröffentlicht</li>
+    </ul>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="exercises">
+    <h2>Übungsaufgaben</h2>
+
+    <div class="exercise-item">
+      <h4>Übung 12.1 — Timing-Tabelle analysieren</h4>
+      <p>Wähle ein SID-File aus der HVSC (High Voltage SID Collection). Lade es in VICE und analysiere die Musik: Notiere 10 Frame-Nummern für wichtige Ereignisse (Beats, Melodie-Einsätze, Breaks). Erstelle daraus eine vollständige ACME-Sync-Tabelle.</p>
+    </div>
+
+    <div class="exercise-item">
+      <h4>Übung 12.2 — Fade-Übergang</h4>
+      <p>Implementiere einen Fade-to-Black-Übergang, der 24 Frames dauert. Verwende einen stufenlosen Ansatz: Fülle das Color-RAM Zeile für Zeile mit Schwarz (eine Zeile pro Frame), während der Hintergrund bereits nach 12 Frames schwarz wird. Teste den Übergang auf PAL und NTSC.</p>
+    </div>
+
+    <div class="exercise-item">
+      <h4>Übung 12.3 — PAL/NTSC-Kompatibilität</h4>
+      <p>Implementiere die PAL/NTSC-Erkennungsroutine aus diesem Kapitel. Zeige auf dem Bildschirm an, welcher Standard erkannt wurde. Passe einen bestehenden Raster-IRQ-Effekt so an, dass er auf beiden Standards korrekt funktioniert.</p>
+    </div>
+
+    <div class="exercise-item">
+      <h4>Übung 12.4 — Vollständige BITWAVE-Demo</h4>
+      <p>Entwickle die BITWAVE-Demo aus diesem Walkthrough vollständig: Intro mit Rasterbar + Scroller, Plasma-Effekt mit Musik-Sync, Credits-Part. Erstelle das finale D64-Image, schreibe die NFO und reiche die Demo auf CSDb ein. Das ist das ultimative C64-Mastership-Projekt.</p>
+    </div>
+  </section>
+
+  <nav class="chapter-nav">
+    <a href="stufe_11_spielentwicklung_workflow.html">← Stufe 11: Spiel-Workflow</a>
+    <a href="stufe_13_hardware_erweiterungen.html">Stufe 13: Hardware-Erweiterungen →</a>
+  </nav>
+</main>
+
+  <script src="assets/c64-interactive.js"></script>
+</body>
+</html>

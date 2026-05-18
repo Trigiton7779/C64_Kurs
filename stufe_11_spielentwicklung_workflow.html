@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>C64 Mastery — Stufe 11: Spielentwicklung Workflow</title>
+  <link rel="stylesheet" href="assets/c64-base.css">
+  <style>
+    :root { --theme-color: #005588; --theme-dark: #001a33; --theme-light: #88ccff; }
+    .gdd-block { background: #fffef8; border: 1px solid #c8c49a; border-left: 4px solid #cc8800; border-radius: 4px; padding: 20px 24px; margin: 20px 0; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.7; color: #333; }
+    .gdd-block .gdd-title { font-size: 15px; font-weight: bold; color: var(--c64-dark); margin-bottom: 12px; border-bottom: 1px solid #ddd; padding-bottom: 6px; }
+    .gdd-row { display: grid; grid-template-columns: 160px 1fr; gap: 8px; margin: 4px 0; }
+    .gdd-key { color: #666; }
+    .gdd-val { color: var(--c64-dark); font-weight: bold; }
+    .phase-timeline { display: flex; flex-direction: column; gap: 0; margin: 24px 0; position: relative; }
+    .phase-item { display: flex; gap: 16px; position: relative; }
+    .phase-item::before { content: ''; position: absolute; left: 19px; top: 36px; bottom: -10px; width: 2px; background: #d0ccc0; }
+    .phase-item:last-child::before { display: none; }
+    .phase-dot { flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%; background: var(--c64-blue); color: white; display: flex; align-items: center; justify-content: center; font-family: 'Courier New', monospace; font-weight: bold; font-size: 14px; margin-top: 10px; z-index: 1; }
+    .phase-content { flex: 1; padding: 10px 0 24px; }
+    .phase-content h4 { color: var(--c64-blue); font-style: normal; font-size: 16px; margin: 0 0 6px; }
+    .phase-content p { margin: 0; font-size: 14.5px; color: var(--text-light); }
+    .moscow-table { margin: 20px 0; }
+    .moscow-row { display: grid; grid-template-columns: 120px 1fr; border-bottom: 1px solid #d0ccc0; }
+    .moscow-row:last-child { border-bottom: none; }
+    .moscow-cat { padding: 10px 12px; font-family: 'Courier New', monospace; font-size: 13px; font-weight: bold; }
+    .moscow-must { background: #dc3545; color: white; }
+    .moscow-should { background: #fd7e14; color: white; }
+    .moscow-could { background: #ffc107; color: #333; }
+    .moscow-wont { background: #6c757d; color: white; }
+    .moscow-items { padding: 10px 16px; font-size: 14px; }
+    .pipeline-ascii { background: var(--c64-dark); color: #aaddff; font-family: 'Courier New', monospace; font-size: 13px; padding: 20px 24px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #cc8800; }
+    .milestone-table table thead { background: var(--theme-color); }
+    .checklist { list-style: none; padding: 0; margin: 16px 0; }
+    .checklist li { padding: 8px 12px; border-bottom: 1px solid #e0dbd0; display: flex; gap: 10px; font-size: 14.5px; }
+    .checklist li::before { content: '☐'; font-size: 16px; color: var(--c64-blue); flex-shrink: 0; }
+    .checklist li:last-child { border-bottom: none; }
+    .walkthrough-banner { background: linear-gradient(135deg, #001a33 0%, var(--theme-color) 100%); border-radius: 8px; padding: 24px 28px; color: white; margin: 36px 0 24px; }
+    .walkthrough-banner h2 { color: var(--theme-light); border: none; margin-top: 0; font-size: 20px; letter-spacing: 1px; }
+    .walkthrough-banner p { color: #aaccee; margin: 0; }
+  </style>
+  <link rel="stylesheet" href="assets/c64-interactive.css">
+  <link rel="stylesheet" href="assets/c64-print.css" media="print">
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">■ C64 MASTERY</div>
+    Professioneller Lehrgang
+  </div>
+  <nav>
+    <div class="section-label">Curriculum</div>
+    <a href="index.html">◈ Übersicht &amp; Lernpfad</a>
+    <a href="stufe_00_fundament.html">00 · Fundament</a>
+    <a href="stufe_01_6510_assembler.html">01 · 6510 &amp; Assembler</a>
+    <a href="stufe_02_adressierung_speicher.html">02 · Adressierung &amp; Speicher</a>
+    <a href="stufe_03_bildschirm_zeichen.html">03 · Bildschirm &amp; Zeichen</a>
+    <a href="stufe_04_sprites_animation.html">04 · Sprites &amp; Animation</a>
+    <a href="stufe_05_bitmap_grafik.html">05 · Bitmap-Grafik</a>
+    <a href="stufe_06_sid_sound.html">06 · SID-Sound</a>
+    <a href="stufe_07_interrupts_timing.html">07 · Interrupts &amp; Timing</a>
+    <a href="stufe_08_optimierung.html">08 · Optimierung</a>
+    <a href="stufe_09_demo_effekte.html">09 · Demo-Effekte</a>
+    <a href="stufe_10_meisterschaft.html">10 · Meisterschaft</a>
+
+    <div class="section-label">Workflow &amp; Release</div>
+    <a href="stufe_11_spielentwicklung_workflow.html" class="active">11 · Spiel-Workflow</a>
+    <a href="stufe_12_demo_entwicklung_workflow.html">12 · Demo-Workflow</a>
+
+    <div class="section-label">Erweiterte Stufen</div>
+    <a href="stufe_13_hardware_erweiterungen.html">13 · Hardware-Erweiterungen</a>
+    <a href="stufe_14_modern_workflow.html">14 · Moderner Workflow</a>
+    <a href="stufe_15_debugging_deep_dive.html">15 · Deep Debugging</a>
+
+    <div class="section-label">Diese Seite</div>
+    <a href="#gdd" class="toc-link">1. Game Design Document</a>
+    <a href="#planung" class="toc-link">2. Technische Planung</a>
+    <a href="#assets" class="toc-link">3. Asset-Pipeline</a>
+    <a href="#entwicklung" class="toc-link">4. Entwicklungsreihenfolge</a>
+    <a href="#testing" class="toc-link">5. Testing &amp; Debugging</a>
+    <a href="#release" class="toc-link">6. Distribution &amp; Release</a>
+    <a href="#walkthrough" class="toc-link">7. Walkthrough: JUMPMASTER</a>
+    <a href="#benchmark" class="toc-link">Skill-Benchmark</a>
+
+    <div class="section-label">Anhänge &amp; Referenz</div>
+    <a href="anhang_opcodes.html">A · Opcode-Referenz</a>
+    <a href="anhang_speicherkarte.html">B · Speicherkarte</a>
+    <a href="anhang_vic_register.html">C · VIC-II Register</a>
+    <a href="anhang_sid_register.html">D · SID Register</a>
+    <a href="anhang_cia_register.html">E · CIA Register</a>
+    <a href="anhang_petscii.html">F · PETSCII-Tabelle</a>
+    <a href="anhang_farben.html">G · C64-Farben</a>
+    <a href="anhang_kernal_routinen.html">H · KERNAL-Routinen</a>
+
+    <div class="section-label">Downloads</div>
+    <a href="beispiele/index.html">Beispielcode (.asm)</a>
+    <a href="vice.vicerc" download>VICE Konfiguration</a>
+  </nav>
+</aside>
+
+<main>
+  <header class="chapter-header">
+    <div class="chapter-number">Stufe 11 — Workflow</div>
+    <h1>Spielentwicklung von A bis Z</h1>
+    <div class="chapter-meta">
+      <span>★ Meister-Niveau</span>
+      <span>⏱ ca. 12–16 Stunden</span>
+      <span>📋 Voraussetzung: Stufen 00–10</span>
+    </div>
+  </header>
+
+  <section class="learning-objectives">
+    <h3>Lernziele dieser Stufe</h3>
+    <ul>
+      <li>Ein vollständiges Game Design Document (GDD) für ein C64-Spiel erstellen</li>
+      <li>Speicher-Layout und Modul-Struktur eines Projekts professionell planen</li>
+      <li>Asset-Pipeline von Grafik-Editoren bis zur ACME-Integration beherrschen</li>
+      <li>Die richtige Entwicklungsreihenfolge kennen und anwenden</li>
+      <li>Systematisch mit VICE debuggen und Cycle-Budgets überwachen</li>
+      <li>Ein fertiges Spiel als D64-Image verpacken und veröffentlichen</li>
+      <li>Einen vollständigen Plattformer von der Idee bis zum Release entwickeln</li>
+    </ul>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="gdd">
+    <h2>1. Vom Konzept zum Game Design Document</h2>
+
+    <p>Der häufigste Fehler angehender C64-Entwickler: sofort mit dem Code anfangen. Das Ergebnis sind unfertige Projekte, die an der fehlenden Planung scheitern — nicht am fehlenden technischen Wissen. Professionelle Spielentwicklung beginnt immer auf Papier, und das gilt für den C64 genauso wie für moderne Plattformen.</p>
+
+    <h3>1.1 Die Spielidee konkretisieren</h3>
+
+    <p>Eine gute C64-Spielidee berücksichtigt die Hardware-Grenzen als kreative Kraft, nicht als Hindernis. Die Grenzen des C64 zwingen zu Designentscheidungen, die Spiele oft prägnanter und spielbarer machen als ihre aufgeblasenen modernen Gegenstücke.</p>
+
+    <p>Stelle dir diese vier Fragen, bevor du eine Zeile Code schreibst:</p>
+    <ul>
+      <li><strong>Was ist der Kern-Spielspaß?</strong> Beschreibe ihn in einem einzigen Satz. Wenn du ihn nicht in einem Satz ausdrücken kannst, ist die Idee noch nicht reif.</li>
+      <li><strong>Welches Genre?</strong> Plattformer, Shoot'em'up, Puzzle, Adventure, Arcade — jedes Genre hat bewährte C64-Muster, von denen man lernen kann.</li>
+      <li><strong>Wieviele Sprites brauchst du?</strong> 8 Hardware-Sprites sind dein Limit (ohne Multiplexer). Das bestimmt die Komplexität der Grafik-Engine.</li>
+      <li><strong>Wie groß wird das Spiel?</strong> Ein Level? Mehrere? Disk-Laden nötig? Das entscheidet über die Architektur.</li>
+    </ul>
+
+    <div class="box box-tip">
+      <div class="box-title">Tipp: Kleine Spiele fertigstellen</div>
+      Dein erstes vollständiges C64-Spiel sollte in 4–8 Wochen fertig sein. Wähle eine Idee, die du in dieser Zeit umsetzen kannst. Ein fertiges einfaches Spiel ist wertvoller als ein unfertiges ambitioniertes Projekt.
+    </div>
+
+    <h3>1.2 Das Game Design Document (GDD) für den C64</h3>
+
+    <p>Ein GDD für den C64 muss keine 50-seitige Abhandlung sein. Für ein Soloprojekt reicht ein einziges Dokument — aber es muss schriftlich vorliegen. Das zwingt dich, vage Ideen in konkrete Entscheidungen zu übersetzen.</p>
+
+    <p>Hier ist eine bewährte GDD-Vorlage, die auch als Kommentarblock in der Haupt-ASM-Datei leben kann:</p>
+
+<pre><span class="comment">; ================================================================
+; GAME DESIGN DOCUMENT — "JUMPMASTER"
+; Version: 1.0 | Status: In Entwicklung | Ziel: CSDb-Release
+; ================================================================
+;
+; KONZEPT:
+;   Ein 1-Screen-Plattformer. Der Spieler springt durch
+;   automatisch generierende Plattformen nach oben.
+;   Je höher, desto schneller. Kein Ende — nur ein Score.
+;
+; GENRE:        Endless Plattformer
+; SPIELER:      1 (Joystick Port 2)
+; GRAFIK:       Zeichenmodus (40x25), benutzerdefinierter Charset
+; SOUND:        1 Melodie (3 Stimmen), 2 Sound-Effekte
+; LEVEL:        Endlos, prozedural (kein Disk-Laden nötig)
+; SPEICHER:     64 KB, kein Bank-Switching benötigt
+;
+; SPIELMECHANIK:
+;   - Joystick: Links/Rechts bewegen, Feuer = Sprung
+;   - Plattformen bewegen sich von oben nach unten
+;   - Spieler fällt durch den unteren Rand = Game Over
+;   - Score: +10 Punkte pro übersprungene Plattform
+;
+; TECHNISCHE ZIELE:
+;   - 50 Hz stabil (kein Frame-Overrun)
+;   - Max. 8 Sprites (Spieler + 7 Plattform-Highlights)
+;   - Kein Multiplexer benötigt
+;
+; MEILENSTEINE:
+;   Woche 1: Framework + Spieler-Bewegung
+;   Woche 2: Plattform-Logik + Kollision
+;   Woche 3: Score + Game Over + Musik
+;   Woche 4: Polish, Test, Release
+; ================================================================</span></pre>
+
+    <h3>1.3 Feature-Priorisierung: MoSCoW auf 64K anwenden</h3>
+
+    <p>Die MoSCoW-Methode hilft, den Scope zu begrenzen. Jedes Feature landet in einer von vier Kategorien:</p>
+
+    <div class="moscow-table">
+      <div class="moscow-row">
+        <div class="moscow-cat moscow-must">Must</div>
+        <div class="moscow-items">Das Spiel ist ohne dieses Feature nicht spielbar: Spielerbewegung, Kollision, Game Over, Score-Anzeige</div>
+      </div>
+      <div class="moscow-row">
+        <div class="moscow-cat moscow-should">Should</div>
+        <div class="moscow-items">Wichtig für Spielspaß, aber technisch verzichtbar: Musik, Titel-Screen, Highscore-Speicherung</div>
+      </div>
+      <div class="moscow-row">
+        <div class="moscow-cat moscow-could">Could</div>
+        <div class="moscow-items">Nette Extras, wenn Zeit bleibt: Animierte Sprites, Zwischen-Screens, Bonus-Items</div>
+      </div>
+      <div class="moscow-row">
+        <div class="moscow-cat moscow-wont">Won't</div>
+        <div class="moscow-items">Explizit ausgeschlossen: Disk-Laden, mehr als 1 Level, Multi-Player, Cheats</div>
+      </div>
+    </div>
+
+    <div class="box box-warning">
+      <div class="box-title">Warnung: Scope Creep</div>
+      Jede Woche willst du ein neues "Must-Have"-Feature hinzufügen. Schreib deine ursprüngliche Won't-Liste auf und halte sie ein. Fertigstellen ist wichtiger als Feature-Vollständigkeit.
+    </div>
+
+    <h3>1.4 Scope-Realismus — Was ist allein machbar?</h3>
+
+    <table>
+      <thead><tr><th>Projektgröße</th><th>Zeitaufwand</th><th>Typisches Beispiel</th><th>Techniken</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Micro</strong></td><td>1–2 Wochen</td><td>1-Screen-Arcade, Puzzle</td><td>Keine Sprites-Engine, 1 Screen</td></tr>
+        <tr><td><strong>Klein</strong></td><td>1–2 Monate</td><td>Plattformer, Shoot'em'up</td><td>Sprites, einfache Tilemap</td></tr>
+        <tr><td><strong>Mittel</strong></td><td>3–6 Monate</td><td>Scrolling-Spiel, Adventure</td><td>Multiplexer, Disk-I/O, mehrere Level</td></tr>
+        <tr><td><strong>Groß</strong></td><td>1–2 Jahre</td><td>vollständiges RPG, Strategie</td><td>Alles + Custom-Loader, riesige Daten</td></tr>
+      </tbody>
+    </table>
+
+    <p>Als Einzelentwickler ist ein "Klein"-Projekt das realistische Ziel für den Anfang. Die meisten legendären C64-Spiele entstanden in Teams von 2–5 Personen über 6–18 Monate.</p>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="planung">
+    <h2>2. Technische Planung — Bevor die erste Zeile Code geschrieben wird</h2>
+
+    <p>Technische Planung ist die Übersetzung des GDD in konkrete Speicher-Adressen, Dateistrukturen und Modulabhängigkeiten. Dieser Schritt ist langweilig, aber er entscheidet darüber, ob du später einfach neue Features hinzufügen kannst oder ob du ständig Code umstrukturieren musst.</p>
+
+    <h3>2.1 Die Memory-Map als Projektplan</h3>
+
+    <p>Plane das Memory-Layout, bevor du Code schreibst. Konflikte zwischen Modulen entdeckst du am besten auf Papier, nicht zur Laufzeit. Die Memory-Map sollte als ACME-Konstanten-Datei im Projekt existieren:</p>
+
+<pre><span class="comment">; ================================================================
+; memory_map.asm — Zentrale Speicher-Konstantendatei
+; Alle Module !source diese Datei als erstes
+; ================================================================</span>
+
+<span class="comment">; ── System-Bereiche (fix) ────────────────────────────────────</span>
+SCREEN_RAM      = <span class="number">$0400</span>      <span class="comment">; 40x25 Zeichen</span>
+COLOR_RAM       = <span class="number">$D800</span>      <span class="comment">; Farb-RAM (fix)</span>
+BASIC_START     = <span class="number">$0801</span>      <span class="comment">; BASIC-Stub startet hier</span>
+
+<span class="comment">; ── Zero Page — Spielvariablen ($30–$7F für uns) ─────────────</span>
+ZP_PLAYER_X     = <span class="number">$30</span>        <span class="comment">; Spieler X-Position (Pixel)</span>
+ZP_PLAYER_Y     = <span class="number">$31</span>        <span class="comment">; Spieler Y-Position (Pixel)</span>
+ZP_PLAYER_VY    = <span class="number">$32</span>        <span class="comment">; Vertikalgeschwindigkeit (signed)</span>
+ZP_SCORE_LO     = <span class="number">$33</span>        <span class="comment">; Score Low-Byte (BCD)</span>
+ZP_SCORE_HI     = <span class="number">$34</span>        <span class="comment">; Score High-Byte (BCD)</span>
+ZP_FRAME_CNT    = <span class="number">$35</span>        <span class="comment">; Frame-Zähler (0–49, für 50 Hz)</span>
+ZP_GAME_STATE   = <span class="number">$36</span>        <span class="comment">; Aktueller Spielzustand</span>
+ZP_PTR_LO       = <span class="number">$FC</span>        <span class="comment">; Universalzeiger Low (Standard-ZP)</span>
+ZP_PTR_HI       = <span class="number">$FD</span>        <span class="comment">; Universalzeiger High</span>
+
+<span class="comment">; ── Spielzustände ────────────────────────────────────────────</span>
+STATE_TITLE     = <span class="number">0</span>
+STATE_GAME      = <span class="number">1</span>
+STATE_GAMEOVER  = <span class="number">2</span>
+
+<span class="comment">; ── Modul-Adressen ───────────────────────────────────────────</span>
+MODULE_GAME     = <span class="number">$0900</span>      <span class="comment">; Game-Loop</span>
+MODULE_INPUT    = <span class="number">$0A00</span>      <span class="comment">; Input-Handler</span>
+MODULE_PLATFORM = <span class="number">$0B00</span>      <span class="comment">; Plattform-Engine</span>
+MODULE_SID      = <span class="number">$1000</span>      <span class="comment">; SID-Player (extern)</span>
+
+<span class="comment">; ── Asset-Bereiche ────────────────────────────────────────────</span>
+CHARSET_DATA    = <span class="number">$2000</span>      <span class="comment">; Zeichensatz (2 KB)</span>
+SPRITE_DATA     = <span class="number">$2800</span>      <span class="comment">; Sprites (64*8 = 512 Bytes)</span>
+MUSIC_DATA      = <span class="number">$3000</span>      <span class="comment">; SID-Musik-Daten (bis $3FFF)</span></pre>
+
+    <h3>2.2 Modul-Aufteilung und Multi-File-Projekte mit ACME</h3>
+
+    <p>Ein professionelles Projekt besteht aus mehreren ASM-Dateien, die per <code>!source</code> zusammengebaut werden. Das ermöglicht unabhängige Entwicklung einzelner Module und schnellere Kompilierung durch modulares Denken:</p>
+
+<pre><span class="comment">; ================================================================
+; main.asm — Einstiegspunkt des Projekts
+; Kompilieraufruf: acme --cpu 6510 -f cbm -o jumpmaster.prg main.asm
+; ================================================================</span>
+
+<span class="comment">; Zieladresse: BASIC-Programmstart</span>
+        * = <span class="number">$0801</span>
+
+<span class="comment">; 1. Konstanten und Speicher-Map zuerst</span>
+        <span class="directive">!source</span> <span class="label">"memory_map.asm"</span>
+
+<span class="comment">; 2. BASIC-Stub (SYS 2062)</span>
+        <span class="directive">!byte</span> <span class="number">$0B,$08,$0A,$00,$9E,$32,$30,$36,$32,$00,$00,$00</span>
+
+<span class="comment">; 3. Initialisierung</span>
+        * = <span class="number">$080E</span>
+        <span class="directive">!source</span> <span class="label">"init.asm"</span>
+
+<span class="comment">; 4. Game Loop</span>
+        * = MODULE_GAME
+        <span class="directive">!source</span> <span class="label">"gameloop.asm"</span>
+
+<span class="comment">; 5. Einzelne Module</span>
+        * = MODULE_INPUT
+        <span class="directive">!source</span> <span class="label">"input.asm"</span>
+
+        * = MODULE_PLATFORM
+        <span class="directive">!source</span> <span class="label">"platforms.asm"</span>
+
+<span class="comment">; 6. Asset-Daten (binär eingebettet)</span>
+        * = CHARSET_DATA
+        <span class="directive">!bin</span> <span class="label">"assets/charset.bin"</span>
+
+        * = SPRITE_DATA
+        <span class="directive">!bin</span> <span class="label">"assets/sprites.bin"</span>
+
+<span class="comment">; 7. Musik zuletzt (kann groß sein)</span>
+        * = MUSIC_DATA
+        <span class="directive">!source</span> <span class="label">"assets/musik.asm"</span>
+</pre>
+
+    <h3>2.3 Meilensteinplan: Vertikal vs. horizontal</h3>
+
+    <p>Es gibt zwei Ansätze für den Entwicklungsplan:</p>
+    <ul>
+      <li><strong>Horizontal:</strong> Erst alle Systeme aufbauen, dann Inhalte einfügen. Risiko: Du baust Systeme, die du nie brauchst.</li>
+      <li><strong>Vertikal (empfohlen):</strong> Zuerst ein spielbares Mini-Spiel in voller Tiefe, dann erweitern. Du hast immer etwas Spielbares.</li>
+    </ul>
+
+    <div class="milestone-table">
+      <table>
+        <thead><tr><th>Meilenstein</th><th>Ziel</th><th>Test-Kriterium</th></tr></thead>
+        <tbody>
+          <tr><td><strong>M1: Spielbar</strong></td><td>Spieler bewegt sich, springt, fällt</td><td>Man kann 30 Sekunden spielen</td></tr>
+          <tr><td><strong>M2: Kernspiel</strong></td><td>Plattformen, Kollision, Score</td><td>Man verliert und der Score zählt</td></tr>
+          <tr><td><strong>M3: Komplett</strong></td><td>Titel-Screen, Game Over, Musik</td><td>Vollständiger Spielablauf</td></tr>
+          <tr><td><strong>M4: Release</strong></td><td>Bugfixes, D64-Image, NFO</td><td>Auf echter Hardware getestet</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>2.4 Technische Spezifikation</h3>
+
+    <p>Lege vor Entwicklungsbeginn fest, welche Ressourcen du wie verwendest. Halte diese Entscheidungen schriftlich fest — sie sind die Leitplanken des Projekts:</p>
+
+    <table>
+      <thead><tr><th>Ressource</th><th>Budget</th><th>Verwendung</th></tr></thead>
+      <tbody>
+        <tr><td>Sprites</td><td>2 von 8</td><td>Sprite 0 = Spieler, Sprite 1 = reserviert</td></tr>
+        <tr><td>SID-Stimmen</td><td>3 von 3</td><td>Stimme 1+2 = Melodie, Stimme 3 = Bass</td></tr>
+        <tr><td>Zyklen/Frame</td><td>~3150 verfügbar</td><td>Game Loop max. 2500, Rest für IRQ</td></tr>
+        <tr><td>Grafik-Modus</td><td>Zeichenmodus</td><td>Benutzerdefinierter Charset, 2 Farben/Zelle</td></tr>
+        <tr><td>Plattform-RAM</td><td>$0B00–$0BFF</td><td>Max. 16 Plattformen à 16 Bytes</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="assets">
+    <h2>3. Die Asset-Pipeline — Grafik und Sound produzieren</h2>
+
+    <p>Assets — Sprites, Zeichensätze, Tilemaps, Musik — entstehen in spezialisierten Werkzeugen und müssen in ein Format überführt werden, das ACME in die PRG-Datei einbetten kann. Diese Pipeline zu kennen und zu beherrschen ist entscheidend für professionelle Ergebnisse.</p>
+
+    <div class="pipeline-ascii">
++──────────────+     Export      +──────────────+     !bin      +──────────────+
+│   CharPad    │ ─────────────► │  charset.bin │ ─────────── ► │  PRG-Datei   │
+│  (Charset)   │    .bin-Datei  │  (2048 Bytes)│               │  (ACME out)  │
++──────────────+                +──────────────+               │              │
+                                                               │              │
++──────────────+     Export      +──────────────+     !bin      │              │
+│  SpritePad   │ ─────────────► │  sprites.bin │ ─────────── ► │              │
+│  (Sprites)   │    .bin-Datei  │  (N*64 Bytes)│               │              │
++──────────────+                +──────────────+               │              │
+                                                               │              │
++──────────────+    Export+Asm   +──────────────+   !source     │              │
+│ GoatTracker  │ ─────────────► │  musik.asm   │ ─────────── ► │              │
+│  (Musik)     │  .asm + Daten  │  (Player+Dat)│               +──────────────+
++──────────────+                +──────────────+</div>
+
+    <h3>3.1 Sprite-Design: SpritePad → ACME-Integration</h3>
+
+    <p><strong>SpritePad</strong> (von Spritemate) ist das Standardwerkzeug für C64-Sprites. Es ermöglicht das Zeichnen aller 8 Hardware-Sprites mit Farb-Vorschau und exportiert als binäre .bin-Datei oder direkt als ACME-<code>!byte</code>-Sequenz.</p>
+
+    <p>Export-Schritte in SpritePad:</p>
+    <ol>
+      <li>Sprites zeichnen (24×21 Pixel, Hires oder Multicolor)</li>
+      <li><em>File → Export → Binary</em> → Datei als <code>assets/sprites.bin</code> speichern</li>
+      <li>Größe prüfen: N Sprites × 64 Bytes. SpritePad fügt Padding auf 64 Bytes auf.</li>
+    </ol>
+
+<pre><span class="comment">; Sprite-Daten einbinden (z.B. 4 Sprites = 256 Bytes)</span>
+        * = SPRITE_DATA         <span class="comment">; = $2800</span>
+        <span class="directive">!bin</span> <span class="label">"assets/sprites.bin"</span>, <span class="number">256</span>   <span class="comment">; Genau 256 Bytes einlesen</span>
+
+<span class="comment">; Sprite-Pointer setzen (Pointer-Seite: $07F8–$07FF)</span>
+<span class="comment">; Sprite 0 liegt bei $2800 → Block $2800/64 = $A0 = 160</span>
+<span class="label">init_sprites:</span>
+        <span class="directive">lda</span> #<span class="number">160</span>                <span class="comment">; Sprite-Block-Nummer</span>
+        <span class="directive">sta</span> <span class="number">$07F8</span>              <span class="comment">; Sprite 0 Pointer</span>
+        <span class="directive">sta</span> <span class="number">$07F9</span>              <span class="comment">; Sprite 1 Pointer</span>
+        <span class="directive">lda</span> #<span class="number">%00000011</span>         <span class="comment">; Sprites 0 und 1 einschalten</span>
+        <span class="directive">sta</span> <span class="number">$D015</span>
+        <span class="directive">rts</span></pre>
+
+    <h3>3.2 Charset-Design: CharPad → Export</h3>
+
+    <p><strong>CharPad</strong> (von Subchrist Software) ist der Standard für C64-Zeichensätze und Tilemaps. Es ermöglicht das Zeichnen von bis zu 256 eigenen Zeichen mit C64-Farb-Preview und exportiert Charset-Daten, Tilemap-Daten und Screen-RAM getrennt.</p>
+
+    <p>Wichtigste Export-Formate aus CharPad:</p>
+    <table>
+      <thead><tr><th>Export-Typ</th><th>Datei</th><th>Größe</th><th>Verwendung</th></tr></thead>
+      <tbody>
+        <tr><td>Charset (Zeichensatz)</td><td>charset.bin</td><td>2048 Bytes (256 Zeichen × 8)</td><td>Wird in VIC-II-Charset-Bereich geladen</td></tr>
+        <tr><td>Map (Tilemap)</td><td>map.bin</td><td>Breite × Höhe Bytes</td><td>Level-Daten</td></tr>
+        <tr><td>Screen RAM</td><td>screen.bin</td><td>1000 Bytes (40×25)</td><td>Direkte Screen-RAM-Initialisierung</td></tr>
+      </tbody>
+    </table>
+
+<pre><span class="comment">; Charset in VIC-II-Bank laden (hier: $2000)</span>
+<span class="label">load_charset:</span>
+        <span class="directive">lda</span> #<span class="number">$36</span>              <span class="comment">; Kernal aus, RAM an $D000</span>
+        <span class="directive">sta</span> <span class="number">$01</span>               <span class="comment">; Charset-ROM ausblenden</span>
+        <span class="directive">ldy</span> #<span class="number">0</span>
+<span class="label">.loop:</span>
+        <span class="directive">lda</span> charset_src,y    <span class="comment">; Quelle (eingebettete Daten)</span>
+        <span class="directive">sta</span> CHARSET_DATA,y   <span class="comment">; Ziel: $2000</span>
+        <span class="directive">iny</span>
+        <span class="directive">bne</span> .loop
+        <span class="directive">lda</span> #<span class="number">$37</span>              <span class="comment">; Kernal wieder einschalten</span>
+        <span class="directive">sta</span> <span class="number">$01</span>
+        <span class="directive">rts</span>
+
+<span class="comment">; Charset-Daten eingebettet</span>
+<span class="label">charset_src:</span>
+        <span class="directive">!bin</span> <span class="label">"assets/charset.bin"</span>   <span class="comment">; 2048 Bytes</span>
+
+<span class="comment">; VIC-II auf Charset-Position $2000 zeigen lassen:</span>
+<span class="comment">; $D018: Bits 3-1 = Charset-Block → $2000 = Bank 0 + Block 4</span>
+<span class="comment">; Wert: Screen-RAM $0400 (Bits 7-4 = 1) + Charset $2000 (Bits 3-1 = 4)</span>
+<span class="comment">; = %00010100 = $14</span>
+        <span class="directive">lda</span> #<span class="number">$14</span>
+        <span class="directive">sta</span> <span class="number">$D018</span></pre>
+
+    <h3>3.3 Musik-Pipeline: GoatTracker → SID-Daten einbinden</h3>
+
+    <p><strong>GoatTracker</strong> ist ein moderner SID-Tracker, der präzise Kontrolle über alle SID-Parameter ermöglicht. Er exportiert Musik als <em>Player + Daten</em> in einem Assembly-Format, das direkt mit ACME eingebunden werden kann.</p>
+
+    <p>Export-Workflow in GoatTracker:</p>
+    <ol>
+      <li>Musik fertig komponieren und speichern (<code>.sng</code>-Format)</li>
+      <li><em>File → Export Song</em> → Format: <em>ACME</em> → Datei: <code>assets/musik.asm</code></li>
+      <li>GoatTracker exportiert: Musik-Player-Code + Daten in einer ASM-Datei</li>
+      <li>Die exportierte Datei definiert drei Labels: <code>SID_INIT</code>, <code>SID_PLAY</code>, <code>SID_DATA</code></li>
+    </ol>
+
+<pre><span class="comment">; Musik-Player in den IRQ einbinden</span>
+<span class="comment">; Schritt 1: Beim Start initialisieren (Lied 0 starten)</span>
+<span class="label">init_music:</span>
+        <span class="directive">lda</span> #<span class="number">0</span>               <span class="comment">; Lied-Nummer 0</span>
+        <span class="directive">jsr</span> SID_INIT         <span class="comment">; GoatTracker Init-Routine</span>
+        <span class="directive">rts</span>
+
+<span class="comment">; Schritt 2: Im Raster-IRQ jeden Frame aufrufen</span>
+<span class="label">irq_handler:</span>
+        <span class="directive">lda</span> #<span class="number">$01</span>
+        <span class="directive">sta</span> <span class="number">$D019</span>            <span class="comment">; IRQ quittieren</span>
+
+        <span class="directive">jsr</span> SID_PLAY         <span class="comment">; Musik einen Frame vorspielen</span>
+        <span class="directive">jsr</span> game_update      <span class="comment">; Spiellogik</span>
+
+        <span class="directive">jmp</span> <span class="number">$EA81</span>            <span class="comment">; Weiter mit Standard-KERNAL-IRQ</span>
+
+<span class="comment">; Schritt 3: GoatTracker-Code einbinden</span>
+        * = MUSIC_DATA       <span class="comment">; = $3000</span>
+        <span class="directive">!source</span> <span class="label">"assets/musik.asm"</span>  <span class="comment">; Definiert SID_INIT, SID_PLAY</span></pre>
+
+    <h3>3.4 Asset-Inventory: Speicherbilanz vor dem Start</h3>
+
+    <p>Erstelle eine Inventarliste aller Assets mit ihren Größen, bevor du mit der Implementierung beginnst. So weißt du frühzeitig, ob alles in den Speicher passt:</p>
+
+    <table>
+      <thead><tr><th>Asset</th><th>Werkzeug</th><th>Größe (Bytes)</th><th>Adresse</th></tr></thead>
+      <tbody>
+        <tr><td>Zeichensatz (Spieler + UI)</td><td>CharPad</td><td>2.048</td><td>$2000–$27FF</td></tr>
+        <tr><td>Sprites (2 Sprites)</td><td>SpritePad</td><td>128</td><td>$2800–$287F</td></tr>
+        <tr><td>GoatTracker-Musik</td><td>GoatTracker</td><td>~3.000</td><td>$3000–$3BFF</td></tr>
+        <tr><td>Code (alle Module)</td><td>ACME</td><td>~4.000</td><td>$0801–$1FFF</td></tr>
+        <tr><td><strong>Gesamt</strong></td><td>—</td><td><strong>~9.176</strong></td><td>—</td></tr>
+        <tr><td><strong>Verfügbar</strong></td><td>—</td><td><strong>~38.000</strong></td><td>$0801–$9FFF</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="entwicklung">
+    <h2>4. Entwicklungsreihenfolge — Das Gerüst zuerst</h2>
+
+    <p>Die Reihenfolge, in der du Features entwickelst, ist nicht beliebig. Die falsche Reihenfolge führt dazu, dass du bereits fertigen Code wiederholt umschreiben musst. Die richtige Reihenfolge bedeutet: jedes neue Feature baut sauber auf dem vorherigen auf.</p>
+
+    <div class="phase-timeline">
+      <div class="phase-item">
+        <div class="phase-dot">1</div>
+        <div class="phase-content">
+          <h4>Phase 1 — Technisches Gerüst</h4>
+          <p>IRQ aufsetzen, VIC-II konfigurieren, leere Game-Loop implementieren. Ziel: VICE zeigt den korrekten Hintergrundfarbe und der IRQ läuft stabil. Kein Gameplay, noch kein Sprite.</p>
+        </div>
+      </div>
+      <div class="phase-item">
+        <div class="phase-dot">2</div>
+        <div class="phase-content">
+          <h4>Phase 2 — Audio-System</h4>
+          <p>Musik-Player einbinden und im IRQ aufrufen. Ziel: GoatTracker-Musik spielt. Früh testen, weil die Musik-Routine erhebliche Zyklen verbraucht — du musst wissen, wie viel dir für das Gameplay bleibt.</p>
+        </div>
+      </div>
+      <div class="phase-item">
+        <div class="phase-dot">3</div>
+        <div class="phase-content">
+          <h4>Phase 3 — Grafik-Grundlage</h4>
+          <p>Charset laden, Screen-RAM initialisieren, Sprites einrichten. Ziel: Spieler-Sprite erscheint an einer festen Position auf korrekt gezeichnetem Hintergrund.</p>
+        </div>
+      </div>
+      <div class="phase-item">
+        <div class="phase-dot">4</div>
+        <div class="phase-content">
+          <h4>Phase 4 — Spielmechanik</h4>
+          <p>Input, Bewegung, Physik. Ziel: Spieler bewegt sich flüssig, springt realistisch, landet korrekt auf Plattformen. Das ist das Herzstück — hier verbringt man am meisten Zeit.</p>
+        </div>
+      </div>
+      <div class="phase-item">
+        <div class="phase-dot">5</div>
+        <div class="phase-content">
+          <h4>Phase 5 — Inhalte</h4>
+          <p>Level-Daten, Feinde, Items, Score. Jetzt gibt es ein Framework, in das man Inhalte einfüllen kann. Iteration: Feature hinzufügen → testen → nächstes Feature.</p>
+        </div>
+      </div>
+      <div class="phase-item">
+        <div class="phase-dot">6</div>
+        <div class="phase-content">
+          <h4>Phase 6 — Polish &amp; Release</h4>
+          <p>Titel-Screen, Game-Over-Screen, Highscore, Soundeffekte, Bugfixes. Erst jetzt optimieren. Danach: D64-Image erstellen, auf echter Hardware testen, veröffentlichen.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>4.1 Phase 1 im Detail: Das leere Framework</h3>
+
+    <p>Das Framework ist das Fundament, auf dem alles andere aufbaut. Es enthält: BASIC-Stub, IRQ-Setup, VIC-II-Grundkonfiguration und die Game-Loop-Schleife. Erst wenn dieses Gerüst stabil läuft, kommt Schicht für Schicht dazu.</p>
+
+<pre><span class="comment">; ================================================================
+; init.asm — System-Initialisierung
+; ================================================================</span>
+
+<span class="label">start:</span>
+        <span class="comment">; CPU-Interrupts deaktivieren während Setup</span>
+        <span class="directive">sei</span>
+
+        <span class="comment">; VIC-II: Hintergrundfarbe, Rahmenfarbe</span>
+        <span class="directive">lda</span> #<span class="number">0</span>               <span class="comment">; Schwarz</span>
+        <span class="directive">sta</span> <span class="number">$D020</span>            <span class="comment">; Rahmen</span>
+        <span class="directive">sta</span> <span class="number">$D021</span>            <span class="comment">; Hintergrund</span>
+
+        <span class="comment">; Raster-IRQ einrichten</span>
+        <span class="directive">lda</span> #<<irq_handler
+        <span class="directive">sta</span> <span class="number">$0314</span>            <span class="comment">; IRQ-Vektor Low</span>
+        <span class="directive">lda</span> #>irq_handler
+        <span class="directive">sta</span> <span class="number">$0315</span>            <span class="comment">; IRQ-Vektor High</span>
+        <span class="directive">lda</span> #<span class="number">252</span>             <span class="comment">; Rasterzeile für IRQ</span>
+        <span class="directive">sta</span> <span class="number">$D012</span>
+        <span class="directive">lda</span> <span class="number">$D011</span>
+        <span class="directive">and</span> #<span class="number">$7F</span>             <span class="comment">; Bit 8 von $D012 = 0</span>
+        <span class="directive">sta</span> <span class="number">$D011</span>
+        <span class="directive">lda</span> #<span class="number">$01</span>             <span class="comment">; Raster-IRQ aktivieren</span>
+        <span class="directive">sta</span> <span class="number">$D01A</span>
+
+        <span class="comment">; Startzustand setzen</span>
+        <span class="directive">lda</span> #STATE_TITLE
+        <span class="directive">sta</span> ZP_GAME_STATE
+
+        <span class="comment">; Musik initialisieren</span>
+        <span class="directive">jsr</span> init_music
+
+        <span class="comment">; IRQ wieder erlauben</span>
+        <span class="directive">cli</span>
+
+<span class="label">main_loop:</span>
+        <span class="comment">; Game-Loop wartet auf IRQ-Flag</span>
+        <span class="directive">lda</span> ZP_FRAME_CNT     <span class="comment">; Wurde ein neuer Frame gezeichnet?</span>
+        <span class="directive">beq</span> main_loop        <span class="comment">; Nein: warten</span>
+        <span class="directive">lda</span> #<span class="number">0</span>
+        <span class="directive">sta</span> ZP_FRAME_CNT     <span class="comment">; Frame-Flag zurücksetzen</span>
+        <span class="directive">jsr</span> game_dispatch    <span class="comment">; State Machine aufrufen</span>
+        <span class="directive">jmp</span> main_loop
+
+<span class="label">irq_handler:</span>
+        <span class="directive">lda</span> #<span class="number">$01</span>
+        <span class="directive">sta</span> <span class="number">$D019</span>            <span class="comment">; IRQ quittieren</span>
+        <span class="directive">jsr</span> SID_PLAY
+        <span class="directive">lda</span> #<span class="number">1</span>
+        <span class="directive">sta</span> ZP_FRAME_CNT     <span class="comment">; Neuen Frame signalisieren</span>
+        <span class="directive">jmp</span> <span class="number">$EA81</span>            <span class="comment">; KERNAL-IRQ-Ende</span></pre>
+
+    <h3>4.2 Phase 4: Sprung-Physik mit Gravitation</h3>
+
+    <p>Gute Sprungphysik ist das Herzstück jedes Plattformers. Auf dem C64 simulieren wir Gravitation mit einem signed Velocity-Byte und einem Frame-for-Frame Update:</p>
+
+<pre><span class="comment">; ── Physik-Konstanten ────────────────────────────────────────</span>
+GRAVITY         = <span class="number">1</span>          <span class="comment">; Pixel/Frame² nach unten</span>
+JUMP_VELOCITY   = <span class="number">$F2</span>       <span class="comment">; -14 als Zweierkomplement (signed)</span>
+MAX_FALL_SPEED  = <span class="number">8</span>          <span class="comment">; Maximale Fallgeschwindigkeit</span>
+GROUND_Y        = <span class="number">220</span>        <span class="comment">; Y-Pixel-Koordinate des Bodens</span>
+
+<span class="comment">; ── Spieler-Physik pro Frame ─────────────────────────────────</span>
+<span class="label">update_physics:</span>
+        <span class="comment">; Gravitation anwenden (VY += GRAVITY)</span>
+        <span class="directive">clc</span>
+        <span class="directive">lda</span> ZP_PLAYER_VY
+        <span class="directive">adc</span> #GRAVITY
+        <span class="directive">sta</span> ZP_PLAYER_VY
+
+        <span class="comment">; Fallgeschwindigkeit begrenzen (signed, daher: VY < MAX_FALL_SPEED)</span>
+        <span class="directive">cmp</span> #MAX_FALL_SPEED
+        <span class="directive">bmi</span> .no_cap         <span class="comment">; Noch unter Max: ok</span>
+        <span class="directive">lda</span> #MAX_FALL_SPEED
+        <span class="directive">sta</span> ZP_PLAYER_VY
+<span class="label">.no_cap:</span>
+        <span class="comment">; Neue Y-Position berechnen (Y += VY)</span>
+        <span class="directive">clc</span>
+        <span class="directive">lda</span> ZP_PLAYER_Y
+        <span class="directive">adc</span> ZP_PLAYER_VY    <span class="comment">; signed Addition: VY kann negativ sein</span>
+        <span class="directive">sta</span> ZP_PLAYER_Y
+
+        <span class="comment">; Boden-Kollision prüfen</span>
+        <span class="directive">cmp</span> #GROUND_Y
+        <span class="directive">bcc</span> .in_air         <span class="comment">; Noch in der Luft</span>
+        <span class="directive">lda</span> #GROUND_Y
+        <span class="directive">sta</span> ZP_PLAYER_Y     <span class="comment">; Auf Boden setzen</span>
+        <span class="directive">lda</span> #<span class="number">0</span>
+        <span class="directive">sta</span> ZP_PLAYER_VY    <span class="comment">; Geschwindigkeit auf 0</span>
+<span class="label">.in_air:</span>
+        <span class="directive">rts</span>
+
+<span class="comment">; ── Sprung auslösen (nur wenn am Boden) ─────────────────────</span>
+<span class="label">do_jump:</span>
+        <span class="directive">lda</span> ZP_PLAYER_Y
+        <span class="directive">cmp</span> #GROUND_Y       <span class="comment">; Steht Spieler auf dem Boden?</span>
+        <span class="directive">bne</span> .no_jump        <span class="comment">; Nein: kein Doppelsprung</span>
+        <span class="directive">lda</span> #JUMP_VELOCITY   <span class="comment">; Negative Geschwindigkeit = nach oben</span>
+        <span class="directive">sta</span> ZP_PLAYER_VY
+<span class="label">.no_jump:</span>
+        <span class="directive">rts</span></pre>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="testing">
+    <h2>5. Testing und Debugging — Systematisch vorgehen</h2>
+
+    <p>Debugging auf dem C64 ist eine eigene Disziplin. Ohne die richtigen Werkzeuge und Techniken verbringt man mehr Zeit mit der Fehlersuche als mit dem eigentlichen Code. Der VICE-Monitor ist dabei dein mächtigstes Werkzeug.</p>
+
+    <h3>5.1 VICE-Monitor: Die wichtigsten Befehle</h3>
+
+    <p>Den Monitor öffnest du in VICE mit <kbd>Alt+M</kbd> oder von BASIC aus mit <code>SYS 1</code> (nach dem Laden deines Programms). Die wichtigsten Befehle:</p>
+
+    <table>
+      <thead><tr><th>Befehl</th><th>Syntax</th><th>Beschreibung</th></tr></thead>
+      <tbody>
+        <tr><td><code>break</code></td><td><code>break $1234</code></td><td>Hält das Programm an Adresse $1234 an</td></tr>
+        <tr><td><code>watch</code></td><td><code>watch store $D020</code></td><td>Hält an, wenn $D020 beschrieben wird</td></tr>
+        <tr><td><code>watch</code></td><td><code>watch load $0030</code></td><td>Hält an, wenn $0030 gelesen wird</td></tr>
+        <tr><td><code>x</code></td><td><code>x</code></td><td>Programm weiterlaufen lassen (Exit)</td></tr>
+        <tr><td><code>m</code></td><td><code>m $0030 $003F</code></td><td>Speicherinhalt anzeigen</td></tr>
+        <tr><td><code>r</code></td><td><code>r</code></td><td>Register anzeigen (A, X, Y, SP, PC)</td></tr>
+        <tr><td><code>d</code></td><td><code>d $0900</code></td><td>Code ab $0900 disassemblieren</td></tr>
+        <tr><td><code>z</code></td><td><code>z</code></td><td>Einen Befehl ausführen (Step)</td></tr>
+        <tr><td><code>n</code></td><td><code>n</code></td><td>Bis zum nächsten JSR/RTS gehen</td></tr>
+        <tr><td><code>del</code></td><td><code>del</code></td><td>Alle Breakpoints löschen</td></tr>
+      </tbody>
+    </table>
+
+    <h3>5.2 Cycle-Budget überwachen</h3>
+
+    <p>Ein PAL-Frame hat 63 × 312 = 19.656 Taktzyklen. Davon stehen für deinen Code effektiv etwa 15.000 frei (der Rest geht für VICE/DMA). Wenn dein Game-Loop zu viele Zyklen braucht, werden Frames übersprungen und das Spiel ruckelt.</p>
+
+    <p>Die eleganteste Methode zur Cycle-Messung: Den Rahmen als Stoppuhr nutzen. Erster IRQ setzt die Rahmenfarbe auf Weiß, zweiter IRQ auf Schwarz zurück. Die Breite des weißen Streifens im Rahmen zeigt direkt die Laufzeit an:</p>
+
+<pre><span class="comment">; Cycle-Budget-Messung — Debugging-Tool</span>
+<span class="comment">; IRQ 1: Messung starten</span>
+<span class="label">irq_measure_start:</span>
+        <span class="directive">lda</span> #<span class="number">1</span>              <span class="comment">; Rahmen = Weiß: Messung beginnt</span>
+        <span class="directive">sta</span> <span class="number">$D020</span>
+        <span class="directive">jsr</span> game_update     <span class="comment">; ← HIER wird der Code gemessen</span>
+        <span class="directive">lda</span> #<span class="number">0</span>              <span class="comment">; Rahmen = Schwarz: Messung endet</span>
+        <span class="directive">sta</span> <span class="number">$D020</span>
+        <span class="directive">jmp</span> <span class="number">$EA81</span>
+
+<span class="comment">; Schmaler weißer Streifen = wenige Zyklen = gut
+; Breiter weißer Streifen = viele Zyklen = Frame-Overrun droht
+; Streifen reicht bis zum unteren Rand = Frame-Overrun: Problem!</span></pre>
+
+    <h3>5.3 Playtest-Checkliste vor jedem Release</h3>
+
+    <p>Teste jeden Game-State explizit durch. Was offensichtlich erscheint, wird überraschend oft übersehen:</p>
+
+    <ul class="checklist">
+      <li>Spiel startet ohne Probleme nach dem Laden</li>
+      <li>Titel-Screen zeigt sich korrekt, alle Texte lesbar</li>
+      <li>Spielstart funktioniert (Joystick-Feuer auf Titel-Screen)</li>
+      <li>Alle Bewegungsrichtungen des Spielers reagieren korrekt</li>
+      <li>Sprung funktioniert, Doppelsprung ist nicht möglich</li>
+      <li>Kollision mit Plattformen von oben korrekt</li>
+      <li>Spieler fällt durch Plattformen von unten/seitlich korrekt durch</li>
+      <li>Score erhöht sich korrekt</li>
+      <li>Game Over wird korrekt ausgelöst</li>
+      <li>Game Over Screen erscheint und ist verlassbar</li>
+      <li>Musik spielt während des gesamten Spiels ohne Unterbrechung</li>
+      <li>Kein Frame-Ruckeln bei vollem Bildschirm (Plattformen + Spieler)</li>
+      <li>Auf NTSC (VICE: Settings → Machine → Video Standard → NTSC) getestet</li>
+    </ul>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="release">
+    <h2>6. Distribution — Vom PRG zur Veröffentlichung</h2>
+
+    <p>Das fertige Spiel als D64-Image zu verpacken und auf CSDb zu veröffentlichen ist der letzte Schritt — und wird von vielen Entwicklern unterschätzt. Ein schlecht verpacktes Spiel wird seltener gespielt und weniger wahrgenommen.</p>
+
+    <h3>6.1 PRG-Datei prüfen</h3>
+
+    <p>Überprüfe deine PRG-Datei, bevor du sie in ein D64-Image packst:</p>
+
+<pre><span class="comment"># Linux/macOS: PRG-Datei-Informationen</span>
+<span class="comment"># Die ersten zwei Bytes der PRG sind die Lade-Adresse:</span>
+xxd jumpmaster.prg | head -1
+<span class="comment"># Erwartete Ausgabe: 01 08 ... (= $0801 = BASIC-Start)</span>
+
+<span class="comment"># Dateigröße in VICE testen:</span>
+x64sc jumpmaster.prg
+<span class="comment"># Dann in VICE: LOAD"*",8,1 → RUN</span>
+<span class="comment"># Alternativ: Drag & Drop in VICE-Fenster</span></pre>
+
+    <h3>6.2 D64-Image erstellen</h3>
+
+    <p>Ein D64-Image (1541-Diskette) enthält bis zu 664 KB Nutzdaten auf 35 Spuren. Das Tool <strong>c1541</strong> (Teil von VICE) erstellt und verwaltet D64-Images:</p>
+
+<pre><span class="comment"># Neues D64-Image erstellen und Dateien hinzufügen</span>
+c1541 -format "jumpmaster,01" d64 jumpmaster.d64
+
+<span class="comment"># Haupt-PRG auf der Diskette ablegen</span>
+c1541 -attach jumpmaster.d64 -write jumpmaster.prg "jumpmaster"
+
+<span class="comment"># Disketten-Verzeichnis prüfen</span>
+c1541 -attach jumpmaster.d64 -dir
+
+<span class="comment"># Erwartete Ausgabe:
+# 0 "JUMPMASTER       01" 2A 2A
+# 12 "JUMPMASTER"         PRG
+# 649 BLOCKS FREE.</span>
+
+<span class="comment"># AUTOSTART einrichten: Wenn die Diskette eingelegt wird, soll
+# das Spiel automatisch starten. Erstelle eine AUTOSTART-Datei:</span>
+<span class="comment"># (Dateiname: "autostart" mit BASIC-Inhalt: LOAD"JUMPMASTER",8,1:RUN)</span></pre>
+
+    <h3>6.3 NFO-Datei</h3>
+
+    <p>Eine NFO-Datei ist die Visitenkarte deines Releases. Sie wird zusammen mit dem D64-Image verteilt und enthält Informationen über das Spiel, den Entwickler und die Entstehung. Auf CSDb gibt es eine Vorlage — hier das Minimum:</p>
+
+<pre><span class="comment">; NFO-Format: reine ASCII-Textdatei, Zeilenlänge max. 79 Zeichen</span>
+
+ ╔═══════════════════════════════════════════════════════════════╗
+ ║            J U M P M A S T E R   v1.0                        ║
+ ║          Ein Plattformer für den Commodore 64                 ║
+ ╠═══════════════════════════════════════════════════════════════╣
+ ║                                                               ║
+ ║  STEUERUNG:   Joystick Port 2                                 ║
+ ║               Links/Rechts: Bewegen                           ║
+ ║               Feuer: Springen                                 ║
+ ║                                                               ║
+ ║  ENTWICKLUNG: MeinName/MeineGruppe (2025)                     ║
+ ║  CODE:        MeinName                                        ║
+ ║  GRAFIK:      MeinName (CharPad, SpritePad)                   ║
+ ║  MUSIK:       MeinName (GoatTracker 2.73)                     ║
+ ║                                                               ║
+ ║  GETESTET:    VICE 3.8 (PAL), echter C64 Rev. B               ║
+ ║                                                               ║
+ ║  GREETINGS:   Alle C64-Enthusiasten weltweit!                 ║
+ ║                                                               ║
+ ╚═══════════════════════════════════════════════════════════════╝</pre>
+
+    <h3>6.4 CSDb-Veröffentlichung</h3>
+
+    <p>Die <strong>C64 Scene Database (CSDb)</strong> ist das zentrale Archiv der C64-Scene. Hier registrierst du dein Release:</p>
+    <ol>
+      <li>Account auf CSDb erstellen (kostenlos)</li>
+      <li>Submit → Software → Spiel/Demo/Tool auswählen</li>
+      <li>D64-Image und NFO hochladen</li>
+      <li>Metadaten eingeben: Jahr, Gruppe, Credits, Tags</li>
+      <li>Screenshot hinzufügen (aus VICE: <em>Snapshot → Save Screenshot</em>)</li>
+    </ol>
+
+    <div class="box box-tip">
+      <div class="box-title">Tipp: Community-Feedback</div>
+      Poste deinen Release auch in C64-Foren (Forum64.de, Lemon64) und Discord-Servern. Feedback von der Community ist unschätzbar wertvoll für das nächste Projekt.
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="walkthrough">
+    <div class="walkthrough-banner">
+      <h2>7. Vollständiger Walkthrough — Plattformer "JUMPMASTER"</h2>
+      <p>Von der leeren Textdatei bis zum spielbaren D64-Image — Schritt für Schritt.</p>
+    </div>
+
+    <h3>7.1 Das GDD (eine halbe Seite)</h3>
+
+    <div class="gdd-block">
+      <div class="gdd-title">JUMPMASTER — Game Design Document v1.0</div>
+      <div class="gdd-row"><span class="gdd-key">Konzept:</span><span class="gdd-val">Endless Plattformer, Spieler springt auf fallenden Plattformen</span></div>
+      <div class="gdd-row"><span class="gdd-key">Spieler:</span><span class="gdd-val">1 Spieler, Joystick Port 2</span></div>
+      <div class="gdd-row"><span class="gdd-key">Must:</span><span class="gdd-val">Bewegung, Sprung, Plattform-Kollision, Game Over, Score</span></div>
+      <div class="gdd-row"><span class="gdd-key">Should:</span><span class="gdd-val">Musik, Titel-Screen, Geschwindigkeit erhöht sich</span></div>
+      <div class="gdd-row"><span class="gdd-key">Won't:</span><span class="gdd-val">Mehrere Leben, Levels, Feinde, Disk-Laden</span></div>
+      <div class="gdd-row"><span class="gdd-key">Grafik:</span><span class="gdd-val">Zeichenmodus, Custom-Charset (Spieler + UI), 1 Hintergrundfarbe</span></div>
+      <div class="gdd-row"><span class="gdd-key">Sound:</span><span class="gdd-val">1 Melodie (GoatTracker), 1 Sprung-Soundeffekt (Voice 3)</span></div>
+      <div class="gdd-row"><span class="gdd-key">Zeitplan:</span><span class="gdd-val">4 Wochen (Meilensteine M1–M4)</span></div>
+    </div>
+
+    <h3>7.2 Speicher-Layout &amp; Asset-Liste</h3>
+
+    <table>
+      <thead><tr><th>Bereich</th><th>Adresse</th><th>Inhalt</th><th>Größe</th></tr></thead>
+      <tbody>
+        <tr><td>BASIC-Stub + Init</td><td>$0801–$08FF</td><td>Startup-Code</td><td>255 B</td></tr>
+        <tr><td>Game Loop + State</td><td>$0900–$09FF</td><td>main_loop, game_dispatch</td><td>256 B</td></tr>
+        <tr><td>Input + Physics</td><td>$0A00–$0AFF</td><td>input_handler, update_physics</td><td>256 B</td></tr>
+        <tr><td>Platform Engine</td><td>$0B00–$0BFF</td><td>16 Plattformen × 16 Bytes</td><td>256 B</td></tr>
+        <tr><td>Charset</td><td>$2000–$27FF</td><td>Benutzerdefinierter Zeichensatz</td><td>2048 B</td></tr>
+        <tr><td>Sprites</td><td>$2800–$28FF</td><td>4 Sprites × 64 Bytes</td><td>256 B</td></tr>
+        <tr><td>Musik</td><td>$3000–$3BFF</td><td>GoatTracker Player + Daten</td><td>~3072 B</td></tr>
+      </tbody>
+    </table>
+
+    <h3>7.3 Woche 1: Framework + Spielerbewegung</h3>
+
+    <p><strong>Tag 1–2:</strong> ACME-Projektstruktur anlegen (<code>main.asm</code>, <code>memory_map.asm</code>, <code>init.asm</code>). BASIC-Stub schreiben, Bildschirm auf Schwarz setzen, Raster-IRQ einrichten. Kompilieren: läuft und zeigt schwarzen Bildschirm.</p>
+
+    <p><strong>Tag 3:</strong> Charset laden, Spieler-Sprite einrichten. Spieler erscheint als weißes Rechteck in der Bildschirmmitte.</p>
+
+    <p><strong>Tag 4–5:</strong> Input-Handler schreiben. Joystick links/rechts bewegt Sprite. Frame-Counter im IRQ.</p>
+
+    <p><strong>Tag 6–7:</strong> Sprung-Physik (Code von oben). Spieler springt und fällt zurück auf den Boden.</p>
+
+    <p><strong>Meilenstein M1 erreicht wenn:</strong> Spieler springt und landet auf dem Boden-Tile, Bewegung links/rechts flüssig.</p>
+
+    <h3>7.4 Woche 2: Plattform-Logik + Kollision</h3>
+
+    <p>Die Plattform-Engine verwaltet 16 Plattformen in einem Ring-Puffer. Jede Plattform hat X-Position, Y-Position und Geschwindigkeit (alle nach unten). Wenn eine Plattform den unteren Bildschirmrand verlässt, wird sie oben neu positioniert.</p>
+
+<pre><span class="comment">; Plattform-Datenstuktur (16 Bytes pro Plattform)
+; Offset 0: X-Position (Zeichen-Koordinate, 0–35)
+; Offset 1: Y-Position (Pixel, 0–255)
+; Offset 2: Breite (2–6 Zeichen)
+; Offset 3: Flags (Bit 0 = aktiv)</span>
+
+NUM_PLATFORMS   = <span class="number">8</span>
+PLAT_STRIDE     = <span class="number">4</span>          <span class="comment">; Bytes pro Plattform-Eintrag</span>
+
+<span class="label">platforms:</span>      <span class="comment">; 8 Plattformen × 4 Bytes</span>
+        <span class="directive">!fill</span> NUM_PLATFORMS * PLAT_STRIDE, <span class="number">0</span>
+
+<span class="label">update_platforms:</span>
+        <span class="directive">ldx</span> #<span class="number">0</span>               <span class="comment">; Plattform-Index</span>
+<span class="label">.loop:</span>
+        <span class="directive">lda</span> platforms+<span class="number">3</span>,x   <span class="comment">; Flags lesen</span>
+        <span class="directive">and</span> #<span class="number">$01</span>
+        <span class="directive">beq</span> .next           <span class="comment">; Nicht aktiv: überspringen</span>
+
+        <span class="comment">; Y-Position um 1 erhöhen (nach unten)</span>
+        <span class="directive">inc</span> platforms+<span class="number">1</span>,x
+
+        <span class="comment">; Untere Grenze prüfen</span>
+        <span class="directive">lda</span> platforms+<span class="number">1</span>,x
+        <span class="directive">cmp</span> #<span class="number">220</span>
+        <span class="directive">bcc</span> .next           <span class="comment">; Noch im Bild</span>
+
+        <span class="comment">; Plattform oben neu platzieren</span>
+        <span class="directive">lda</span> #<span class="number">20</span>              <span class="comment">; Neue Y-Position oben</span>
+        <span class="directive">sta</span> platforms+<span class="number">1</span>,x
+        <span class="comment">; Neue X-Position zufällig (Pseudo-RNG via Uhr)</span>
+        <span class="directive">lda</span> <span class="number">$DC04</span>            <span class="comment">; CIA1 Timer A Low = Zufallswert</span>
+        <span class="directive">and</span> #<span class="number">$1F</span>             <span class="comment">; Modulo 32 → Wert 0–31</span>
+        <span class="directive">sta</span> platforms,x
+<span class="label">.next:</span>
+        <span class="directive">txa</span>
+        <span class="directive">clc</span>
+        <span class="directive">adc</span> #PLAT_STRIDE
+        <span class="directive">tax</span>
+        <span class="directive">cpx</span> #(NUM_PLATFORMS * PLAT_STRIDE)
+        <span class="directive">bcc</span> .loop
+        <span class="directive">rts</span></pre>
+
+    <h3>7.5 Woche 3: Score, HUD, Game Over, Musik</h3>
+
+    <p><strong>Score</strong> wird im BCD-Modus addiert und im Dezimalmodus auf dem Bildschirm angezeigt. Sechs BCD-Ziffern = bis zu 999.999 Punkte.</p>
+
+<pre><span class="comment">; Score um 10 erhöhen (BCD-Modus)</span>
+<span class="label">add_score:</span>
+        <span class="directive">sed</span>                  <span class="comment">; Dezimal-Modus an</span>
+        <span class="directive">clc</span>
+        <span class="directive">lda</span> ZP_SCORE_LO
+        <span class="directive">adc</span> #<span class="number">$10</span>             <span class="comment">; +10 im BCD-Format</span>
+        <span class="directive">sta</span> ZP_SCORE_LO
+        <span class="directive">lda</span> ZP_SCORE_HI
+        <span class="directive">adc</span> #<span class="number">0</span>
+        <span class="directive">sta</span> ZP_SCORE_HI
+        <span class="directive">cld</span>                  <span class="comment">; Dezimal-Modus aus</span>
+        <span class="directive">rts</span>
+
+<span class="comment">; Score auf Bildschirm ausgeben (Position: Zeile 0, Spalte 32)</span>
+<span class="label">display_score:</span>
+        <span class="directive">lda</span> ZP_SCORE_HI
+        <span class="directive">lsr</span> a
+        <span class="directive">lsr</span> a
+        <span class="directive">lsr</span> a
+        <span class="directive">lsr</span> a               <span class="comment">; High-Nibble</span>
+        <span class="directive">ora</span> #<span class="number">$30</span>             <span class="comment">; → PETSCII Zifferzeichen</span>
+        <span class="directive">sta</span> SCREEN_RAM + <span class="number">32</span> <span class="comment">; Bildschirmposition</span>
+        <span class="comment">; ... (weitere Nibbles analog)</span>
+        <span class="directive">rts</span></pre>
+
+    <h3>7.6 Woche 4: Polish, Test, Release-Build</h3>
+
+    <p><strong>Schritt 1 — Bugs beheben:</strong> Alle Playtest-Checkliste-Punkte durchgehen. Jeden gefundenen Bug sofort beheben und danach erneut vollständig testen.</p>
+
+    <p><strong>Schritt 2 — Build-Skript erstellen:</strong> Ein Shell-Skript automatisiert den Build:</p>
+
+<pre>#!/bin/bash
+<span class="comment"># build.sh — JUMPMASTER Build-Skript</span>
+set -e  <span class="comment"># Abbrechen bei Fehler</span>
+
+<span class="comment"># Kompilieren</span>
+acme --cpu 6510 -f cbm -o jumpmaster.prg main.asm
+echo "Kompilierung erfolgreich: $(wc -c < jumpmaster.prg) Bytes"
+
+<span class="comment"># D64-Image erstellen</span>
+rm -f jumpmaster.d64
+c1541 -format "jumpmaster,01" d64 jumpmaster.d64 \
+      -write jumpmaster.prg "jumpmaster"
+echo "D64-Image erstellt: jumpmaster.d64"
+
+<span class="comment"># Starten</span>
+x64sc jumpmaster.d64 &amp;</pre>
+
+    <p><strong>Schritt 3 — Auf echter Hardware testen:</strong> Übertrage das D64-Image auf echte Hardware (1541Ultimate, SD2IEC) und spiele das Spiel auf einem echten C64. Abweichungen vom Emulator-Verhalten sind hier gut zu finden.</p>
+
+    <p><strong>Schritt 4 — NFO schreiben, CSDb einreichen.</strong> Glückwunsch: das erste C64-Spiel ist fertig!</p>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="benchmark" class="benchmark">
+    <h2>★ Skill-Benchmark: Stufe 11</h2>
+    <ul class="benchmark-list">
+      <li><span class="check">▸</span>Du kannst ein vollständiges GDD für ein C64-Spiel in einer Stunde erstellen</li>
+      <li><span class="check">▸</span>Du planst das Speicher-Layout eines Projekts als ACME-Konstantendatei</li>
+      <li><span class="check">▸</span>Du weißt, wie man CharPad/SpritePad-Exports mit <code>!bin</code> einbindet</li>
+      <li><span class="check">▸</span>Du bindest einen GoatTracker-Export in den Raster-IRQ ein</li>
+      <li><span class="check">▸</span>Du nutzt den VICE-Monitor für Breakpoints, Memory-Watch und Disassembly</li>
+      <li><span class="check">▸</span>Du erkennst Frame-Overruns mit der Rahmenfarben-Messmethode</li>
+      <li><span class="check">▸</span>Du erstellst ein D64-Image mit c1541 und eine NFO-Datei</li>
+      <li><span class="check">▸</span>Du hast einen vollständigen Spielprototypen von GDD bis D64-Image durchentwickelt</li>
+    </ul>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="exercises">
+    <h2>Übungsaufgaben</h2>
+
+    <div class="exercise-item">
+      <h4>Übung 11.1 — Das Micro-Spiel</h4>
+      <p>Erstelle ein komplettes GDD für einen einfachen Pong-Clone (1 Seite). Implementiere das Spiel in einer einzigen Woche. Das Ziel ist nicht Perfektion, sondern Fertigstellung: mit Titel-Screen, zwei Paddle-KIs und Score.</p>
+    </div>
+
+    <div class="exercise-item">
+      <h4>Übung 11.2 — Asset-Pipeline Übung</h4>
+      <p>Lade CharPad und SpritePad herunter. Zeichne einen 16-Zeichen-Tileset (Plattform-Tiles: Boden, Wand, Decke, Ecken). Exportiere als .bin und binde die Datei mit <code>!bin</code> in ein ACME-Projekt ein. Zeige den Tileset auf dem Bildschirm an.</p>
+    </div>
+
+    <div class="exercise-item">
+      <h4>Übung 11.3 — Cycle-Budget-Analyse</h4>
+      <p>Implementiere die Rahmenfarben-Messmethode in einem bestehenden Projekt. Messe, wie viele Zyklen deine Game-Loop-Routine verbraucht. Optimiere sie um mindestens 20%, und messe erneut. Dokumentiere, welche Änderungen den größten Effekt hatten.</p>
+    </div>
+
+    <div class="exercise-item">
+      <h4>Übung 11.4 — Vollständiger JUMPMASTER</h4>
+      <p>Implementiere den JUMPMASTER-Plattformer aus diesem Walkthrough vollständig. Starte mit dem Framework (Phase 1), iteriere wochenweise durch die Meilensteine. Veröffentliche das fertige Spiel auf CSDb oder Forum64.de.</p>
+    </div>
+  </section>
+
+  <nav class="chapter-nav">
+    <a href="stufe_10_meisterschaft.html">← Stufe 10: Meisterschaft</a>
+    <a href="stufe_12_demo_entwicklung_workflow.html">Stufe 12: Demo-Workflow →</a>
+  </nav>
+</main>
+
+  <script src="assets/c64-interactive.js"></script>
+</body>
+</html>

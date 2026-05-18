@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>C64 Mastery — Stufe 15: Deep Debugging</title>
+  <style>
+    :root {
+      --c64-blue: #0033aa;
+      --c64-light-blue: #4477dd;
+      --c64-green: #00ff88;
+      --c64-dark: #1a1a2e;
+      --c64-darker: #0d0d1a;
+      --paper: #f8f6f0;
+      --paper-dark: #ede9df;
+      --text: #1a1a2e;
+      --text-light: #444466;
+      --accent: #cc3300;
+      --gold: #cc8800;
+      --debug: #880022;
+      --debug-light: #cc3344;
+      --warning-bg: #fff3cd;
+      --warning-border: #ffc107;
+      --tip-bg: #d4edda;
+      --tip-border: #28a745;
+      --info-bg: #cce5ff;
+      --info-border: #0066cc;
+      --important-bg: #f8d7da;
+      --important-border: #dc3545;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Georgia', 'Times New Roman', serif;
+      font-size: 16px;
+      line-height: 1.75;
+      color: var(--text);
+      background: var(--paper);
+      display: grid;
+      grid-template-columns: 270px 1fr;
+      min-height: 100vh;
+    }
+    .sidebar {
+      background: var(--c64-dark);
+      color: #ccc;
+      padding: 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--debug) var(--c64-darker);
+    }
+    .sidebar::-webkit-scrollbar { width: 6px; }
+    .sidebar::-webkit-scrollbar-track { background: var(--c64-darker); }
+    .sidebar::-webkit-scrollbar-thumb { background: var(--debug); }
+    .sidebar-header {
+      background: var(--debug);
+      padding: 18px 20px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      font-weight: bold;
+      color: white;
+      letter-spacing: 0.5px;
+    }
+    .sidebar-header .logo { font-size: 22px; margin-bottom: 4px; color: #ffaaaa; }
+    .sidebar nav { padding: 12px 0; }
+    .sidebar nav a {
+      display: block;
+      padding: 7px 20px;
+      color: #aab;
+      text-decoration: none;
+      font-family: 'Courier New', monospace;
+      font-size: 12.5px;
+      border-left: 3px solid transparent;
+      transition: all 0.2s;
+    }
+    .sidebar nav a:hover { color: white; background: rgba(255,255,255,0.05); border-left-color: #ffaaaa; }
+    .sidebar nav a.active { color: #ffaaaa; border-left-color: #ffaaaa; background: rgba(255,100,100,0.07); font-weight: bold; }
+    .sidebar nav .section-label {
+      padding: 12px 20px 4px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #556;
+      font-family: 'Courier New', monospace;
+    }
+    .sidebar nav .toc-link { padding: 5px 20px 5px 32px; font-size: 11.5px; color: #778; }
+    main { max-width: 860px; padding: 48px 56px; }
+    .chapter-header {
+      border-bottom: 3px solid var(--debug);
+      padding-bottom: 28px;
+      margin-bottom: 40px;
+    }
+    .chapter-number {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      color: var(--debug);
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+    }
+    h1 { font-size: 32px; color: var(--c64-dark); line-height: 1.2; margin-bottom: 14px; }
+    .chapter-meta { display: flex; gap: 24px; font-size: 14px; color: var(--text-light); flex-wrap: wrap; }
+    .chapter-meta span { font-family: 'Courier New', monospace; }
+    h2 {
+      font-size: 22px;
+      color: var(--debug);
+      margin: 48px 0 20px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--debug);
+    }
+    h3 { font-size: 17px; color: var(--c64-dark); margin: 28px 0 12px; }
+    h4 { font-size: 15px; color: var(--text-light); margin: 20px 0 8px; }
+    p { margin-bottom: 16px; }
+    ul, ol { margin: 0 0 16px 24px; }
+    li { margin-bottom: 6px; }
+    code {
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      background: var(--paper-dark);
+      padding: 1px 5px;
+      border-radius: 3px;
+      color: var(--debug);
+    }
+    pre {
+      background: var(--c64-dark);
+      color: #e8e8d0;
+      font-family: 'Courier New', monospace;
+      font-size: 13.5px;
+      line-height: 1.55;
+      padding: 20px 24px;
+      border-radius: 6px;
+      border-left: 4px solid var(--debug);
+      overflow-x: auto;
+      margin: 20px 0;
+      max-height: 420px;
+      overflow-y: auto;
+    }
+    pre .comment { color: #7799aa; }
+    pre .label { color: #ffcc44; font-weight: bold; }
+    pre .directive { color: #ff99cc; }
+    pre .number { color: #aaddff; }
+    pre .instr { color: #88ffcc; }
+    pre .reg { color: #ffaa44; }
+    pre .monitor { color: #ff9988; }
+    .monitor-session {
+      background: #0a0a0a;
+      color: #dddddd;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      padding: 18px 22px;
+      border-radius: 6px;
+      border-left: 4px solid var(--debug-light);
+      margin: 20px 0;
+      overflow-x: auto;
+    }
+    .monitor-session .mon-prompt { color: #ff9988; font-weight: bold; }
+    .monitor-session .mon-output { color: #aaaaaa; }
+    .monitor-session .mon-comment { color: #555566; }
+    .vice-cmd {
+      display: inline-block;
+      background: #1a0a0a;
+      color: #ff9988;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      padding: 2px 7px;
+      border-radius: 3px;
+      border: 1px solid #440011;
+    }
+    .bug-card {
+      border-left: 4px solid var(--debug);
+      background: #fff5f5;
+      border-radius: 0 6px 6px 0;
+      padding: 16px 20px;
+      margin: 16px 0;
+    }
+    .bug-card h4 { color: var(--debug); margin: 0 0 8px; font-family: 'Courier New', monospace; }
+    .bug-card .bug-symptom { font-style: italic; color: #666; margin-bottom: 8px; }
+    .bug-card .bug-fix { font-weight: bold; color: #333; }
+    .cycle-table thead th { background: #5c000f; }
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
+    thead th { background: var(--debug); color: white; padding: 10px 12px; text-align: left; font-family: 'Courier New', monospace; font-size: 13px; }
+    tbody td { padding: 8px 12px; border-bottom: 1px solid #ddd; vertical-align: top; }
+    tbody tr:nth-child(even) { background: var(--paper-dark); }
+    tbody td:first-child { font-family: 'Courier New', monospace; color: var(--debug); font-size: 13px; }
+    .learning-objectives {
+      background: linear-gradient(135deg, #fff5f5, #fff0f0);
+      border: 1px solid var(--debug-light);
+      border-left: 5px solid var(--debug);
+      border-radius: 6px;
+      padding: 24px 28px;
+      margin-bottom: 40px;
+    }
+    .learning-objectives h3 { color: var(--debug); margin: 0 0 14px; font-size: 15px; text-transform: uppercase; letter-spacing: 1px; }
+    .learning-objectives ul { margin-left: 20px; }
+    .learning-objectives li { margin-bottom: 7px; font-size: 15px; }
+    .box-tip { background: var(--tip-bg); border-left: 4px solid var(--tip-border); border-radius: 4px; padding: 14px 18px; margin: 20px 0; }
+    .box-tip::before { content: "💡 Tipp: "; font-weight: bold; color: #155724; }
+    .box-warning { background: var(--warning-bg); border-left: 4px solid var(--warning-border); border-radius: 4px; padding: 14px 18px; margin: 20px 0; }
+    .box-warning::before { content: "⚠ Achtung: "; font-weight: bold; color: #856404; }
+    .box-info { background: var(--info-bg); border-left: 4px solid var(--info-border); border-radius: 4px; padding: 14px 18px; margin: 20px 0; }
+    .box-info::before { content: "ℹ Info: "; font-weight: bold; color: #004085; }
+    .box-important { background: var(--important-bg); border-left: 4px solid var(--important-border); border-radius: 4px; padding: 14px 18px; margin: 20px 0; }
+    .box-important::before { content: "🔴 Wichtig: "; font-weight: bold; color: #721c24; }
+    .debug-banner {
+      background: linear-gradient(135deg, #1a0008 0%, #880022 100%);
+      border: 1px solid var(--debug-light);
+      border-radius: 8px;
+      padding: 24px 28px;
+      margin: 32px 0 24px;
+    }
+    .debug-banner h2 { color: #ffaaaa; border: none; margin-top: 0; font-size: 20px; letter-spacing: 1px; }
+    .debug-banner p { color: #dd8888; margin: 0; }
+    .benchmark {
+      background: linear-gradient(135deg, #1a0008 0%, #550015 100%);
+      border: 1px solid var(--debug-light);
+      border-radius: 8px;
+      padding: 28px 32px;
+      margin: 48px 0 32px;
+      color: #ffcccc;
+    }
+    .benchmark h2 { color: #ffaaaa; border-bottom: 1px solid #880022; padding-bottom: 10px; margin-top: 0; font-size: 20px; }
+    .benchmark-list { list-style: none; margin: 0; padding: 0; }
+    .benchmark-list li { padding: 10px 0; border-bottom: 1px solid rgba(255,100,100,0.15); font-size: 15px; display: flex; align-items: flex-start; gap: 10px; }
+    .benchmark-list li::before { content: "□"; font-family: monospace; color: #cc3344; font-size: 18px; flex-shrink: 0; }
+    .exercises {
+      background: var(--paper-dark);
+      border: 1px solid #d4a0a0;
+      border-radius: 8px;
+      padding: 28px 32px;
+      margin: 32px 0;
+    }
+    .exercises h2 { color: var(--debug); border-bottom: 2px solid var(--debug); padding-bottom: 8px; margin-top: 0; }
+    .exercise-item { border-left: 4px solid var(--debug); padding: 14px 18px; margin: 18px 0; background: white; border-radius: 0 6px 6px 0; }
+    .exercise-item h4 { color: var(--debug); margin: 0 0 8px; font-family: 'Courier New', monospace; }
+    .chapter-nav { display: flex; justify-content: space-between; margin-top: 56px; padding-top: 24px; border-top: 2px solid var(--debug); }
+    .chapter-nav a { display: inline-flex; align-items: center; gap: 8px; color: var(--debug); text-decoration: none; font-family: 'Courier New', monospace; font-size: 14px; padding: 10px 18px; border: 2px solid var(--debug); border-radius: 4px; transition: all 0.2s; }
+    .chapter-nav a:hover { background: var(--debug); color: white; }
+    @media print { .sidebar { display: none; } body { grid-template-columns: 1fr; } main { max-width: 100%; padding: 20px; } }
+  </style>
+  <link rel="stylesheet" href="assets/c64-interactive.css">
+  <link rel="stylesheet" href="assets/c64-print.css" media="print">
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">■ C64 MASTERY</div>
+    Professioneller Lehrgang
+  </div>
+  <nav>
+    <div class="section-label">Curriculum</div>
+    <a href="index.html">◈ Übersicht &amp; Lernpfad</a>
+    <a href="stufe_00_fundament.html">00 · Fundament</a>
+    <a href="stufe_01_6510_assembler.html">01 · 6510 &amp; Assembler</a>
+    <a href="stufe_02_adressierung_speicher.html">02 · Adressierung &amp; Speicher</a>
+    <a href="stufe_03_bildschirm_zeichen.html">03 · Bildschirm &amp; Zeichen</a>
+    <a href="stufe_04_sprites_animation.html">04 · Sprites &amp; Animation</a>
+    <a href="stufe_05_bitmap_grafik.html">05 · Bitmap-Grafik</a>
+    <a href="stufe_06_sid_sound.html">06 · SID-Sound</a>
+    <a href="stufe_07_interrupts_timing.html">07 · Interrupts &amp; Timing</a>
+    <a href="stufe_08_optimierung.html">08 · Optimierung</a>
+    <a href="stufe_09_demo_effekte.html">09 · Demo-Effekte</a>
+    <a href="stufe_10_meisterschaft.html">10 · Meisterschaft</a>
+
+    <div class="section-label">Workflow &amp; Release</div>
+    <a href="stufe_11_spielentwicklung_workflow.html">11 · Spiel-Workflow</a>
+    <a href="stufe_12_demo_entwicklung_workflow.html">12 · Demo-Workflow</a>
+
+    <div class="section-label">Erweiterte Stufen</div>
+    <a href="stufe_13_hardware_erweiterungen.html">13 · Hardware-Erweiterungen</a>
+    <a href="stufe_14_modern_workflow.html">14 · Moderner Workflow</a>
+    <a href="stufe_15_debugging_deep_dive.html" class="active">15 · Deep Debugging</a>
+
+    <div class="section-label">Diese Seite</div>
+    <a href="#vice-monitor" class="toc-link">1. VICE Monitor — Referenz</a>
+    <a href="#breakpoints" class="toc-link">2. Breakpoints &amp; Watchpoints</a>
+    <a href="#profiling" class="toc-link">3. CPU-Profiling</a>
+    <a href="#badlines" class="toc-link">4. Badline-Analyse</a>
+    <a href="#page-cross" class="toc-link">5. Page-Cross-Bugs</a>
+    <a href="#stack" class="toc-link">6. Stack-Overflow</a>
+    <a href="#sprite-dma" class="toc-link">7. Sprite-DMA-Stealing</a>
+    <a href="#assembler-fallen" class="toc-link">8. Assembler-Fallen</a>
+    <a href="#walkthrough" class="toc-link">9. Walkthrough: Buggy Platformer</a>
+    <a href="#benchmark" class="toc-link">Skill-Benchmark</a>
+
+    <div class="section-label">Anhänge &amp; Referenz</div>
+    <a href="anhang_opcodes.html">A · Opcode-Referenz</a>
+    <a href="anhang_speicherkarte.html">B · Speicherkarte</a>
+    <a href="anhang_vic_register.html">C · VIC-II Register</a>
+    <a href="anhang_sid_register.html">D · SID Register</a>
+    <a href="anhang_cia_register.html">E · CIA Register</a>
+    <a href="anhang_petscii.html">F · PETSCII-Tabelle</a>
+    <a href="anhang_farben.html">G · C64-Farben</a>
+    <a href="anhang_kernal_routinen.html">H · KERNAL-Routinen</a>
+
+    <div class="section-label">Downloads</div>
+    <a href="beispiele/index.html">Beispielcode (.asm)</a>
+    <a href="vice.vicerc" download>VICE Konfiguration</a>
+  </nav>
+</aside>
+
+<main>
+  <header class="chapter-header">
+    <div class="chapter-number">Stufe 15 — Debugging</div>
+    <h1>Deep Debugging</h1>
+    <div class="chapter-meta">
+      <span>★ Experten-Niveau</span>
+      <span>⏱ ca. 12–16 Stunden</span>
+      <span>📋 Voraussetzung: Stufen 07–12</span>
+    </div>
+  </header>
+
+  <section class="learning-objectives">
+    <h3>Lernziele dieser Stufe</h3>
+    <ul>
+      <li>Alle wichtigen VICE-Monitor-Kommandos sicher anwenden (m, r, d, a, break, watch, trace)</li>
+      <li>Bedingte Breakpoints und Speicherzugriffs-Watchpoints setzen und auswerten</li>
+      <li>CPU-Hotspots mit VICE-Profiler und Rahmenfarben-Methode lokalisieren</li>
+      <li>Badlines exakt identifizieren (Formel, Zyklen) und mit FLD eliminieren</li>
+      <li>Page-Cross-Bugs erkennen und durch Tabellen-Ausrichtung beheben</li>
+      <li>Stack-Overflow diagnostizieren: SP-Monitoring und Canary-Byte-Technik</li>
+      <li>Sprite-DMA-Cycle-Stealing einplanen und Cycle-Budget bei N Sprites berechnen</li>
+      <li>Fünf häufige Assembler-Fallen kennen und beim Code-Review erkennen</li>
+    </ul>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section id="vice-monitor">
+    <h2>1. VICE Monitor — Kommando-Referenz im Detail</h2>
+
+    <p>Der VICE Monitor ist das mächtigste Werkzeug des C64-Entwicklers. Er ist ein vollständiger Maschinensprache-Monitor direkt im Emulator — kein externes Tool, kein Compile-Upload-Cycle. Hier kann man das laufende Programm in Echtzeit inspizieren und verändern.</p>
+
+    <h3>1.1 Den Monitor öffnen</h3>
+    <ul>
+      <li><strong>Alt+H</strong> (oder Menu: Debug → Activate Monitor) — hält das Programm an und öffnet den Monitor</li>
+      <li><strong>BRK-Opcode ($00)</strong> im Code — löst automatisch den Monitor aus wenn der Prozessor darauf trifft</li>
+      <li><strong>TCP-Interface</strong> — VICE mit <code>-remotemonitor</code> starten, dann via <code>telnet localhost 6510</code> verbinden (für IDE-Integration)</li>
+    </ul>
+
+    <h3>1.2 Vollständige Kommando-Referenz</h3>
+
+    <table>
+      <thead><tr><th>Kommando</th><th>Syntax</th><th>Beispiel</th><th>Funktion</th></tr></thead>
+      <tbody>
+        <tr><td>m</td><td>m ADDR [END]</td><td><code>m 0400 0440</code></td><td>Speicher als Hex + ASCII anzeigen</td></tr>
+        <tr><td>&gt;</td><td>&gt; ADDR BYTES</td><td><code>&gt; 0400 41 42 43</code></td><td>Speicher direkt bearbeiten (Patch)</td></tr>
+        <tr><td>r</td><td>r [REG=VAL]</td><td><code>r a=42</code></td><td>Register anzeigen oder setzen</td></tr>
+        <tr><td>d</td><td>d [ADDR [END]]</td><td><code>d 1000 1030</code></td><td>Disassembly ab Adresse</td></tr>
+        <tr><td>a</td><td>a ADDR MNEMONIC</td><td><code>a 1000 lda #$42</code></td><td>Assembler: Instruktion direkt eintippen</td></tr>
+        <tr><td>z</td><td>z</td><td><code>z</code></td><td>Step into — eine Instruktion ausführen</td></tr>
+        <tr><td>n</td><td>n</td><td><code>n</code></td><td>Step over — JSR als Ganzes überspringen</td></tr>
+        <tr><td>ret</td><td>ret</td><td><code>ret</code></td><td>Step out — bis RTS der aktuellen Subroutine</td></tr>
+        <tr><td>g</td><td>g [ADDR]</td><td><code>g 1000</code></td><td>Programmausführung ab Adresse fortsetzen</td></tr>
+        <tr><td>x</td><td>x</td><td><code>x</code></td><td>Monitor verlassen, Programm weiterführen</td></tr>
+        <tr><td>break</td><td>break [ADDR] [if COND]</td><td><code>break 1200 if a==$42</code></td><td>Breakpoint setzen (optional bedingt)</td></tr>
+        <tr><td>watch</td><td>watch [store|load] ADDR</td><td><code>watch store D020</code></td><td>Watchpoint auf Speicherzugriff</td></tr>
+        <tr><td>trace</td><td>trace ADDR [END]</td><td><code>trace 1000 1100</code></td><td>Alle Instruktionen in Bereich protokollieren</td></tr>
+        <tr><td>del</td><td>del [NUM]</td><td><code>del 1</code></td><td>Breakpoint/Watchpoint löschen</td></tr>
+        <tr><td>dis</td><td>dis [NUM]</td><td><code>dis 2</code></td><td>Breakpoint deaktivieren (nicht löschen)</td></tr>
+        <tr><td>list</td><td>list</td><td><code>list</code></td><td>Alle aktiven Breakpoints/Watchpoints anzeigen</td></tr>
+        <tr><td>save</td><td>save FILE ADDR END</td><td><code>save dump.bin 1000 2000</code></td><td>Speicherbereich als Datei sichern</td></tr>
+        <tr><td>load</td><td>load FILE ADDR</td><td><code>load patch.bin 1000</code></td><td>Datei in Speicher laden</td></tr>
+      </tbody>
+    </table>
+
+    <h3>1.3 Typische Monitor-Session</h3>
+
+<div class="monitor-session"><span class="mon-comment">; Programm läuft — Alt+H drücken → Monitor öffnet sich</span>
+<span class="mon-prompt">(C:$1234)</span> <span class="mon-output">r</span>
+<span class="mon-output">  ADDR AC XR YR SP  NV-BDIZC
+.;1234 00 00 00 F8  00100000</span>
+
+<span class="mon-comment">; Disassembly der aktuellen Position</span>
+<span class="mon-prompt">(C:$1234)</span> <span class="mon-output">d 1234 1250</span>
+<span class="mon-output">.C:1234  A9 00     LDA #$00
+.C:1236  85 12     STA $12
+.C:1238  20 00 10  JSR $1000  ← Subroutine-Aufruf
+.C:123B  A5 12     LDA $12</span>
+
+<span class="mon-comment">; Breakpoint bei JSR-Ziel setzen</span>
+<span class="mon-prompt">(C:$1234)</span> <span class="mon-output">break 1000</span>
+<span class="mon-output">Breakpoint 1 auf $1000 gesetzt</span>
+
+<span class="mon-comment">; Ausführen bis Breakpoint</span>
+<span class="mon-prompt">(C:$1234)</span> <span class="mon-output">x</span>
+<span class="mon-output">... Programm läuft ...</span>
+<span class="mon-output">Breakpoint 1 bei .C:1000</span>
+
+<span class="mon-comment">; Register nach JSR prüfen</span>
+<span class="mon-prompt">(C:$1000)</span> <span class="mon-output">r</span>
+<span class="mon-output">  ADDR AC XR YR SP</span>
+<span class="mon-output">.;1000 42 03 00 F6  ← A=42, Stack um 2 gewachsen</span>
+
+<span class="mon-comment">; Speicher-Patch: Byte an $1002 ändern</span>
+<span class="mon-prompt">(C:$1000)</span> <span class="mon-output">&gt; 1002 EA EA</span>
+<span class="mon-comment">; NOP NOP eingefügt — Instruktion deaktiviert</span></div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section id="breakpoints">
+    <h2>2. Breakpoints und Watchpoints — Präzise Kontrolle</h2>
+
+    <h3>2.1 Bedingte Breakpoints</h3>
+    <p>Bedingte Breakpoints halten das Programm nur an, wenn eine Bedingung erfüllt ist. Das ist unverzichtbar wenn ein Bug nur unter bestimmten Umständen auftritt:</p>
+
+<div class="monitor-session"><span class="mon-comment">; Breakpoint: Hält nur an wenn A == $42</span>
+<span class="mon-prompt">(C:$...)</span> <span class="mon-output">break 1200 if a==$42</span>
+
+<span class="mon-comment">; Breakpoint: Hält an wenn X > 7 (Sprite-Index außerhalb Bereich)</span>
+<span class="mon-prompt">(C:$...)</span> <span class="mon-output">break 1300 if x>7</span>
+
+<span class="mon-comment">; Breakpoint: Wenn Speicherstelle einen bestimmten Wert hat</span>
+<span class="mon-prompt">(C:$...)</span> <span class="mon-output">break 1400 if $12==$FF</span>
+
+<span class="mon-comment">; Watchpoint: Hält an wenn $D020 (Rahmenfarbe) beschrieben wird</span>
+<span class="mon-prompt">(C:$...)</span> <span class="mon-output">watch store D020</span>
+<span class="mon-comment">; Nützlich: Rahmenfarben-Methode automatisiert →  wann genau wird die Farbe gesetzt?</span>
+
+<span class="mon-comment">; Watchpoint auf Lesezugriff: Wer liest Rasterzeile $D012?</span>
+<span class="mon-prompt">(C:$...)</span> <span class="mon-output">watch load D012</span></div>
+
+    <h3>2.2 Trace-Modus — Ausführungsprotokoll</h3>
+    <p>Der Trace-Modus protokolliert jede ausgeführte Instruktion in einem Adressbereich. Das erzeugt viel Ausgabe, aber ermöglicht exakte Analyse einer Subroutine:</p>
+
+<div class="monitor-session"><span class="mon-comment">; Trace-Log für Scroller-Update-Routine (Adresse $1100-$1180)</span>
+<span class="mon-prompt">(C:$...)</span> <span class="mon-output">trace 1100 1180</span>
+
+<span class="mon-comment">; Programm weiter ausführen</span>
+<span class="mon-prompt">(C:$...)</span> <span class="mon-output">x</span>
+<span class="mon-output">TRACE: .C:1100  A5 20  LDA $20    A:04 X:00 Y:00
+TRACE: .C:1102  85 22  STA $22    A:04 X:00 Y:00
+TRACE: .C:1104  E6 20  INC $20    A:04 X:00 Y:00
+... (eine Zeile pro Instruktion)</span>
+
+<span class="mon-comment">; Trace deaktivieren</span>
+<span class="mon-prompt">(C:$...)</span> <span class="mon-output">del 1</span></div>
+
+    <div class="box-tip">Trace erzeugt extrem viel Ausgabe. Am besten nutzen für kurze, verdächtige Routinen (&lt;50 Instruktionen). Für längere Routinen besser: gezielter bedingter Breakpoint am verdächtigen Punkt.</div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section id="profiling">
+    <h2>3. CPU-Profiling — Hotspots finden</h2>
+
+    <h3>3.1 Die Rahmenfarben-Methode (inline)</h3>
+    <p>Die schnellste Profiling-Methode: Setze <code>$D020</code> (Rahmenfarbe) auf verschiedene Werte vor und nach einer Routine. Im laufenden VICE sieht man am Bildschirmrand farbige Streifen — je breiter (= mehr Rasterzeilen), desto mehr Zyklen braucht die Routine:</p>
+
+<pre><span class="comment">; Rahmenfarben-Profiling: Routine messen</span>
+<span class="instr">lda</span> #2 : <span class="instr">sta</span> $D020  <span class="comment">; Rahmen ROT — Routine beginnt</span>
+
+<span class="comment">; ... die zu messende Routine ...</span>
+<span class="instr">jsr</span> meine_routine
+
+<span class="instr">lda</span> #0 : <span class="instr">sta</span> $D020  <span class="comment">; Rahmen SCHWARZ — Routine ende</span>
+
+<span class="comment">; Breite des roten Streifens im Rasterbalken = Zyklen/63 Rasterzeilen</span></pre>
+
+    <h3>3.2 cycle_measure Makro — CIA2-Timer-basierte Messung</h3>
+    <p>Für genaue Zyklenangaben nutzt man CIA2-Timer A. Der Timer läuft rückwärts mit CPU-Takt. Differenz vor und nach der Routine ergibt die exakte Zyklenanzahl:</p>
+
+<pre><span class="comment">; cycle_measure_start — Startet CIA2-Timer für Zeitmessung
+; cycle_measure_stop  — Stoppt Timer und gibt Ergebnis aus
+; Ergebnis: monitor-Ausgabe via BRK mit Zyklenzahl in X/Y</span>
+
+<span class="label">CIA2_TA_LO</span>  <span class="directive">= $DD04</span>
+<span class="label">CIA2_TA_HI</span>  <span class="directive">= $DD05</span>
+<span class="label">CIA2_CRA</span>    <span class="directive">= $DD0E</span>
+
+<span class="label">cycle_measure_start:</span>
+    <span class="instr">lda</span> #$FF : <span class="instr">sta</span> CIA2_TA_LO  <span class="comment">; Timer auf $FFFF laden</span>
+    <span class="instr">lda</span> #$FF : <span class="instr">sta</span> CIA2_TA_HI
+    <span class="instr">lda</span> #$01 : <span class="instr">sta</span> CIA2_CRA    <span class="comment">; Timer starten (Bit 0)</span>
+    <span class="instr">rts</span>
+
+<span class="label">cycle_measure_stop:</span>
+    <span class="instr">lda</span> #0 : <span class="instr">sta</span> CIA2_CRA     <span class="comment">; Timer stoppen</span>
+    <span class="instr">lda</span> CIA2_TA_HI : <span class="instr">sta</span> measure_hi
+    <span class="instr">lda</span> CIA2_TA_LO
+    <span class="comment">; Zyklen = $FFFF - Timer-Wert</span>
+    <span class="instr">eor</span> #$FF : <span class="instr">sta</span> measure_lo
+    <span class="instr">lda</span> measure_hi : <span class="instr">eor</span> #$FF : <span class="instr">sta</span> measure_hi
+    <span class="comment">; Breakpoint: Monitor zeigt Zyklenzahl an</span>
+    <span class="instr">brk</span>                        <span class="comment">; Monitor öffnet sich; "r" zeigt A,X,Y</span>
+
+<span class="label">measure_lo:</span> <span class="directive">!byte</span> 0
+<span class="label">measure_hi:</span> <span class="directive">!byte</span> 0
+
+<span class="comment">; Verwendung:
+;   jsr cycle_measure_start
+;   jsr meine_teure_routine
+;   jsr cycle_measure_stop
+; → Monitor öffnet sich → "m measure_lo" zeigt 16-Bit-Zyklenzahl</span></pre>
+
+    <div class="box-info">Faustformeln für PAL-Timing: 63 Zyklen pro Rasterzeile, 312 Rasterzeilen pro Frame, 985.248 Hz CPU-Takt. Ein Frame = 19.656 Zyklen. Eine Routine, die mehr als 3.000 Zyklen braucht, frisst über 15% eines Frames.</div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section id="badlines">
+    <h2>4. Badlines — Der unsichtbare Flaschenhals</h2>
+
+    <p>Badlines sind die häufigste Ursache für unerklärlich langsamen Code und Raster-Jitter. Sie entstehen, weil der VIC-II regelmäßig Daten aus dem Speicher lesen muss — und dafür den 6510-Bus für 40 Zyklen sperrt.</p>
+
+    <h3>4.1 Was ist eine Badline?</h3>
+    <p>In jeder Rasterzeile, in der der VIC-II Character-Daten vom Speicher holen muss, stiehlt er dem 6510 exakt 40 Zyklen (Zyklen 15–54 der 63-Zyklus-Rasterzeile). Übrig bleiben nur 23 Zyklen für Programmcode.</p>
+
+    <h3>4.2 Die Badline-Formel</h3>
+    <p>Eine Rasterzeile ist eine Badline wenn:</p>
+    <ol>
+      <li>Die Rasterzeile liegt im sichtbaren Bildschirmbereich: <code>$30 ≤ Rasterzeile ≤ $F7</code> (PAL)</li>
+      <li>Die unteren 3 Bits der Rasterzeile stimmen mit YSCROLL überein: <code>(Rasterzeile AND %111) == (YSCROLL AND %111)</code></li>
+    </ol>
+    <p>Mit dem Standard-YSCROLL-Wert von 3 ($D011 Bits 0–2) sind also Rasterzeilen $33, $3B, $43, $4B, ... badlines — jede 8. Zeile.</p>
+
+    <table class="cycle-table">
+      <thead><tr><th>Rasterzeilen-Typ</th><th>Verfügbare Zyklen</th><th>Zyklen gesperrt durch VIC</th></tr></thead>
+      <tbody>
+        <tr><td>Normale Zeile (kein Sprite)</td><td>63 Zyklen</td><td>0</td></tr>
+        <tr><td>Badline (Normal-YSCROLL)</td><td>23 Zyklen</td><td>40 (DMA für Char-Daten)</td></tr>
+        <tr><td>Badline + 1 Sprite</td><td>21 Zyklen</td><td>42</td></tr>
+        <tr><td>Badline + 8 Sprites</td><td>7 Zyklen</td><td>56</td></tr>
+        <tr><td>VBlank (Zeilen 300–311)</td><td>63 Zyklen</td><td>0 (kein DMA)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>4.3 FLD — Flexible Line Distance: Badlines eliminieren</h3>
+    <p>FLD (Flexible Line Distance) ist eine Demo-Technik, die YSCROLL in jedem Raster-IRQ so ändert, dass die Badline-Bedingung nie erfüllt wird. Indem man YSCROLL von 3 auf 4, 5, 6, 7, 0, 1, 2, 3 wechselt (immer in der vorherigen Rasterzeile), schiebt man die Badline immer eine Zeile weiter — sie trifft nie genau.</p>
+
+<pre><span class="comment">; fld_disable — Verhindert Badlines in kritischen Rasterzeilen
+; Muss im Raster-IRQ jeder betroffenen Zeile aufgerufen werden
+; Prinzip: YSCROLL jede Zeile erhöhen → Bedingung nie erfüllt</span>
+
+<span class="label">VIC_CTRL1</span>  <span class="directive">= $D011</span>
+<span class="label">VIC_CTRL2</span>  <span class="directive">= $D016</span>
+<span class="label">RASTERLINE</span> <span class="directive">= $D012</span>
+
+<span class="label">fld_yscroll:</span> <span class="directive">!byte</span> 3   <span class="comment">; Aktueller YSCROLL-Wert</span>
+
+<span class="label">fld_irq_handler:</span>
+    <span class="instr">pha</span>
+    <span class="instr">lda</span> #$01 : <span class="instr">sta</span> $D019  <span class="comment">; IRQ quittieren</span>
+
+    <span class="comment">; YSCROLL erhöhen (modulo 8) → Badline verschiebt sich um 1</span>
+    <span class="instr">lda</span> fld_yscroll
+    <span class="instr">clc</span>
+    <span class="instr">adc</span> #1
+    <span class="instr">and</span> #%00000111        <span class="comment">; Auf 0-7 begrenzen</span>
+    <span class="instr">sta</span> fld_yscroll
+
+    <span class="comment">; In $D011 einschreiben (Bits 2-0 = YSCROLL, Bits 7-3 unverändert)</span>
+    <span class="instr">lda</span> VIC_CTRL1
+    <span class="instr">and</span> #%11111000        <span class="comment">; YSCROLL-Bits löschen</span>
+    <span class="instr">ora</span> fld_yscroll
+    <span class="instr">sta</span> VIC_CTRL1
+
+    <span class="comment">; Nächste IRQ-Zeile setzen (eine Zeile tiefer)</span>
+    <span class="instr">lda</span> RASTERLINE
+    <span class="instr">clc</span>
+    <span class="instr">adc</span> #1
+    <span class="instr">sta</span> RASTERLINE
+    <span class="instr">pla</span>
+    <span class="instr">rti</span></pre>
+
+    <div class="box-warning">FLD bewegt den Bildschirminhalt vertikal — jede YSCROLL-Änderung verschiebt den Text um ein Pixel. Das ist bei reinem FLD für Code-Laufzeit gewollt, kann aber den Screen unleserlich machen. In Spielen nutzt man FLD daher nur in Bereichen ohne Bildschirminhalt (Schwarzrand) oder kompensiert mit entsprechender Darstellung.</div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section id="page-cross">
+    <h2>5. Page-Cross-Bugs — Versteckte Cycle-Kosten</h2>
+
+    <h3>5.1 Was ist ein Page-Cross?</h3>
+    <p>Eine "Seite" (Page) im 6510-Adressraum ist ein 256-Byte-Block: $0000–$00FF ist Page 0, $0100–$01FF ist Page 1, usw. Einige Adressierungsarten müssen prüfen, ob bei der Adressberechnung eine Seitengrenze überschritten wird. Falls ja, kostet der Zugriff einen extra Zyklus.</p>
+
+    <h3>5.2 Betroffene Instruktionen</h3>
+    <table class="cycle-table">
+      <thead><tr><th>Instruktion</th><th>Normalfall</th><th>Mit Page-Cross</th><th>Mehrkosten</th></tr></thead>
+      <tbody>
+        <tr><td>LDA abs,X / LDA abs,Y</td><td>4 Zyklen</td><td>5 Zyklen</td><td>+1</td></tr>
+        <tr><td>LDX abs,Y / LDY abs,X</td><td>4 Zyklen</td><td>5 Zyklen</td><td>+1</td></tr>
+        <tr><td>STA abs,X / STA abs,Y</td><td>5 Zyklen</td><td>5 Zyklen</td><td>0 (immer 5!)</td></tr>
+        <tr><td>(ind),Y — LDA (ptr),Y</td><td>5 Zyklen</td><td>6 Zyklen</td><td>+1</td></tr>
+        <tr><td>Branch (BNE, BEQ, ...)</td><td>2/3 Zyklen</td><td>4 Zyklen</td><td>+1 (über Seitengrenze)</td></tr>
+        <tr><td>JMP (ind)</td><td>5 Zyklen</td><td>Falsches Ergebnis!</td><td>Hardware-Bug $xxFF</td></tr>
+      </tbody>
+    </table>
+
+    <h3>5.3 Tabellen page-aligned ablegen</h3>
+    <p>Der häufigste Page-Cross-Bug: eine Lookup-Tabelle (z. B. Sinustabelle) liegt so im Speicher, dass der Zugriff mit <code>LDA sin_table,X</code> bei hohen X-Werten die Seitengrenze überschreitet. Lösung: Tabelle auf eine 256-Byte-Grenze ausrichten.</p>
+
+<pre><span class="comment">; PROBLEM: Sinustabelle NICHT page-aligned — bei X > n kostet LDA sin_table,X 5 statt 4 Zyklen</span>
+<span class="directive">* = $1050</span>         <span class="comment">; Tabelle bei $1050 → endet bei $114F → überschreitet $1100!</span>
+<span class="label">sin_table:</span>  <span class="directive">!byte</span> 128,140,...  <span class="comment">; 256 Bytes — aber $1050+$FF = $114F → Page-Cross bei X>$AF</span>
+
+<span class="comment">; LÖSUNG: Tabelle explizit page-aligned ablegen</span>
+<span class="comment">; Methode 1: Direkte Adresse wählen</span>
+<span class="directive">* = $1100</span>         <span class="comment">; Exakt auf Seitengrenze $xx00</span>
+<span class="label">sin_table:</span>  <span class="directive">!byte</span> 128,140,...  <span class="comment">; $1100+$FF = $11FF → KEIN Page-Cross!</span>
+
+<span class="comment">; Methode 2: ACME-Ausdruck für automatische Ausrichtung</span>
+<span class="directive">* = ((*+255)/256)*256</span>  <span class="comment">; Auf nächste 256er-Grenze aufrunden</span>
+<span class="label">sin_table:</span>  <span class="directive">!byte</span> 128,140,...
+
+<span class="comment">; Zyklen-Vergleich (innerste Schleife, 256 Iterationen):
+;   Ohne Page-Align: ~128 Page-Crosses × 1 Zyklus = 128 Mehrzyklen
+;   Mit Page-Align:  0 Page-Crosses = 0 Mehrzyklen
+; Bei 50 Hz: 128 × 50 = 6400 verschwendete Zyklen pro Sekunde</span></pre>
+
+    <h3>5.4 JMP ($xxFF) — Der 6502-Hardware-Bug</h3>
+    <p>Wenn der Adress-Pointer für <code>JMP (ind)</code> genau an einer Seitengrenze liegt (z. B. <code>JMP ($10FF)</code>), liest der 6502/6510 das Low-Byte der Zieladresse korrekt von $10FF, aber das High-Byte <em>fälschlicherweise</em> von $1000 statt $1100. Dies ist ein bekannter Hardware-Bug des 6502, der im 6510 nicht behoben wurde.</p>
+    <div class="box-important">Dispatch-Tabellen für indirekten JMP niemals so aufbauen, dass ein Tabelleneintrag bei $xxFF liegt. Tabelle immer page-aligned ablegen.</div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section id="stack">
+    <h2>6. Stack-Overflow-Diagnose</h2>
+
+    <h3>6.1 Der 6510-Stack: Beschränkungen und Überlauf</h3>
+    <p>Der Stack des 6510 liegt fest bei $0100–$01FF. Das Stack-Pointer-Register SP zeigt auf den <em>nächsten freien Slot</em> und wächst von $FF abwärts. Beim Start zeigt SP typischerweise auf $FF (Stack leer). Jeder <code>JSR</code> schiebt 2 Bytes (Return-Adresse) auf den Stack, jeder <code>PHA</code> 1 Byte. Wenn SP auf $00 gefallen ist und noch ein Push kommt, wraps der Zeiger auf $FF zurück und überschreibt ältere Stack-Einträge — Korruption der Rücksprungadressen.</p>
+
+    <h3>6.2 Stack-Overflow erkennen</h3>
+
+<pre><span class="comment">; stack_guard — Canary-Byte gegen Stack-Overflow
+; Schreibt bekanntes Muster an unteres Stack-Ende
+; IRQ-Handler prüft regelmäßig ob Canary intakt ist</span>
+
+<span class="label">STACK_CANARY_ADDR</span> <span class="directive">= $0101</span>  <span class="comment">; Tiefstes erreichbares Stack-Byte</span>
+<span class="label">CANARY_BYTE</span>       <span class="directive">= $C3</span>    <span class="comment">; Zufälliger Wert — unwahrscheinlich als Zufallswert</span>
+
+<span class="label">install_stack_guard:</span>
+    <span class="instr">lda</span> #CANARY_BYTE
+    <span class="instr">sta</span> STACK_CANARY_ADDR
+    <span class="instr">rts</span>
+
+<span class="comment">; Im IRQ-Handler aufrufen (oder periodisch im Hauptprogramm)</span>
+<span class="label">check_stack_guard:</span>
+    <span class="instr">lda</span> STACK_CANARY_ADDR
+    <span class="instr">cmp</span> #CANARY_BYTE
+    <span class="instr">beq</span> .stack_ok
+    <span class="comment">; CANARY ÜBERSCHRIEBEN → Stack-Overflow aufgetreten!</span>
+    <span class="instr">brk</span>                    <span class="comment">; Monitor öffnen für Post-Mortem-Analyse</span>
+<span class="label">.stack_ok:</span>
+    <span class="instr">rts</span>
+
+<span class="comment">; Im Monitor: "r" zeigt SP — wenn SP < $10, ist der Stack kritisch voll</span>
+<span class="comment">; "m 0100 01FF" zeigt kompletten Stack-Inhalt</span></pre>
+
+    <h3>6.3 Häufige Ursachen für Stack-Overflow</h3>
+    <ul>
+      <li><strong>Fehlendes RTS:</strong> Subroutine springt per <code>JMP</code> aus einer Schleife heraus, ohne die Return-Adresse vom Stack zu nehmen. Bei jedem Aufruf wächst der Stack.</li>
+      <li><strong>IRQ-Handler ohne RTI:</strong> Wenn ein IRQ-Handler mit <code>RTS</code> statt <code>RTI</code> beendet wird, werden 1 Byte (Statusregister) nie entfernt.</li>
+      <li><strong>Tiefe Rekursion:</strong> Rekursiver Algorithmus ohne Tiefenbegrenzung.</li>
+      <li><strong>PHA ohne PLA:</strong> In einem Codepfad (z. B. bei einer Verzweigung) wird ein <code>PHA</code> nicht mit <code>PLA</code> ausgeglichen.</li>
+    </ul>
+
+    <div class="box-tip">Im VICE-Monitor: <span class="vice-cmd">watch store 0100 010F</span> setzt einen Watchpoint auf die untersten 16 Stack-Bytes. Sobald der Stack so weit gewachsen ist, hält der Monitor das Programm an — lange bevor echte Korruption eintritt.</div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section id="sprite-dma">
+    <h2>7. Sprite-DMA-Cycle-Stealing</h2>
+
+    <h3>7.1 Wie Sprite-DMA Zyklen stiehlt</h3>
+    <p>Der VIC-II muss Sprite-Daten aus dem Speicher lesen, bevor er sie darstellen kann. Pro aktivem Sprite werden 2 Zyklen pro Rasterzeile gestohlen — und das in zwei Zeilen: der Zeile, in der das Sprite anfängt sichtbar zu sein (p-access), und jeder Zeile innerhalb des Sprite-Bereichs.</p>
+
+    <table class="cycle-table">
+      <thead><tr><th>Aktive Sprites</th><th>Gestohlene Zyklen/Zeile</th><th>Verbleibende Zyklen</th><th>Nutzbar für Code</th></tr></thead>
+      <tbody>
+        <tr><td>0</td><td>0</td><td>63</td><td>Volle Kapazität</td></tr>
+        <tr><td>1</td><td>2</td><td>61</td><td>96,8%</td></tr>
+        <tr><td>4</td><td>8</td><td>55</td><td>87,3%</td></tr>
+        <tr><td>8</td><td>16</td><td>47</td><td>74,6%</td></tr>
+        <tr><td>8 + Badline</td><td>56</td><td>7</td><td>11,1% — kritisch!</td></tr>
+      </tbody>
+    </table>
+
+    <h3>7.2 Sprites in kritischen Zeilen deaktivieren</h3>
+
+<pre><span class="comment">; irq_sprite_aware — Raster-IRQ der Sprites temporär deaktiviert
+; wenn zu viele Zyklen in einer kritischen Zeile gebraucht werden
+; Nützlich für Raster-Effekte die präzises Timing benötigen</span>
+
+<span class="label">sprites_enabled:</span> <span class="directive">!byte</span> $FF  <span class="comment">; Gespeicherter Sprite-Enable-Wert</span>
+
+<span class="label">irq_sprites_off:</span>
+    <span class="instr">lda</span> $D015              <span class="comment">; Aktuellen Sprite-Enable-Wert sichern</span>
+    <span class="instr">sta</span> sprites_enabled
+    <span class="instr">lda</span> #0 : <span class="instr">sta</span> $D015      <span class="comment">; Alle Sprites aus</span>
+    <span class="instr">rts</span>
+
+<span class="label">irq_sprites_on:</span>
+    <span class="instr">lda</span> sprites_enabled
+    <span class="instr">sta</span> $D015              <span class="comment">; Sprites wiederherstellen</span>
+    <span class="instr">rts</span>
+
+<span class="comment">; Verwendung im Raster-IRQ für zeitkritischen Effekt:
+;   jsr irq_sprites_off    ; Sprites aus → 63 volle Zyklen
+;   ... zeitkritischer Rastereffekt-Code ...
+;   jsr irq_sprites_on     ; Sprites wieder an</span></pre>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section id="assembler-fallen">
+    <h2>8. Häufige Assembler-Fallen</h2>
+
+    <h3>8.1 Zero-Page vs. Absolute Adressierung</h3>
+    <p>ACME wählt automatisch die kürzeste Adressierungsart: <code>LDA $10</code> → Zero-Page (2 Bytes, 3 Zyklen). <code>LDA $0010</code> → Absolut (3 Bytes, 4 Zyklen). Das ist meistens korrekt — aber manchmal will man explizit die absolute Variante, z. B. wenn man sichergehen will, dass eine Speicherstelle im I/O-Bereich angesprochen wird.</p>
+
+    <h3>8.2 BCC/BCS-Verwirrung nach CMP</h3>
+    <p>Nach <code>CMP A, N</code>: Carry wird gesetzt wenn A &gt;= N (unsigned). Das verwirrt viele Programmierer, weil man intuitiv "Carry = Übertrag" denkt:</p>
+    <table>
+      <thead><tr><th>Bedingung</th><th>Korrekte Branch-Instruktion</th><th>Falsch (häufiger Fehler)</th></tr></thead>
+      <tbody>
+        <tr><td>A == N</td><td>BEQ</td><td>—</td></tr>
+        <tr><td>A != N</td><td>BNE</td><td>—</td></tr>
+        <tr><td>A &lt; N (unsigned)</td><td>BCC (Carry GELÖSCHT)</td><td>BCS — falsch!</td></tr>
+        <tr><td>A &gt;= N (unsigned)</td><td>BCS (Carry GESETZT)</td><td>BCC — falsch!</td></tr>
+        <tr><td>A &lt;= N (unsigned)</td><td>BEQ + BCC (zwei Branches)</td><td>BCS — falsch!</td></tr>
+        <tr><td>A &gt; N (unsigned)</td><td>BNE + BCS</td><td>BCC — falsch!</td></tr>
+      </tbody>
+    </table>
+
+    <h3>8.3 Dezimal-Modus (BCD) vergessen</h3>
+    <p><code>SED</code> aktiviert den BCD-Modus: Addition und Subtraktion arbeiten danach als binär kodierte Dezimalzahl. Das bleibt aktiv bis <code>CLD</code>. Wer nach <code>SED</code> vergisst, <code>CLD</code> aufzurufen, bekommt in allen nachfolgenden arithmetischen Operationen falsche Ergebnisse — auch im IRQ-Handler!</p>
+
+    <h3>8.4 Branch-Reichweite überschritten</h3>
+    <p>Bedingte Branches (<code>BNE</code>, <code>BEQ</code>, etc.) können nur ±127 Bytes weit springen. ACME gibt beim Kompilieren einen Fehler aus. Workaround:</p>
+
+<pre><span class="comment">; PROBLEM: BNE springt weiter als 127 Bytes</span>
+<span class="comment">; LÖSUNG: Invertiere die Bedingung und springe zu einem nahen JMP</span>
+<span class="label">original_code:</span>
+    <span class="instr">cmp</span> #10
+    <span class="instr">bne</span> far_target      <span class="comment">; FEHLER: zu weit weg</span>
+
+<span class="label">fixed_code:</span>
+    <span class="instr">cmp</span> #10
+    <span class="instr">beq</span> .skip           <span class="comment">; Bedingung invertiert: gleich → überspringen</span>
+    <span class="instr">jmp</span> far_target      <span class="comment">; JMP hat volle 16-Bit-Reichweite</span>
+<span class="label">.skip:</span></pre>
+
+    <h3>8.5 Fünf Fallen auf einen Blick</h3>
+    <table>
+      <thead><tr><th>Symptom</th><th>Ursache</th><th>Monitor-Diagnose</th><th>Lösung</th></tr></thead>
+      <tbody>
+        <tr><td>Falsche Ergebnisse nach Score-Berechnung</td><td>BCD-Modus noch aktiv (vergessenes CLD)</td><td>watch store ZP_SCORE — Wert BCD-kodiert?</td><td>CLD nach jeder BCD-Routine</td></tr>
+        <tr><td>Schleife läuft falsch oft</td><td>BCC/BCS nach CMP verwechselt</td><td>break am Branch, r — Carry-Bit prüfen</td><td>Bedingung invertieren</td></tr>
+        <tr><td>Sprite verschwindet sporadisch</td><td>JMP-Tabelle bei $xxFF (JMP(ind) Bug)</td><td>d an der Dispatch-Adresse</td><td>Tabelle page-aligned</td></tr>
+        <tr><td>Programm springt an falsche Adresse</td><td>Stack-Overflow — SP gewrapped</td><td>r — SP nahe $00?</td><td>stack_guard installieren</td></tr>
+        <tr><td>Code mal schnell, mal langsam</td><td>Page-Cross in heißer Schleife</td><td>watch store D020 mit Rahmenfarbe</td><td>Tabelle page-aligned</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section id="walkthrough">
+    <div class="debug-banner">
+      <h2>9. Walkthrough: Buggy Platformer debuggen</h2>
+      <p>Fünf absichtlich eingebaute Bugs werden ausschließlich mit VICE-Monitor-Mitteln diagnostiziert und behoben — kein Raten, nur Messung.</p>
+    </div>
+
+    <p>Das Walkthrough-Projekt ist ein einfacher Plattformer mit fünf versteckten Bugs. Das Ziel: jeden Bug mit dem VICE-Monitor diagnostizieren, ohne einfach den Code zu lesen und nach dem Fehler zu suchen. Die Debug-Methode steht im Vordergrund.</p>
+
+    <div class="bug-card">
+      <h4>Bug 1 — Spieler fällt durch Plattformen</h4>
+      <p class="bug-symptom">Symptom: Manchmal fällt der Spieler durch die Plattform, wenn er von oben darauf springt.</p>
+      <p><strong>Diagnose:</strong> <span class="vice-cmd">watch store ZP_PLR_VY</span> — Wann und wie wird die Y-Geschwindigkeit auf 0 gesetzt? Trace auf die Kollisionsroutine zeigt: Der Branch für "Spieler landet" verwendet <code>BCS</code> statt <code>BEQ</code> nach dem Tile-Vergleich.</p>
+      <p class="bug-fix">Fix: CMP #PLATFORM_TILE + BEQ (nicht BCS) für Landen-Erkennung.</p>
+    </div>
+
+    <div class="bug-card">
+      <h4>Bug 2 — Score springt um 2 statt 1</h4>
+      <p class="bug-symptom">Symptom: Beim Einsammeln eines Münze erhöht sich der Score immer um 2.</p>
+      <p><strong>Diagnose:</strong> <span class="vice-cmd">watch store ZP_SCORE</span> — Breakpoint zeigt, dass <code>score_increment</code> zweimal pro Frame aufgerufen wird. Trace auf die Coin-Collision-Routine: JSR score_increment steht in zwei unabhängigen Code-Pfaden die beide in derselben Situation aktiv sind.</p>
+      <p class="bug-fix">Fix: Zweiten JSR-Aufruf entfernen.</p>
+    </div>
+
+    <div class="bug-card">
+      <h4>Bug 3 — Raster-Jitter trotz Double-IRQ</h4>
+      <p class="bug-symptom">Symptom: Die Rasterbars zittern leicht, obwohl Double-IRQ implementiert ist.</p>
+      <p><strong>Diagnose:</strong> <span class="vice-cmd">watch store D020</span> — Zeitpunkt des Farbwechsels variiert. Prüfe mit Rahmenfarben-Methode: Der Jitter tritt nur in Rasterzeile $43 auf. Das ist eine Badline! Der Double-IRQ landet gelegentlich auf einer Badline und verliert die 40 Zyklen.</p>
+      <p class="bug-fix">Fix: FLD-Routine in die betroffenen IRQ-Zeilen integrieren, oder IRQ-Zeile so wählen, dass sie keine Badline ist.</p>
+    </div>
+
+    <div class="bug-card">
+      <h4>Bug 4 — Musik friert nach ~3 Minuten ein</h4>
+      <p class="bug-symptom">Symptom: Nach etwa 3 Minuten Spielzeit friert die Musik ein, dann stürzt das Programm ab.</p>
+      <p><strong>Diagnose:</strong> <span class="vice-cmd">watch store 0100 0110</span> — Stack-Bereich überwachen. Nach ~3 Minuten trifft der Watchpoint an: SP ist auf $08 gefallen. Der Musik-Player ruft eine Hüllkurven-Subroutine rekursiv auf — bei bestimmten ADSR-Zuständen gibt es einen Codepfad ohne RTS.</p>
+      <p class="bug-fix">Fix: stack_guard installieren, fehlenden RTS im Musik-Player-Codepfad ergänzen.</p>
+    </div>
+
+    <div class="bug-card">
+      <h4>Bug 5 — Sprite verschwindet bei X &gt; 255</h4>
+      <p class="bug-symptom">Symptom: Ein Feind-Sprite wird unsichtbar sobald er den rechten Bildschirmrand überschreitet.</p>
+      <p><strong>Diagnose:</strong> <span class="vice-cmd">break sprite_update_x if x==0</span> — Monitor zeigt: $D010 (MSB der Sprite-X-Koordinaten) wird nie gesetzt. Die Sprite-Positions-Lookup-Tabelle liegt bei $1EF0 — bei Index $10 wird $1F00 gelesen: Page-Cross! Falscher Tabellenwert für X-MSB.</p>
+      <p class="bug-fix">Fix: Sprite-Positions-Tabelle page-aligned ablegen (<code>* = $1F00</code>).</p>
+    </div>
+
+    <h3>9.1 Lessons Learned — Die fünf Debug-Schritte</h3>
+    <ol>
+      <li><strong>Symptom beobachten:</strong> Genau beschreiben, wann und unter welchen Bedingungen der Bug auftritt.</li>
+      <li><strong>Hypothese aufstellen:</strong> Welche Codekomponente könnte verantwortlich sein?</li>
+      <li><strong>Messung durchführen:</strong> Watchpoint/Breakpoint/Trace auf die verdächtige Stelle setzen.</li>
+      <li><strong>Fix implementieren:</strong> Minimale Änderung — nur das beheben, was die Messung gezeigt hat.</li>
+      <li><strong>Verifikation:</strong> Watchpoint erneut setzen und prüfen, dass das fehlerhafte Verhalten ausbleibt.</li>
+    </ol>
+
+    <div class="box-info">Die häufigste Debugger-Falle ist "Raten statt Messen". Professionelle Debugging-Praxis bedeutet: Keine Codeänderung ohne vorherige Diagnose. Der VICE-Monitor gibt einem alle Werkzeuge dafür — nutze sie.</div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section id="benchmark" class="benchmark">
+    <h2>Skill-Benchmark: Stufe 15</h2>
+    <ul class="benchmark-list">
+      <li>Du öffnest den VICE-Monitor, setzt einen bedingten Breakpoint (<code>break ADDR if a==$42</code>) und wertest Register und Speicher aus</li>
+      <li>Du setzt einen Watchpoint auf einen Schreibzugriff (<code>watch store $D020</code>) und identifizierst welcher Code das Register beschreibt</li>
+      <li>Du erkennst eine Badline anhand der Formel und weißt exakt wie viele Zyklen sie dem 6510 stiehlt</li>
+      <li>Du implementierst FLD (Flexible Line Distance) um Badlines in zeitkritischen Rasterzeilen zu eliminieren</li>
+      <li>Du diagnostizierst einen Stack-Overflow mit SP-Monitoring und findest die Subroutine mit fehlendem RTS</li>
+      <li>Du erkennst Page-Cross-Bugs durch Zyklenmessung und behebst sie durch page-alignte Tabellen</li>
+      <li>Du berechnest das Cycle-Budget für eine Rasterzeile mit 4 aktiven Sprites und einer Badline</li>
+      <li>Du hast alle fünf Bugs im Walkthrough-Plattformer ausschließlich mit VICE-Monitor-Diagnose gefunden und behoben</li>
+    </ul>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section class="exercises">
+    <h2>Übungsaufgaben</h2>
+
+    <div class="exercise-item">
+      <h4>Übung 15.1 — Badline-Karte erstellen</h4>
+      <p>Schreibe ein ACME-Programm, das alle sichtbaren Rasterzeilen ($30–$F7) durchläuft und für jede Zeile prüft, ob sie eine Badline ist (gegeben Standard-YSCROLL=3). Zeige Badlines als rote, normale Zeilen als grüne Punkte auf dem Bildschirm. Ändere dann YSCROLL auf 7 und prüfe welche Zeilen sich ändern.</p>
+    </div>
+
+    <div class="exercise-item">
+      <h4>Übung 15.2 — Page-Cross-Benchmark</h4>
+      <p>Implementiere eine Sinustabellen-Lookup-Schleife (256 Iterationen: <code>LDA sin_table,X</code>). Lege die Tabelle zuerst <em>nicht</em> page-aligned ab. Messe die Ausführungszeit mit dem <code>cycle_measure</code>-Makro. Lege die Tabelle dann page-aligned ab und messe erneut. Dokumentiere die Differenz in Zyklen und berechne die Ersparnis pro Sekunde bei 50 Hz.</p>
+    </div>
+
+    <div class="exercise-item">
+      <h4>Übung 15.3 — Stack-Canary in der Praxis</h4>
+      <p>Implementiere <code>stack_guard</code> in einem bestehenden Projekt. Löse dann absichtlich einen kontrollierten Stack-Overflow aus: Schreibe eine rekursive Subroutine ohne Tiefenbegrenzung und rufe sie auf. Beobachte wie der Canary-Check im VICE-Monitor anschlägt und wie das SP-Register aussieht. Protokolliere den Stack-Inhalt via <code>m 0100 01FF</code>.</p>
+    </div>
+
+    <div class="exercise-item">
+      <h4>Übung 15.4 — Den Buggy Platformer debuggen</h4>
+      <p>Das Kapitel enthält fünf beschriebene Bugs. Implementiere alle fünf absichtlich in einem eigenen Plattformer-Gerüst (oder nutze das Beispielprojekt aus stufe_11). Debugge jeden Bug <em>ausschließlich</em> mit VICE-Monitor-Mitteln — keine Code-Inspektion ohne vorherige Messung. Halte jeden Debug-Schritt in einer Protokolldatei fest: Symptom, Watchpoint-Kommando, Monitor-Ausgabe, Fix.</p>
+    </div>
+  </section>
+
+  <nav class="chapter-nav">
+    <a href="stufe_14_modern_workflow.html">← Stufe 14: Moderner Workflow</a>
+    <a href="anhang_opcodes.html">Anhang A: Opcode-Referenz →</a>
+  </nav>
+</main>
+
+  <script src="assets/c64-interactive.js"></script>
+</body>
+</html>

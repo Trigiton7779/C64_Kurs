@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>C64 Mastery — Anhang: SID Register &amp; Frequenztabelle</title>
+  <style>
+    :root{--c64-blue:#0033aa;--c64-green:#00ff88;--c64-dark:#1a1a2e;--c64-darker:#0d0d1a;--paper:#f8f6f0;--paper-dark:#ede9df;--text:#1a1a2e;--text-light:#444466;--accent:#cc3300;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Georgia',serif;font-size:15px;line-height:1.7;color:var(--text);background:var(--paper);display:grid;grid-template-columns:270px 1fr;min-height:100vh;}
+    .sidebar{background:var(--c64-dark);color:#ccc;position:sticky;top:0;height:100vh;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--c64-blue) var(--c64-darker);}
+    .sidebar::-webkit-scrollbar{width:6px;}.sidebar::-webkit-scrollbar-thumb{background:var(--c64-blue);}
+    .sidebar-header{background:var(--c64-blue);padding:18px 20px;font-family:'Courier New',monospace;font-size:13px;font-weight:bold;color:white;}
+    .sidebar-header .logo{font-size:22px;margin-bottom:4px;color:var(--c64-green);}
+    .sidebar nav{padding:12px 0;}
+    .sidebar nav a{display:block;padding:7px 20px;color:#aab;text-decoration:none;font-family:'Courier New',monospace;font-size:12.5px;border-left:3px solid transparent;transition:all 0.2s;}
+    .sidebar nav a:hover{color:white;background:rgba(255,255,255,0.05);border-left-color:var(--c64-green);}
+    .sidebar nav a.active{color:var(--c64-green);border-left-color:var(--c64-green);background:rgba(0,255,136,0.07);font-weight:bold;}
+    .sidebar nav .section-label{padding:12px 20px 4px;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:#556;font-family:'Courier New',monospace;}
+    main{max-width:980px;padding:40px 48px;}
+    h1{font-size:32px;color:var(--c64-dark);margin-bottom:8px;}
+    .chapter-number{font-family:'Courier New',monospace;font-size:13px;color:var(--c64-blue);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;}
+    .chapter-meta{display:flex;gap:16px;font-family:'Courier New',monospace;font-size:12px;color:var(--text-light);margin:12px 0 28px;flex-wrap:wrap;}
+    .chapter-meta span{background:var(--paper-dark);padding:4px 10px;border-radius:3px;}
+    h2{font-size:22px;color:var(--c64-blue);margin:36px 0 14px;padding-bottom:6px;border-bottom:1px solid #d0ccc0;}
+    h3{font-size:17px;color:var(--c64-dark);margin:22px 0 10px;}
+    p{margin-bottom:14px;}
+    code{font-family:'Courier New',monospace;font-size:13px;background:#e8e4da;padding:2px 5px;border-radius:3px;color:var(--accent);}
+    pre{background:var(--c64-dark);color:var(--c64-green);font-family:'Courier New',monospace;font-size:13px;padding:20px 24px;border-radius:6px;overflow-x:auto;margin:16px 0;border-left:4px solid var(--c64-blue);}
+    table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px;}
+    thead{background:var(--c64-blue);color:white;}
+    thead th{padding:9px 10px;text-align:left;font-family:'Courier New',monospace;font-size:12px;}
+    tbody tr:nth-child(even){background:var(--paper-dark);}
+    tbody tr:hover{background:#e0dbd0;}
+    tbody td{padding:7px 10px;border-bottom:1px solid #d0ccc0;vertical-align:top;font-family:'Courier New',monospace;font-size:13px;}
+    .freq-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px;margin:16px 0;}
+    .freq-cell{background:var(--c64-dark);border-radius:4px;padding:8px 10px;font-family:'Courier New',monospace;font-size:12px;}
+    .freq-cell .note{color:var(--c64-green);font-weight:bold;font-size:14px;}
+    .freq-cell .freq-hz{color:#aaddff;font-size:11px;}
+    .freq-cell .freq-hex{color:#ffcc44;font-size:11px;}
+    .octave-header{grid-column:1/-1;background:#001166;color:#88aaff;font-family:'Courier New',monospace;font-size:12px;padding:6px 10px;border-radius:4px;margin-top:8px;}
+    .box-tip{background:#d4edda;border:1px solid #28a745;border-left:5px solid #28a745;border-radius:6px;padding:14px 18px;margin:16px 0;}
+    .box-tip strong{color:#155724;font-family:'Courier New',monospace;font-size:13px;display:block;margin-bottom:6px;}
+  </style>
+  <link rel="stylesheet" href="assets/c64-interactive.css">
+  <link rel="stylesheet" href="assets/c64-print.css" media="print">
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-header"><div class="logo">■ C64 MASTERY</div>Referenz</div>
+  <nav>
+    <div class="section-label">Curriculum</div>
+    <a href="index.html">◈ Übersicht</a>
+    <a href="stufe_06_sid_sound.html">06 · SID-Sound</a>
+    <div class="section-label">Erweiterte Stufen</div>
+    <a href="stufe_13_hardware_erweiterungen.html">13 · Hardware-Erweiterungen</a>
+    <a href="stufe_14_modern_workflow.html">14 · Moderner Workflow</a>
+    <a href="stufe_15_debugging_deep_dive.html">15 · Deep Debugging</a>
+    <div class="section-label">Anhänge</div>
+    <a href="anhang_opcodes.html">Opcode-Referenz</a>
+    <a href="anhang_speicherkarte.html">Speicherkarte</a>
+    <a href="anhang_vic_register.html">VIC-II Register</a>
+    <a href="anhang_sid_register.html" class="active">SID Register</a>
+    <a href="anhang_cia_register.html">CIA Register</a>
+    <a href="anhang_petscii.html">PETSCII-Tabelle</a>
+    <a href="anhang_farben.html">C64-Farben</a>
+    <a href="anhang_kernal_routinen.html">KERNAL-Routinen</a>
+  </nav>
+</aside>
+<main>
+  <div class="chapter-number">Anhang D</div>
+  <h1>SID Register &amp; Frequenztabelle</h1>
+  <div class="chapter-meta">
+    <span>$D400 – $D41C</span><span>MOS 6581 / 8580</span><span>3 Stimmen + Filter</span>
+  </div>
+  <p>Der SID (Sound Interface Device) liegt bei <code>$D400–$D41C</code> und spiegelt sich bis <code>$D7FF</code>. Jede der 3 Stimmen hat 7 Register. Frequenz-Formel (PAL): <strong>Fn = Fout × 16777216 / 985248</strong></p>
+
+  <h2>Stimmen-Register (Stimme 1: $D400–$D406, Stimme 2: $D407, Stimme 3: $D40E)</h2>
+  <table>
+    <thead><tr><th>Offset</th><th>Stimme 1</th><th>Stimme 2</th><th>Stimme 3</th><th>Funktion</th></tr></thead>
+    <tbody>
+      <tr><td>+0</td><td><code>$D400</code></td><td><code>$D407</code></td><td><code>$D40E</code></td><td>Frequenz Low-Byte (Bits 7–0)</td></tr>
+      <tr><td>+1</td><td><code>$D401</code></td><td><code>$D408</code></td><td><code>$D40F</code></td><td>Frequenz High-Byte (Bits 15–8)</td></tr>
+      <tr><td>+2</td><td><code>$D402</code></td><td><code>$D409</code></td><td><code>$D410</code></td><td>Pulsbreite Low (Bits 7–0) — nur Rechteck-Wellenform</td></tr>
+      <tr><td>+3</td><td><code>$D403</code></td><td><code>$D40A</code></td><td><code>$D411</code></td><td>Pulsbreite High (Bits 3–0) — 0=$000 (0%), $800=50%, $FFF=100%</td></tr>
+      <tr><td>+4</td><td><code>$D404</code></td><td><code>$D40B</code></td><td><code>$D412</code></td><td>Control-Register (Bits, s.u.)</td></tr>
+      <tr><td>+5</td><td><code>$D405</code></td><td><code>$D40C</code></td><td><code>$D413</code></td><td>Attack/Decay: Bits 7–4 = Attack (0–15), Bits 3–0 = Decay (0–15)</td></tr>
+      <tr><td>+6</td><td><code>$D406</code></td><td><code>$D40D</code></td><td><code>$D414</code></td><td>Sustain/Release: Bits 7–4 = Sustain-Level (0–15), Bits 3–0 = Release (0–15)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Control-Register Bits (Offset +4)</h3>
+  <table>
+    <thead><tr><th>Bit</th><th>Name</th><th>Funktion</th></tr></thead>
+    <tbody>
+      <tr><td>0</td><td>GATE</td><td>1 = Note starten (Attack beginnt). 0 = Note stoppen (Release beginnt)</td></tr>
+      <tr><td>1</td><td>SYNC</td><td>Frequenz von Stimme N mit Stimme N-1 synchronisieren (1→2→3→1)</td></tr>
+      <tr><td>2</td><td>RING</td><td>Ring-Modulation: Dreieck-Welle moduliert mit Nachbar-Stimme</td></tr>
+      <tr><td>3</td><td>TEST</td><td>Waveform-Generator zurücksetzen (Phasen-Reset)</td></tr>
+      <tr><td>4</td><td>TRI</td><td>Dreieck-Wellenform aktivieren</td></tr>
+      <tr><td>5</td><td>SAW</td><td>Sägezahn-Wellenform aktivieren</td></tr>
+      <tr><td>6</td><td>PUL</td><td>Rechteck (Puls) -Wellenform aktivieren (Pulsbreite via +2/+3)</td></tr>
+      <tr><td>7</td><td>NOI</td><td>Rauschen aktivieren (Pseudo-Random, 23-Bit LFSR)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box-tip">
+    <strong>Wellenform-Kombinationen</strong>
+    Mehrere Wellenform-Bits gleichzeitig = UND-Verknüpfung (dunklerer Klang). Klassisch: SAW+TRI ($60) für weichen Lead. Nur TRI ($10) für reine Sinusnäherung. Nur NOI ($80) für Schlagzeug/Rauschen.
+  </div>
+
+  <h2>ADSR-Zeitwerte</h2>
+  <table>
+    <thead><tr><th>Wert (0–15)</th><th>Attack-Zeit</th><th>Decay/Release-Zeit</th></tr></thead>
+    <tbody>
+      <tr><td>0</td><td>2 ms</td><td>6 ms</td></tr>
+      <tr><td>1</td><td>8 ms</td><td>24 ms</td></tr>
+      <tr><td>2</td><td>16 ms</td><td>48 ms</td></tr>
+      <tr><td>3</td><td>24 ms</td><td>72 ms</td></tr>
+      <tr><td>4</td><td>38 ms</td><td>114 ms</td></tr>
+      <tr><td>5</td><td>56 ms</td><td>168 ms</td></tr>
+      <tr><td>6</td><td>68 ms</td><td>204 ms</td></tr>
+      <tr><td>7</td><td>80 ms</td><td>240 ms</td></tr>
+      <tr><td>8</td><td>100 ms</td><td>300 ms</td></tr>
+      <tr><td>9</td><td>250 ms</td><td>750 ms</td></tr>
+      <tr><td>10</td><td>500 ms</td><td>1.5 s</td></tr>
+      <tr><td>11</td><td>800 ms</td><td>2.4 s</td></tr>
+      <tr><td>12</td><td>1 s</td><td>3 s</td></tr>
+      <tr><td>13</td><td>3 s</td><td>9 s</td></tr>
+      <tr><td>14</td><td>5 s</td><td>15 s</td></tr>
+      <tr><td>15</td><td>8 s</td><td>24 s</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Filter-Register ($D415–$D418)</h2>
+  <table>
+    <thead><tr><th>Adresse</th><th>Bits</th><th>Funktion</th></tr></thead>
+    <tbody>
+      <tr><td><code>$D415</code></td><td>Bits 2–0</td><td>Filter Cutoff Frequenz — Low-Bits (Bits 2–0 von 11-Bit-Wert)</td></tr>
+      <tr><td><code>$D416</code></td><td>Bits 7–0</td><td>Filter Cutoff Frequenz — High-Bits (Bits 10–3)</td></tr>
+      <tr><td><code>$D417</code></td><td>7–4: RES, 3: FILT EX, 2: FILT3, 1: FILT2, 0: FILT1</td><td>Resonanz (Bits 7–4, 0=keine, 15=max) + Filter-Routing: Bit N=1 → Stimme N durch Filter</td></tr>
+      <tr><td><code>$D418</code></td><td>7: 3OFF · 6–5: HP/BP/LP · 4–0: Volume</td><td>Bit 7: Stimme 3 Audio aus. Bits 6–5–4: High-Pass/Band-Pass/Low-Pass. Bits 3–0: Master-Lautstärke (0–15)</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Lese-Register</h2>
+  <table>
+    <thead><tr><th>Adresse</th><th>Funktion</th></tr></thead>
+    <tbody>
+      <tr><td><code>$D419</code></td><td>Potentiometer X (Paddles) — A/D Wandler</td></tr>
+      <tr><td><code>$D41A</code></td><td>Potentiometer Y</td></tr>
+      <tr><td><code>$D41B</code></td><td>Stimme 3 Wellenform-Ausgabe — nützlich als LFO/Zufallsgenerator!</td></tr>
+      <tr><td><code>$D41C</code></td><td>Stimme 3 Hüllkurven-Ausgabe (ADSR-Level)</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Frequenztabelle (PAL, 985248 Hz)</h2>
+  <p>Formel: <code>Fn = round(Fout × 16777216 / 985248)</code>. Für NTSC (1022727 Hz) Werte ca. 3.8% kleiner.</p>
+
+  <div class="freq-grid" id="freqGrid"></div>
+
+  <h2>Sound-Presets</h2>
+  <table>
+    <thead><tr><th>Instrument</th><th>Wellenform ($D404)</th><th>Attack</th><th>Decay</th><th>Sustain</th><th>Release</th><th>Filter</th></tr></thead>
+    <tbody>
+      <tr><td>Piano</td><td><code>$21</code> (TRI+GATE)</td><td>0</td><td>9</td><td>0</td><td>9</td><td>–</td></tr>
+      <tr><td>Orgel</td><td><code>$31</code> (TRI+SAW+GATE)</td><td>0</td><td>0</td><td>15</td><td>0</td><td>LP leicht</td></tr>
+      <tr><td>Flöte</td><td><code>$11</code> (TRI+GATE)</td><td>6</td><td>0</td><td>15</td><td>4</td><td>HP</td></tr>
+      <tr><td>Bass</td><td><code>$21</code> (SAW+GATE)</td><td>0</td><td>5</td><td>8</td><td>2</td><td>LP stark</td></tr>
+      <tr><td>Bass Drum</td><td><code>$81</code> (NOI+GATE)</td><td>0</td><td>5</td><td>0</td><td>5</td><td>LP</td></tr>
+      <tr><td>Snare</td><td><code>$81</code> (NOI+GATE)</td><td>0</td><td>4</td><td>0</td><td>3</td><td>BP/HP</td></tr>
+      <tr><td>Hi-Hat</td><td><code>$81</code> (NOI+GATE)</td><td>0</td><td>2</td><td>0</td><td>1</td><td>HP stark</td></tr>
+      <tr><td>Lead Synth</td><td><code>$41</code> (PUL+GATE) PW=$800</td><td>1</td><td>4</td><td>12</td><td>6</td><td>LP mittel</td></tr>
+    </tbody>
+  </table>
+
+  <pre><span style="color:#6688aa">; Note C4 (261.63 Hz) auf Stimme 1 spielen</span>
+<span style="color:#6688aa">; Fn = 261.63 × 16777216 / 985248 = 4452 = $1164</span>
+          LDA #$64 : STA $D400   <span style="color:#6688aa">; Freq Lo = $64</span>
+          LDA #$11 : STA $D401   <span style="color:#6688aa">; Freq Hi = $11</span>
+          LDA #$00 : STA $D405   <span style="color:#6688aa">; AD: A=0ms D=6ms</span>
+          LDA #$F0 : STA $D406   <span style="color:#6688aa">; SR: S=15 R=6ms</span>
+          LDA #$41 : STA $D404   <span style="color:#6688aa">; Puls-Wellenform + GATE=1 (start)</span>
+          LDA #$0F : STA $D418   <span style="color:#6688aa">; Lautstärke = 15 (max)</span>
+
+<span style="color:#6688aa">; Note stoppen:</span>
+          LDA #$40 : STA $D404   <span style="color:#6688aa">; GATE=0 (Release beginnt)</span></pre>
+
+<script>
+// Note frequencies for octaves 0-7 (PAL)
+const noteNames = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const A4_HZ = 440.0;
+const PAL_CLOCK = 985248;
+const grid = document.getElementById('freqGrid');
+
+for (let oct = 0; oct <= 7; oct++) {
+  const hdr = document.createElement('div');
+  hdr.className = 'octave-header';
+  hdr.textContent = `Oktave ${oct}`;
+  grid.appendChild(hdr);
+  for (let n = 0; n < 12; n++) {
+    const midiNote = (oct + 1) * 12 + n; // C0 = MIDI 12
+    const freq = A4_HZ * Math.pow(2, (midiNote - 69) / 12);
+    const sidFreq = Math.round(freq * 16777216 / PAL_CLOCK);
+    if (sidFreq > 65535) continue;
+    const cell = document.createElement('div');
+    cell.className = 'freq-cell';
+    cell.innerHTML = `<div class="note">${noteNames[n]}${oct}</div><div class="freq-hz">${freq.toFixed(1)} Hz</div><div class="freq-hex">$${sidFreq.toString(16).toUpperCase().padStart(4,'0')}</div>`;
+    grid.appendChild(cell);
+  }
+}
+</script>
+</main>
+  <script src="assets/c64-interactive.js"></script>
+</body>
+</html>

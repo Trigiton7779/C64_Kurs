@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C64 Mastery — Stufe 7: Interrupts &amp; Timing</title>
+<style>
+:root{--c64-blue:#0033aa;--c64-green:#00ff88;--c64-dark:#1a1a2e;--paper:#f8f6f0;--paper-dark:#ede9e0;--text:#1a1a2e;--text-light:#444466;--border:#c0b8a8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Georgia','Times New Roman',serif;font-size:17px;line-height:1.75;color:var(--text);background:var(--paper);display:grid;grid-template-columns:270px 1fr;min-height:100vh}
+.sidebar{background:var(--c64-dark);color:#ccc;position:sticky;top:0;height:100vh;overflow-y:auto;font-family:'Courier New',monospace;font-size:13px}
+.sidebar-header{background:var(--c64-blue);color:white;padding:20px 16px;text-align:center}
+.sidebar-header .logo{font-size:26px;font-weight:bold;color:var(--c64-green);letter-spacing:2px}
+.sidebar-header .sub{font-size:11px;color:#aac;margin-top:4px}
+.sidebar nav ul{list-style:none;padding:8px 0}
+.sidebar nav ul li a{display:block;padding:7px 16px;color:#99b;text-decoration:none;border-left:3px solid transparent;transition:all .2s;font-size:12.5px}
+.sidebar nav ul li a:hover,.sidebar nav ul li a.active{background:rgba(0,51,170,.3);color:var(--c64-green);border-left-color:var(--c64-green)}
+.sidebar nav ul li.section-label{padding:8px 16px 2px;font-size:10px;color:#445;text-transform:uppercase;letter-spacing:1px;margin-top:8px}
+main{max-width:860px;padding:0 56px 80px}
+.chapter-header{border-bottom:3px solid var(--c64-blue);padding:48px 0 28px;margin-bottom:40px}
+.chapter-number{font-family:'Courier New',monospace;font-size:12px;color:var(--c64-blue);text-transform:uppercase;letter-spacing:3px;font-weight:bold;margin-bottom:10px}
+.chapter-header h1{font-size:40px;font-weight:bold;color:var(--c64-dark);line-height:1.2;margin-bottom:18px}
+.chapter-meta{display:flex;gap:20px;font-family:'Courier New',monospace;font-size:13px;color:var(--text-light);flex-wrap:wrap;align-items:center}
+.badge{background:var(--c64-blue);color:white;padding:3px 10px;border-radius:12px;font-size:12px}
+.badge.red{background:#b71c1c}
+.objectives{background:#e3f2fd;border-left:4px solid #1565c0;border-radius:0 8px 8px 0;padding:22px 26px;margin-bottom:40px}
+.objectives h3{color:#1565c0;font-size:13px;text-transform:uppercase;letter-spacing:2px;margin-bottom:10px;font-family:'Courier New',monospace}
+.objectives ul{padding-left:20px}.objectives ul li{margin-bottom:5px}
+h2{font-size:26px;color:var(--c64-dark);border-bottom:2px solid var(--c64-blue);padding-bottom:8px;margin:44px 0 20px}
+h3{font-size:19px;color:var(--c64-blue);margin:28px 0 14px}
+h4{font-size:15px;color:var(--text);margin:20px 0 10px;font-family:'Courier New',monospace;text-transform:uppercase;letter-spacing:1px}
+p{margin-bottom:15px}ul,ol{padding-left:24px;margin-bottom:15px}li{margin-bottom:5px}
+pre{background:var(--c64-dark);color:var(--c64-green);font-family:'Courier New',monospace;font-size:13px;line-height:1.65;padding:22px;border-radius:8px;overflow-x:auto;margin:18px 0;border:1px solid #2a2a4a}
+code{font-family:'Courier New',monospace;background:#e5e0d4;padding:2px 6px;border-radius:3px;font-size:.88em;color:#8b0000}
+pre code{background:none;padding:0;color:inherit}
+table{width:100%;border-collapse:collapse;margin:18px 0;font-size:14.5px}
+thead{background:var(--c64-blue);color:white}
+thead th{padding:11px 14px;text-align:left;font-family:'Courier New',monospace;font-size:12px}
+tbody tr:nth-child(even){background:var(--paper-dark)}
+tbody td{padding:9px 14px;border-bottom:1px solid var(--border);vertical-align:top}
+tbody tr:hover{background:#dde8ff}
+.mono{font-family:'Courier New',monospace;color:#8b0000;font-weight:bold}
+.box{border-radius:0 8px 8px 0;padding:18px 22px;margin:22px 0;border-left:4px solid}
+.box .box-title{font-family:'Courier New',monospace;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px}
+.box.warning{background:#fff8e1;border-color:#f0a000}.box.warning .box-title{color:#e65100}
+.box.tip{background:#e8f5e9;border-color:#2e7d32}.box.tip .box-title{color:#1b5e20}
+.box.note{background:#e3f2fd;border-color:#1565c0}.box.note .box-title{color:#0d47a1}
+.box.important{background:#fce4ec;border-color:#c62828}.box.important .box-title{color:#b71c1c}
+.benchmark{background:linear-gradient(135deg,#001166 0%,#0033aa 100%);color:white;padding:30px;border-radius:12px;margin:44px 0}
+.benchmark h2{color:var(--c64-green);border-color:rgba(0,255,136,.3);margin-top:0;font-size:22px}
+.benchmark ul{list-style:none;padding:0}
+.benchmark ul li{padding:7px 0 7px 28px;position:relative;border-bottom:1px solid rgba(255,255,255,.1)}
+.benchmark ul li:before{content:'☐';position:absolute;left:0;color:var(--c64-green)}
+.exercises-section{border:2px solid var(--c64-blue);border-radius:12px;padding:28px;margin:44px 0}
+.exercises-section h2{color:var(--c64-blue);margin-top:0;border:none;padding:0}
+.exercise{background:var(--paper-dark);border-radius:8px;padding:18px;margin:14px 0}
+.exercise-num{font-family:'Courier New',monospace;font-size:11px;color:var(--c64-blue);font-weight:bold;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px}
+.chapter-nav{display:flex;justify-content:space-between;margin-top:56px;padding-top:28px;border-top:2px solid var(--border);gap:16px}
+.chapter-nav a{display:flex;flex-direction:column;padding:14px 22px;background:var(--c64-dark);color:white;text-decoration:none;border-radius:8px;min-width:180px;transition:background .2s}
+.chapter-nav a:hover{background:var(--c64-blue)}
+.nav-label{font-size:10px;color:#889;font-family:'Courier New',monospace;text-transform:uppercase;letter-spacing:2px;margin-bottom:4px}
+.nav-title{font-size:15px;font-weight:bold}
+</style>
+  <link rel="stylesheet" href="assets/c64-interactive.css">
+</head>
+<body>
+<nav class="sidebar">
+  <div class="sidebar-header"><div class="logo">C64</div><div class="sub">MASTERY SYSTEM</div></div>
+  <nav><ul>
+    <li><a href="index.html">&#9632; Übersicht &amp; Curriculum</a></li>
+    <li class="section-label">Grundlagen</li>
+    <li><a href="stufe_00_fundament.html">Stufe 0 — Fundament</a></li>
+    <li><a href="stufe_01_6510_assembler.html">Stufe 1 — 6510 Assembler</a></li>
+    <li><a href="stufe_02_adressierung_speicher.html">Stufe 2 — Adressierung &amp; Speicher</a></li>
+    <li class="section-label">Grafik &amp; Sound</li>
+    <li><a href="stufe_03_bildschirm_zeichen.html">Stufe 3 — VIC-II &amp; Zeichen</a></li>
+    <li><a href="stufe_04_sprites_animation.html">Stufe 4 — Sprites &amp; Animation</a></li>
+    <li><a href="stufe_05_bitmap_grafik.html">Stufe 5 — Bitmap-Grafik</a></li>
+    <li><a href="stufe_06_sid_sound.html">Stufe 6 — SID &amp; Sound</a></li>
+    <li class="section-label">Fortgeschritten</li>
+    <li><a href="stufe_07_interrupts_timing.html" class="active">Stufe 7 — Interrupts &amp; Timing</a></li>
+    <li><a href="stufe_08_optimierung.html">Stufe 8 — Optimierung</a></li>
+    <li><a href="stufe_09_demo_effekte.html">Stufe 9 — Demo-Effekte</a></li>
+    <li><a href="stufe_10_meisterschaft.html">Stufe 10 — Meisterschaft</a></li>
+      <li class="section-label">Workflow &amp; Release</li>
+      <li><a href="stufe_11_spielentwicklung_workflow.html">Stufe 11 — Spielentwicklung</a></li>
+      <li><a href="stufe_12_demo_entwicklung_workflow.html">Stufe 12 — Demo-Workflow</a></li>
+      <li class="section-label">Erweiterte Stufen</li>
+      <li><a href="stufe_13_hardware_erweiterungen.html">Stufe 13 — Hardware-Erweiterungen</a></li>
+      <li><a href="stufe_14_modern_workflow.html">Stufe 14 — Moderner Workflow</a></li>
+      <li><a href="stufe_15_debugging_deep_dive.html">Stufe 15 — Deep Debugging</a></li>
+      <li class="section-label">Anhänge &amp; Referenz</li>
+      <li><a href="anhang_kernal_routinen.html">H — KERNAL-Routinen</a></li>
+  </ul></nav>
+</nav>
+
+<main>
+<div class="chapter-header">
+  <div class="chapter-number">Stufe 7 — Fortgeschritten</div>
+  <h1>Interrupts &amp; Timing</h1>
+  <div class="chapter-meta">
+    <span><span class="badge red">Fortgeschritten</span></span>
+    <span>&#128337; ca. 8 Stunden</span>
+    <span>Voraussetzungen: Stufen 0–6</span>
+  </div>
+</div>
+
+<div class="objectives">
+  <h3>&#127919; Lernziele dieser Stufe</h3>
+  <ul>
+    <li>Das vollständige Interrupt-System des C64 (IRQ/NMI) verstehen</li>
+    <li>CIA1 und CIA2 für Tastatur, Joystick und Timer konfigurieren</li>
+    <li>Raster-IRQs präzise implementieren und den Standard-KERNAL-IRQ ersetzen</li>
+    <li>Die Double-IRQ-Technik für stabile Rasterzeilen einsetzen</li>
+    <li>CIA-Timer für musik-synchrone 50 Hz Aufrufe konfigurieren</li>
+    <li>Mehrere IRQs in einer Kette verbinden (Multi-Raster-IRQ)</li>
+  </ul>
+</div>
+
+<h2>1. Das Interrupt-System des 6510</h2>
+
+<p>Interrupts sind die Grundlage der gesamten Demo- und Spieleprogrammierung auf dem C64. Ohne sie könnten keine Raster-Effekte, keine präzisen Timings und keine gleichzeitigen Aufgaben (Grafik + Musik) realisiert werden. Zu verstehen, wie der C64 Interrupts verarbeitet, ist daher unverzichtbar.</p>
+
+<h3>1.1 IRQ — Maskierbarer Interrupt</h3>
+
+<p>Der IRQ (Interrupt Request) ist der häufig verwendete Interrupt-Typ. Er kann durch das I-Flag im Status-Register gesperrt (<code>SEI</code>) und erlaubt (<code>CLI</code>) werden. Mögliche Auslöser:</p>
+<ul>
+  <li>VIC-II Raster-Interrupt (wenn Rasterzeile erreicht)</li>
+  <li>CIA1 Timer A oder B Unterlauf</li>
+  <li>CIA1 FLAG-Pin (serieller Bus)</li>
+</ul>
+
+<p>IRQ-Ablauf Schritt für Schritt:</p>
+<ol>
+  <li>CPU beendet den aktuellen Befehl (1–7 Zyklen Latenz)</li>
+  <li>CPU prüft I-Flag: gesetzt → IRQ ignoriert; gelöscht → weiter</li>
+  <li>PC und Status-Register (P) werden auf den Stack gerettet (3 Bytes)</li>
+  <li>I-Flag automatisch gesetzt (weitere IRQs während Handler gesperrt)</li>
+  <li>CPU lädt IRQ-Vektor aus <code>$FFFE/$FFFF</code> (ROM)</li>
+  <li>ROM-Routine springt zu RAM-Vektor <code>$0314/$0315</code></li>
+</ol>
+
+<p>Die wichtigsten RAM-Vektoren:</p>
+
+<table>
+  <thead><tr><th>Adresse</th><th>Vektor-Typ</th><th>Standard-Ziel</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">$0314/$0315</td><td>IRQ-Handler</td><td>$EA31 (KERNAL-IRQ)</td></tr>
+    <tr><td class="mono">$0316/$0317</td><td>BRK-Handler</td><td>$FE66 (KERNAL-BRK)</td></tr>
+    <tr><td class="mono">$0318/$0319</td><td>NMI-Handler</td><td>$FE47 (KERNAL-NMI)</td></tr>
+  </tbody>
+</table>
+
+<h3>1.2 NMI — Nicht-Maskierbarer Interrupt</h3>
+
+<p>Der NMI (Non-Maskable Interrupt) kann durch das I-Flag <strong>nicht</strong> gesperrt werden. Er wird ausgelöst durch:</p>
+<ul>
+  <li>RESTORE-Taste (direkt am NMI-Pin der CPU)</li>
+  <li>CIA2 FLAG-Pin</li>
+  <li>CIA2 Timer (bei entsprechender Konfiguration)</li>
+</ul>
+
+<p>NMI-Vektor: <code>$FFFA/$FFFB</code> (ROM) → <code>$0318/$0319</code> (RAM).</p>
+
+<pre>
+; RESTORE-Taste abfangen (NMI übernehmen):
+        lda #&lt;MyNMIHandler
+        sta $0318
+        lda #&gt;MyNMIHandler
+        sta $0319
+
+MyNMIHandler:
+        ; Eigene Aktion bei RESTORE-Taste
+        ; z.B.: Spiel pausieren, Menü anzeigen
+        lda #$00 : sta $d020    ; Border kurz aufleuchten
+        ; Nach Verarbeitung normale Rückkehr:
+        rti
+</pre>
+
+<h2>2. Die CIA-Chips vollständig</h2>
+
+<h3>2.1 CIA1 — Tastatur und Joystick ($DC00–$DCFF)</h3>
+
+<table>
+  <thead><tr><th>Offset</th><th>Register</th><th>Funktion</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">$DC00</td><td>PRA</td><td>Port A: Tastatur-Spalten (Ausgabe), Joystick 2 (Eingabe)</td></tr>
+    <tr><td class="mono">$DC01</td><td>PRB</td><td>Port B: Tastatur-Zeilen (Eingabe), Joystick 1 (Eingabe)</td></tr>
+    <tr><td class="mono">$DC02</td><td>DDRA</td><td>Datenrichtung Port A (Standard: $FF = alles Ausgabe)</td></tr>
+    <tr><td class="mono">$DC03</td><td>DDRB</td><td>Datenrichtung Port B (Standard: $00 = alles Eingabe)</td></tr>
+    <tr><td class="mono">$DC04/$DC05</td><td>TALO/TAHI</td><td>Timer A Zähler (lesen = aktueller Wert, schreiben = Latch)</td></tr>
+    <tr><td class="mono">$DC06/$DC07</td><td>TBLO/TBHI</td><td>Timer B Zähler</td></tr>
+    <tr><td class="mono">$DC08–$DC0B</td><td>TOD</td><td>Time of Day Uhr (Zehntel, Sek, Min, Std in BCD)</td></tr>
+    <tr><td class="mono">$DC0C</td><td>SDR</td><td>Serielles Datenregister</td></tr>
+    <tr><td class="mono">$DC0D</td><td>ICR</td><td>Interrupt Control: Lesen = Status (löscht), Schreiben = Maske</td></tr>
+    <tr><td class="mono">$DC0E</td><td>CRA</td><td>Control Register A (Timer A steuern)</td></tr>
+    <tr><td class="mono">$DC0F</td><td>CRB</td><td>Control Register B</td></tr>
+  </tbody>
+</table>
+
+<h3>2.2 Tastatur scannen</h3>
+
+<p>Die C64-Tastatur ist als 8×8-Matrix aufgebaut: Port A wählt eine Spalte aus (durch Ausgabe einer 0 im entsprechenden Bit), Port B liest dann, welche Zeilen in dieser Spalte gedrückt sind (0 = gedrückt).</p>
+
+<pre>
+; Vollständiger Tastatur-Scan
+; Ergebnis in $D4: Matrix-Code (0-63) oder $FF (keine Taste)
+
+ScanKeyboard:
+        lda #$ff
+        sta $d4         ; Keine Taste gefunden
+
+        lda #%11111110  ; Spalte 0 aktivieren
+        ldx #0          ; Spalten-Zähler
+
+@scan_col:
+        sta $dc00       ; Spalte setzen
+        nop : nop       ; Kurz warten (Stabilisierung)
+
+        lda $dc01       ; Zeilen lesen
+        eor #$ff        ; Invertieren (1 = gedrückt)
+        beq @next_col   ; Keine Taste in dieser Spalte
+
+        ; Zeile bestimmen (welches Bit gesetzt?)
+        ldy #0
+@find_row:
+        lsr
+        bcs @found
+        iny
+        cpy #8
+        bne @find_row
+        bne @next_col
+
+@found:
+        ; Matrix-Code = Spalte*8 + Zeile
+        txa
+        asl : asl : asl ; Spalte * 8
+        sty $d5
+        clc
+        adc $d5
+        sta $d4         ; Ergebnis speichern
+
+@next_col:
+        inx
+        cpx #8
+        beq @done
+        lda ColMasks,x
+        jmp @scan_col
+
+@done:
+        lda #$ff
+        sta $dc00       ; Port A zurücksetzen
+        rts
+
+ColMasks: !byte $fe,$fd,$fb,$f7,$ef,$df,$bf,$7f
+</pre>
+
+<h3>2.3 CIA2 — VIC-Bank und IEC ($DD00–$DDFF)</h3>
+
+<table>
+  <thead><tr><th>Offset</th><th>Register</th><th>Funktion</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">$DD00</td><td>PRA</td><td>Bits 0-1: VIC-Bank (invertiert!); Bit 2: Datasette; Bits 3-5: IEC-Bus</td></tr>
+    <tr><td class="mono">$DD01</td><td>PRB</td><td>RS-232, IEC-Bus Status</td></tr>
+    <tr><td class="mono">$DD0D</td><td>ICR</td><td>CIA2 Interrupt Control (NMI-Quelle!)</td></tr>
+  </tbody>
+</table>
+
+<pre>
+; VIC-Bank wechseln (CIA2 $DD00 Bits 0-1, invertiert!)
+; Bank 0 ($0000): %11 → $DD00 Bits 0-1 = %11 → AND-Maske: ORA $DD00 mit %00000011
+; Bank 1 ($4000): %10 → Bits 0-1 = %10
+; Bank 2 ($8000): %01 → Bits 0-1 = %01
+; Bank 3 ($C000): %00 → Bits 0-1 = %00
+
+SetVICBank1:   ; Auf Bank 1 ($4000-$7FFF) wechseln
+        lda $dd00
+        and #%11111100  ; Bits 0-1 löschen
+        ora #%00000010  ; %10 = Bank 1
+        sta $dd00
+        rts
+</pre>
+
+<h2>3. CIA-Timer konfigurieren</h2>
+
+<h3>3.1 Timer-Betriebsmodi</h3>
+
+<p>Jeder CIA-Chip hat zwei 16-Bit-Timer (A und B). Das Control-Register (CRA/CRB) bestimmt den Betriebsmodus:</p>
+
+<table>
+  <thead><tr><th>Bit</th><th>Name</th><th>Funktion</th></tr></thead>
+  <tbody>
+    <tr><td>0</td><td>START</td><td>1 = Timer läuft, 0 = angehalten</td></tr>
+    <tr><td>3</td><td>RUNMODE</td><td>0 = Continuous (automatisch neu laden), 1 = One-Shot (stoppt nach Ablauf)</td></tr>
+    <tr><td>4</td><td>LOAD</td><td>Schreiben einer 1 lädt Latch-Wert sofort in Zähler</td></tr>
+    <tr><td>5</td><td>INMODE</td><td>0 = Systemclock, 1 = CNT-Pin als Taktquelle</td></tr>
+  </tbody>
+</table>
+
+<h3>3.2 Präziser 50 Hz Timer-IRQ</h3>
+
+<pre>
+; CIA1 Timer A für exakt 50 Hz (PAL) konfigurieren
+; PAL: 985248 Hz, 985248 / 50 = 19704,96 ≈ 19704 Zyklen = $4CC8
+
+InitTimer50Hz:
+        SEI
+        ; Alle CIA-IRQs deaktivieren
+        LDA #$7F
+        STA $DC0D       ; CIA1: alle IRQs aus (Bit 7=0 → Bits löschen)
+        STA $DD0D       ; CIA2: alle IRQs aus
+        LDA $DC0D       ; Pending-Bits löschen (durch Lesen)
+        LDA $DD0D
+
+        ; Eigenen IRQ-Vektor setzen
+        LDA #&lt;TimerHandler
+        STA $0314
+        LDA #&gt;TimerHandler
+        STA $0315
+
+        ; Timer A Latch auf 19704 ($4CC8) setzen
+        LDA #$C8        ; $4CC8 Low-Byte
+        STA $DC04       ; Timer A Low (schreibt Latch)
+        LDA #$4C        ; $4CC8 High-Byte
+        STA $DC05       ; Timer A High (schreibt Latch)
+
+        ; Control Register A: Continuous + Systemclock + sofortiges Laden + Start
+        LDA #%00010001  ; Bit 4 (LOAD) + Bit 0 (START)
+        STA $DC0E
+
+        ; Timer A IRQ aktivieren
+        LDA #%10000001  ; Bit 7=1 (Bits setzen), Bit 0=Timer A
+        STA $DC0D
+
+        CLI
+        RTS
+
+TimerHandler:
+        LDA $DC0D       ; Interrupt-Status lesen (quittiert CIA1-IRQ!)
+        ; Eigener Code hier...
+        JMP $EA31       ; KERNAL-IRQ für Tastatur etc. aufrufen
+</pre>
+
+<h2>4. Raster-IRQ vollständig</h2>
+
+<h3>4.1 Grundaufbau</h3>
+
+<p>Der VIC-II Raster-IRQ ist das wichtigste Werkzeug für Grafikeffekte. Er wird ausgelöst, wenn der Raster-Strahl eine bestimmte Zeile erreicht. Die Ziel-Zeile wird in <code>$D012</code> (Bits 0–7) und <code>$D011</code> Bit 7 (Bit 8 für Zeilen &gt;255) gesetzt.</p>
+
+<pre>
+; =====================================================
+; Raster-IRQ Setup — vollständige Routine
+; Farb-Split: Oberer Bildschirmbereich rot, unterer blau
+; =====================================================
+
+IRQ_LINE_1 = 100    ; Wechsel zu Blau
+IRQ_LINE_2 = 200    ; Wechsel zurück zu Rot
+
+SetupRasterIRQ:
+        SEI
+        ; CIA-IRQs deaktivieren
+        LDA #$7F : STA $DC0D : STA $DD0D
+        LDA $DC0D : LDA $DD0D   ; Pending löschen
+
+        ; IRQ-Vektor auf IRQ1
+        LDA #&lt;IRQ1 : STA $0314
+        LDA #&gt;IRQ1 : STA $0315
+
+        ; Raster-Zeile für IRQ1 setzen
+        LDA #IRQ_LINE_1
+        STA $D012
+        LDA $D011
+        AND #$7F        ; Bit 7 = 0 (Zeile &lt; 256)
+        STA $D011
+
+        ; Raster-IRQ aktivieren
+        LDA #$01
+        STA $D01A
+
+        CLI
+        RTS
+
+IRQ1:
+        ; Farbe wechseln: Blau
+        LDA #6 : STA $D020 : STA $D021
+
+        ; IRQ2 auf Zeile 200 setzen
+        LDA #IRQ_LINE_2 : STA $D012
+        LDA #&lt;IRQ2 : STA $0314
+        LDA #&gt;IRQ2 : STA $0315
+
+        ; IRQ quittieren
+        LDA #$01 : STA $D019
+        JMP $EA31
+
+IRQ2:
+        ; Farbe wechseln: Rot
+        LDA #2 : STA $D020 : STA $D021
+
+        ; IRQ1 zurücksetzen
+        LDA #IRQ_LINE_1 : STA $D012
+        LDA #&lt;IRQ1 : STA $0314
+        LDA #&gt;IRQ1 : STA $0315
+
+        LDA #$01 : STA $D019
+        JMP $EA31
+</pre>
+
+<h3>4.2 Das Jitter-Problem und die Double-IRQ-Lösung</h3>
+
+<p>Ein fundamentales Problem beim Raster-IRQ ist der sogenannte <em>Jitter</em>: Der 6510 muss stets den aktuellen Befehl zu Ende ausführen. Da Befehle zwischen 2 und 7 Zyklen dauern, variiert der Zeitpunkt des IRQ-Eintreffens um bis zu 7 Zyklen. Bei Timing-kritischen Effekten wie Farbsplits auf einer einzelnen Rasterzeile erzeugt das ein sichtbares "Zittern".</p>
+
+<p>Die Lösung ist die <em>Double-IRQ-Technik</em>: Zwei aufeinanderfolgende IRQs werden verwendet. Der erste IRQ richtet den zweiten exakt aus; der zweite führt dann den eigentlichen Effekt aus.</p>
+
+<pre>
+; =====================================================
+; Stabiler Raster-IRQ (Double-IRQ / Stable Raster)
+; Ziel: exakt auf Rasterzeile EFFECT_LINE
+; =====================================================
+
+EFFECT_LINE = 120
+
+SetupStableRaster:
+        SEI
+        LDA #$7F : STA $DC0D : STA $DD0D
+        LDA $DC0D : LDA $DD0D
+
+        LDA #&lt;StableIRQ1 : STA $0314
+        LDA #&gt;StableIRQ1 : STA $0315
+
+        LDA #(EFFECT_LINE-1) : STA $D012
+        LDA $D011 : AND #$7F : STA $D011
+        LDA #$01 : STA $D01A
+        CLI
+        RTS
+
+; IRQ1: Stellt IRQ2 exakt auf die Zielzeile
+StableIRQ1:
+        LDA #$01 : STA $D019    ; IRQ quittieren
+
+        ; Auf IRQ2 vorbereiten
+        LDA #EFFECT_LINE : STA $D012
+        LDA #&lt;StableIRQ2 : STA $0314
+        LDA #&gt;StableIRQ2 : STA $0315
+
+        ; Timing-Ausgleich: NOP-Padding je nach CPU-Phase
+        ; Die genaue Anzahl NOPs hängt vom Assembler-Timing ab
+        ; Standard-Technik für sehr präzises Timing:
+        BIT $EA31       ; 4 Zyklen (für Timing-Ausgleich)
+        RTI
+
+; IRQ2: Effekt läuft hier — exakt auf EFFECT_LINE
+StableIRQ2:
+        LDA #$01 : STA $D019
+
+        ; EFFEKT (exakt auf der gewünschten Zeile!)
+        LDA #5 : STA $D020  ; Grüne Border auf dieser Zeile
+        ; (für dauerhaft: hier Farbwechsel für den Rest des Frames)
+
+        ; Zurück zu IRQ1 für nächsten Frame
+        LDA #(EFFECT_LINE-1) : STA $D012
+        LDA #&lt;StableIRQ1 : STA $0314
+        LDA #&gt;StableIRQ1 : STA $0315
+
+        JMP $EA31
+</pre>
+
+<div class="box tip">
+  <div class="box-title">&#128161; Timing-Ausgleich im Detail</div>
+  <p>Das genaue NOP-Padding in IRQ1 ist abhängig davon, auf welchem Zyklus innerhalb der Rasterzeile der IRQ eintrifft. Für maximale Präzision (±0 Zyklen) muss IRQ1 einen "Wartemechanismus" implementieren: Warten bis ein bekannter Raster-Zyklus-Punkt erreicht ist, dann RTI. In der Praxis nutzen Demo-Coder oft die Technik, <code>INC $D012</code> zweimal aufzurufen und die genauen Zyklenzahlen zu zählen.</p>
+</div>
+
+<h2>5. Vollständiger Musik-IRQ</h2>
+
+<pre>
+; =====================================================
+; Kombination: Raster-IRQ für Grafik + Musik-Update
+; Musik-Player wird im vertikalen Blankintervall aufgerufen
+; =====================================================
+
+MUSIC_LINE = 250    ; Rasterzeile im VBlank-Bereich (PAL)
+
+SetupMusicIRQ:
+        SEI
+        LDA #$7F : STA $DC0D : STA $DD0D
+        LDA $DC0D : LDA $DD0D
+
+        LDA #&lt;MusicIRQ : STA $0314
+        LDA #&gt;MusicIRQ : STA $0315
+
+        LDA #MUSIC_LINE : STA $D012
+        LDA $D011 : AND #$7F : STA $D011
+        LDA #$01 : STA $D01A
+        CLI
+        RTS
+
+MusicIRQ:
+        LDA #$01 : STA $D019    ; Quittieren
+        JSR MusicUpdate         ; Musik-Player aufrufen (aus Stufe 6)
+        JMP $EA31               ; KERNAL-IRQ weiter
+</pre>
+
+<div class="benchmark">
+  <h2>&#127942; Skill-Benchmark: Stufe 7</h2>
+  <ul>
+    <li>IRQ- und NMI-Vektoren und ihre RAM-Adressen benennen</li>
+    <li>Einen vollständigen Raster-IRQ-Setup-Code aus dem Gedächtnis schreiben</li>
+    <li>CIA1-Timer für 50 Hz korrekt konfigurieren (Latch-Wert berechnen)</li>
+    <li>Den Jitter-Effekt erklären und die Double-IRQ-Lösung beschreiben</li>
+    <li>IRQ-Quittierung ($D019) korrekt implementieren</li>
+    <li>Multi-Raster-IRQ-Kette mit 3 Farbzonen programmieren</li>
+    <li>RESTORE-Taste per NMI abfangen und eigene Funktion aufrufen</li>
+  </ul>
+</div>
+
+<div class="exercises-section">
+  <h2>&#9997; Übungen</h2>
+  <div class="exercise">
+    <div class="exercise-num">Übung 7.1 — Regenbogen-Border</div>
+    <p>Implementiere einen IRQ, der auf jeder sichtbaren Rasterzeile die Border-Farbe wechselt. Das Ergebnis soll ein Regenbogen aus allen 16 Farben in der Border sein, der sich jede Sekunde verschiebt (durch einen Zähler, der den Farb-Offset verändert).</p>
+  </div>
+  <div class="exercise">
+    <div class="exercise-num">Übung 7.2 — Musik + Grafik gleichzeitig</div>
+    <p>Kombiniere den Musik-Player aus Stufe 6 mit einem Raster-IRQ. Die Musik soll im VBlank-IRQ (Rasterzeile 250+) laufen. Gleichzeitig soll ein zweiter IRQ auf Rasterzeile 100 die Border-Farbe rhythmisch zur Musik ändern.</p>
+  </div>
+  <div class="exercise">
+    <div class="exercise-num">Übung 7.3 — Stabile Farbsplits</div>
+    <p>Implementiere 4 stabile Farbsplits auf dem Bildschirm (4 verschiedene Background-Farben in 4 horizontalen Streifen). Verwende die Double-IRQ-Technik für jeden Split. Die Grenzen sollen pixelgenau sein (kein Jitter sichtbar).</p>
+  </div>
+  <div class="exercise">
+    <div class="exercise-num">Übung 7.4 — Tastatur-Input mit IRQ</div>
+    <p>Schreibe ein Programm, das den Tastatur-Scan im Haupt-IRQ ausführt (nicht den KERNAL-Scan). Zeige die gedrückte Taste als Matrix-Code (0-63) im oberen linken Bildschirmbereich an. Verwende dafür die Routine aus diesem Kapitel.</p>
+  </div>
+</div>
+
+<nav class="chapter-nav">
+  <a href="stufe_06_sid_sound.html">
+    <span class="nav-label">&#8592; Vorherige Stufe</span>
+    <span class="nav-title">Stufe 6: SID &amp; Sound</span>
+  </a>
+  <a href="stufe_08_optimierung.html">
+    <span class="nav-label">Nächste Stufe &#8594;</span>
+    <span class="nav-title">Stufe 8: Optimierung</span>
+  </a>
+</nav>
+</main>
+  <script src="assets/c64-interactive.js"></script>
+</body>
+</html>

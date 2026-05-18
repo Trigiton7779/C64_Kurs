@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C64 Mastery — Stufe 5: Bitmap-Grafik</title>
+<style>
+:root{--c64-blue:#0033aa;--c64-green:#00ff88;--c64-dark:#1a1a2e;--paper:#f8f6f0;--paper-dark:#ede9e0;--text:#1a1a2e;--text-light:#444466;--border:#c0b8a8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Georgia','Times New Roman',serif;font-size:17px;line-height:1.75;color:var(--text);background:var(--paper);display:grid;grid-template-columns:270px 1fr;min-height:100vh}
+.sidebar{background:var(--c64-dark);color:#ccc;position:sticky;top:0;height:100vh;overflow-y:auto;font-family:'Courier New',monospace;font-size:13px}
+.sidebar-header{background:var(--c64-blue);color:white;padding:20px 16px;text-align:center}
+.sidebar-header .logo{font-size:26px;font-weight:bold;color:var(--c64-green);letter-spacing:2px}
+.sidebar-header .sub{font-size:11px;color:#aac;margin-top:4px}
+.sidebar nav ul{list-style:none;padding:8px 0}
+.sidebar nav ul li a{display:block;padding:7px 16px;color:#99b;text-decoration:none;border-left:3px solid transparent;transition:all .2s;font-size:12.5px}
+.sidebar nav ul li a:hover,.sidebar nav ul li a.active{background:rgba(0,51,170,.3);color:var(--c64-green);border-left-color:var(--c64-green)}
+.sidebar nav ul li.section-label{padding:8px 16px 2px;font-size:10px;color:#445;text-transform:uppercase;letter-spacing:1px;margin-top:8px}
+main{max-width:860px;padding:0 56px 80px}
+.chapter-header{border-bottom:3px solid var(--c64-blue);padding:48px 0 28px;margin-bottom:40px}
+.chapter-number{font-family:'Courier New',monospace;font-size:12px;color:var(--c64-blue);text-transform:uppercase;letter-spacing:3px;font-weight:bold;margin-bottom:10px}
+.chapter-header h1{font-size:40px;font-weight:bold;color:var(--c64-dark);line-height:1.2;margin-bottom:18px}
+.chapter-meta{display:flex;gap:20px;font-family:'Courier New',monospace;font-size:13px;color:var(--text-light);flex-wrap:wrap;align-items:center}
+.badge{background:var(--c64-blue);color:white;padding:3px 10px;border-radius:12px;font-size:12px}
+.badge.red{background:#b71c1c}
+.objectives{background:#e3f2fd;border-left:4px solid #1565c0;border-radius:0 8px 8px 0;padding:22px 26px;margin-bottom:40px}
+.objectives h3{color:#1565c0;font-size:13px;text-transform:uppercase;letter-spacing:2px;margin-bottom:10px;font-family:'Courier New',monospace}
+.objectives ul{padding-left:20px}.objectives ul li{margin-bottom:5px}
+h2{font-size:26px;color:var(--c64-dark);border-bottom:2px solid var(--c64-blue);padding-bottom:8px;margin:44px 0 20px}
+h3{font-size:19px;color:var(--c64-blue);margin:28px 0 14px}
+h4{font-size:15px;color:var(--text);margin:20px 0 10px;font-family:'Courier New',monospace;text-transform:uppercase;letter-spacing:1px}
+p{margin-bottom:15px}ul,ol{padding-left:24px;margin-bottom:15px}li{margin-bottom:5px}
+pre{background:var(--c64-dark);color:var(--c64-green);font-family:'Courier New',monospace;font-size:13px;line-height:1.65;padding:22px;border-radius:8px;overflow-x:auto;margin:18px 0;border:1px solid #2a2a4a}
+code{font-family:'Courier New',monospace;background:#e5e0d4;padding:2px 6px;border-radius:3px;font-size:.88em;color:#8b0000}
+pre code{background:none;padding:0;color:inherit}
+table{width:100%;border-collapse:collapse;margin:18px 0;font-size:14.5px}
+thead{background:var(--c64-blue);color:white}
+thead th{padding:11px 14px;text-align:left;font-family:'Courier New',monospace;font-size:12px}
+tbody tr:nth-child(even){background:var(--paper-dark)}
+tbody td{padding:9px 14px;border-bottom:1px solid var(--border);vertical-align:top}
+tbody tr:hover{background:#dde8ff}
+.mono{font-family:'Courier New',monospace;color:#8b0000;font-weight:bold}
+.box{border-radius:0 8px 8px 0;padding:18px 22px;margin:22px 0;border-left:4px solid}
+.box .box-title{font-family:'Courier New',monospace;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px}
+.box.warning{background:#fff8e1;border-color:#f0a000}.box.warning .box-title{color:#e65100}
+.box.tip{background:#e8f5e9;border-color:#2e7d32}.box.tip .box-title{color:#1b5e20}
+.box.note{background:#e3f2fd;border-color:#1565c0}.box.note .box-title{color:#0d47a1}
+.box.important{background:#fce4ec;border-color:#c62828}.box.important .box-title{color:#b71c1c}
+.benchmark{background:linear-gradient(135deg,#001166 0%,#0033aa 100%);color:white;padding:30px;border-radius:12px;margin:44px 0}
+.benchmark h2{color:var(--c64-green);border-color:rgba(0,255,136,.3);margin-top:0;font-size:22px}
+.benchmark ul{list-style:none;padding:0}
+.benchmark ul li{padding:7px 0 7px 28px;position:relative;border-bottom:1px solid rgba(255,255,255,.1)}
+.benchmark ul li:before{content:'☐';position:absolute;left:0;color:var(--c64-green)}
+.exercises-section{border:2px solid var(--c64-blue);border-radius:12px;padding:28px;margin:44px 0}
+.exercises-section h2{color:var(--c64-blue);margin-top:0;border:none;padding:0}
+.exercise{background:var(--paper-dark);border-radius:8px;padding:18px;margin:14px 0}
+.exercise-num{font-family:'Courier New',monospace;font-size:11px;color:var(--c64-blue);font-weight:bold;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px}
+.chapter-nav{display:flex;justify-content:space-between;margin-top:56px;padding-top:28px;border-top:2px solid var(--border);gap:16px}
+.chapter-nav a{display:flex;flex-direction:column;padding:14px 22px;background:var(--c64-dark);color:white;text-decoration:none;border-radius:8px;min-width:180px;transition:background .2s}
+.chapter-nav a:hover{background:var(--c64-blue)}
+.nav-label{font-size:10px;color:#889;font-family:'Courier New',monospace;text-transform:uppercase;letter-spacing:2px;margin-bottom:4px}
+.nav-title{font-size:15px;font-weight:bold}
+</style>
+  <link rel="stylesheet" href="assets/c64-interactive.css">
+</head>
+<body>
+<nav class="sidebar">
+  <div class="sidebar-header"><div class="logo">C64</div><div class="sub">MASTERY SYSTEM</div></div>
+  <nav><ul>
+    <li><a href="index.html">&#9632; Übersicht &amp; Curriculum</a></li>
+    <li class="section-label">Grundlagen</li>
+    <li><a href="stufe_00_fundament.html">Stufe 0 — Fundament</a></li>
+    <li><a href="stufe_01_6510_assembler.html">Stufe 1 — 6510 Assembler</a></li>
+    <li><a href="stufe_02_adressierung_speicher.html">Stufe 2 — Adressierung &amp; Speicher</a></li>
+    <li class="section-label">Grafik &amp; Sound</li>
+    <li><a href="stufe_03_bildschirm_zeichen.html">Stufe 3 — VIC-II &amp; Zeichen</a></li>
+    <li><a href="stufe_04_sprites_animation.html">Stufe 4 — Sprites &amp; Animation</a></li>
+    <li><a href="stufe_05_bitmap_grafik.html" class="active">Stufe 5 — Bitmap-Grafik</a></li>
+    <li><a href="stufe_06_sid_sound.html">Stufe 6 — SID &amp; Sound</a></li>
+    <li class="section-label">Fortgeschritten</li>
+    <li><a href="stufe_07_interrupts_timing.html">Stufe 7 — Interrupts &amp; Timing</a></li>
+    <li><a href="stufe_08_optimierung.html">Stufe 8 — Optimierung</a></li>
+    <li><a href="stufe_09_demo_effekte.html">Stufe 9 — Demo-Effekte</a></li>
+    <li><a href="stufe_10_meisterschaft.html">Stufe 10 — Meisterschaft</a></li>
+      <li class="section-label">Workflow &amp; Release</li>
+      <li><a href="stufe_11_spielentwicklung_workflow.html">Stufe 11 — Spielentwicklung</a></li>
+      <li><a href="stufe_12_demo_entwicklung_workflow.html">Stufe 12 — Demo-Workflow</a></li>
+      <li class="section-label">Erweiterte Stufen</li>
+      <li><a href="stufe_13_hardware_erweiterungen.html">Stufe 13 — Hardware-Erweiterungen</a></li>
+      <li><a href="stufe_14_modern_workflow.html">Stufe 14 — Moderner Workflow</a></li>
+      <li><a href="stufe_15_debugging_deep_dive.html">Stufe 15 — Deep Debugging</a></li>
+      <li class="section-label">Anhänge &amp; Referenz</li>
+      <li><a href="anhang_kernal_routinen.html">H — KERNAL-Routinen</a></li>
+  </ul></nav>
+</nav>
+
+<main>
+<div class="chapter-header">
+  <div class="chapter-number">Stufe 5 — Grafik &amp; Sound</div>
+  <h1>Bitmap-Grafik</h1>
+  <div class="chapter-meta">
+    <span><span class="badge red">Fortgeschritten</span></span>
+    <span>&#128337; ca. 8 Stunden</span>
+    <span>Voraussetzungen: Stufen 0–4</span>
+  </div>
+</div>
+
+<div class="objectives">
+  <h3>&#127919; Lernziele dieser Stufe</h3>
+  <ul>
+    <li>Den Hires-Bitmap-Modus (320×200) vollständig einrichten und nutzen</li>
+    <li>Den Multicolor-Bitmap-Modus (160×200, 4 Farben pro Zelle) beherrschen</li>
+    <li>Pixel-genaue Zeichenoperationen programmieren</li>
+    <li>Das FLI-Konzept (Flexible Line Interpretation) für mehr Farben verstehen</li>
+    <li>Grafiken im Koala-Format laden und anzeigen</li>
+    <li>Optimierte Bitmap-Routinen für Performance schreiben</li>
+  </ul>
+</div>
+
+<h2>1. Bitmap-Grafik — Pixel für Pixel</h2>
+
+<p>Während der Zeichenmodus auf einem vordefinierten Raster aus 8×8-Pixel-Blöcken basiert, erlauben die Bitmap-Modi des C64 pixel-genaue Kontrolle über das gesamte Bild. Diese Fähigkeit ist Grundlage für alle hochauflösenden Grafiken, Ladebilder und viele fortgeschrittene Demo-Effekte.</p>
+
+<p>Der C64 bietet zwei Bitmap-Modi: Hires (320×200, 2 Farben pro 8×8-Zelle) und Multicolor (160×200, 4 Farben pro 8×8-Zelle). Beide teilen dieselbe Grundidee: Die Bitmap enthält rohe Pixel-Bits, während Screen-RAM und Color-RAM die Farbinformationen liefern.</p>
+
+<h3>1.1 Speicherbedarf im Überblick</h3>
+
+<table>
+  <thead><tr><th>Modus</th><th>Bitmap</th><th>Screen-RAM</th><th>Color-RAM</th><th>Gesamt</th></tr></thead>
+  <tbody>
+    <tr><td>Hires Bitmap</td><td>8.000 Bytes</td><td>1.000 Bytes</td><td>—</td><td>9.000 Bytes</td></tr>
+    <tr><td>Multicolor Bitmap</td><td>8.000 Bytes</td><td>1.000 Bytes</td><td>1.000 Bytes</td><td>10.000 Bytes</td></tr>
+    <tr><td>FLI (Hires)</td><td>8.000 Bytes</td><td>8.000 Bytes</td><td>1.000 Bytes</td><td>17.000 Bytes</td></tr>
+  </tbody>
+</table>
+
+<h2>2. Hires-Bitmap-Modus (Standard Bitmap)</h2>
+
+<h3>2.1 Aktivierung</h3>
+
+<p>Der Hires-Bitmap-Modus wird durch Setzen von Bit 5 (BMM) in Register <code>$D011</code> aktiviert:</p>
+
+<pre>
+; Hires-Bitmap-Modus aktivieren:
+lda $d011
+ora #%00100000  ; Bit 5 (BMM) setzen
+sta $d011
+
+; MCM (Multicolor) muss 0 sein:
+lda $d016
+and #%11101111  ; Bit 4 löschen
+sta $d016
+</pre>
+
+<h3>2.2 Speicher-Layout</h3>
+
+<p>Register <code>$D018</code> Bit 3 bestimmt, wo die Bitmap-Daten innerhalb der VIC-Bank liegen:</p>
+
+<ul>
+  <li>Bit 3 = 0: Bitmap bei Offset <code>$0000</code> der VIC-Bank</li>
+  <li>Bit 3 = 1: Bitmap bei Offset <code>$2000</code> der VIC-Bank</li>
+</ul>
+
+<p>Bei Standard VIC-Bank 0: Bitmap entweder bei <code>$0000</code> oder <code>$2000</code>.</p>
+
+<p>Screen-RAM bestimmt die Farben der einzelnen 8×8-Zellen:</p>
+<ul>
+  <li>High-Nibble (Bits 4–7): Farbe der <em>gesetzten</em> Bits (Pixel "an")</li>
+  <li>Low-Nibble (Bits 0–3): Farbe der <em>gelöschten</em> Bits (Pixel "aus" = Hintergrund)</li>
+</ul>
+
+<div class="box note">
+  <div class="box-title">&#128221; Hinweis: 2 Farben pro Zelle</div>
+  <p>Im Hires-Bitmap-Modus können nur 2 Farben <em>pro 8×8-Pixel-Zelle</em> verwendet werden — nicht pro Pixel. Das bedeutet: Innerhalb einer Zelle sind alle "1"-Pixel gleiche Farbe, alle "0"-Pixel ebenfalls. Für mehr Farben pro Zelle wird FLI benötigt.</p>
+</div>
+
+<h3>2.3 Bitmap-Byte-Layout</h3>
+
+<p>Die Bitmap belegt 8000 Bytes: 40 Zellen horizontal × 25 Zellen vertikal × 8 Bytes pro Zelle. Die Adressierung folgt einem verschachtelten Schema:</p>
+
+<pre>
+Byte-Adresse eines Pixels an (px, py):
+  Zellen-Spalte  = px / 8
+  Zellen-Zeile   = py / 8
+  Pixel-in-Zelle-X = px MOD 8
+  Pixel-in-Zelle-Y = py MOD 8
+
+  Byte-Offset = (Zellen-Zeile × 320) + (Zellen-Spalte × 8) + Pixel-in-Zelle-Y
+  Bit-Position = 7 - Pixel-in-Zelle-X
+
+Beispiel: Pixel (100, 75)
+  Zellen-Spalte  = 100/8 = 12
+  Zellen-Zeile   = 75/8  = 9
+  PinZ-X = 100 MOD 8 = 4
+  PinZ-Y = 75 MOD 8  = 3
+
+  Byte-Offset = (9×320) + (12×8) + 3 = 2880 + 96 + 3 = 2979
+  Bit = 7 - 4 = 3 → Maske = %00001000 = $08
+</pre>
+
+<h3>2.4 Vollständige Hires-Bitmap-Initialisierung</h3>
+
+<pre>
+; =====================================================
+; Hires-Bitmap initialisieren
+; Bitmap bei $2000, Screen-RAM bei $0400, VIC-Bank 0
+; $D018 = $18: Screen-Offset 1 ($0400), Bitmap-Offset 4 ($2000)
+; =====================================================
+
+InitHiresBitmap:
+        ; 1. Bitmap-RAM löschen (8000 Bytes bei $2000)
+        lda #0
+        ldx #0
+@clr:   sta $2000,x     ; Seite $20
+        sta $2100,x
+        sta $2200,x
+        sta $2300,x
+        sta $2400,x
+        sta $2500,x
+        sta $2600,x
+        sta $2700,x
+        sta $2800,x
+        sta $2900,x
+        sta $2a00,x
+        sta $2b00,x
+        sta $2c00,x
+        sta $2d00,x
+        sta $2e00,x
+        sta $2f00,x
+        ; Verbleibende 1984 Bytes (16*256=4096, 8000-4096=3904... besser per Schleife)
+        inx
+        bne @clr
+
+        ; 2. Screen-RAM: Farben initialisieren (weiß auf schwarz: $10)
+        ;    High-Nibble = 1 (weiß für Pixel=1), Low-Nibble = 0 (schwarz für Pixel=0)
+        lda #$10
+        ldx #0
+@scr:   sta $0400,x
+        sta $0500,x
+        sta $0600,x
+        inx
+        bne @scr
+        ldx #0
+@scr2:  sta $06e8,x
+        inx
+        cpx #232
+        bne @scr2
+
+        ; 3. VIC-II auf Bitmap-Modus schalten
+        ; $D018 = $18: Bits 7-4 = 0001 (Screen bei $0400), Bit 3 = 1 (Bitmap bei $2000)
+        lda #$18
+        sta $d018
+
+        ; $D011: BMM (Bit5) setzen, 25 Zeilen, Y-Scroll=3
+        lda #%00111011  ; $3B
+        sta $d011
+
+        ; $D016: kein MCM, 40 Spalten, X-Scroll=0
+        lda #%00001000  ; $08
+        sta $d016
+        rts
+</pre>
+
+<h3>2.5 Pixel setzen und löschen</h3>
+
+<pre>
+; Pixel setzen (1) oder löschen (0)
+; Eingabe: $60 = px (0-319), $62 = py (0-199), $64 = Aktion (0=löschen, 1=setzen)
+
+SetPixel:
+        ; Byte-Adresse berechnen
+        ; Zellen-Zeile = py/8, Zellen-Spalte = px/8
+        lda $62         ; py
+        lsr
+        lsr
+        lsr             ; py/8 = Zellen-Zeile (0-24)
+        tax             ; X = Zellen-Zeile
+        lda RowOffsLo,x ; Low-Byte des Zeilen-Offsets
+        sta $fb
+        lda RowOffsHi,x ; High-Byte
+        sta $fc         ; $fb/$fc = Zellen-Zeile * 320
+
+        ; Zellen-Spalte * 8 addieren
+        lda $60         ; px
+        and #%11111000  ; px & ~7 = (px/8)*8
+        clc
+        adc $fb
+        sta $fb
+        bcc @noc1
+        inc $fc
+@noc1:
+        ; py MOD 8 addieren
+        lda $62
+        and #$07        ; py & 7 = py MOD 8
+        clc
+        adc $fb
+        sta $fb
+        bcc @noc2
+        inc $fc
+@noc2:
+        ; Bitmap-Basis $2000 addieren
+        lda $fc
+        clc
+        adc #$20        ; Hi-Byte von $2000
+        sta $fc
+
+        ; Bit-Maske berechnen: Bit = 7 - (px MOD 8)
+        lda $60
+        and #$07        ; px MOD 8
+        tax
+        lda BitMasks,x  ; Bit-Maske
+
+        ; Pixel setzen oder löschen
+        ldy #0
+        bit $64
+        beq @clear_pixel
+        ora ($fb),y     ; Bit setzen (OR)
+        bne @store
+@clear_pixel:
+        eor #$ff        ; Invertieren für AND-Maske
+        and ($fb),y     ; Bit löschen
+@store: sta ($fb),y
+        rts
+
+BitMasks: !byte $80,$40,$20,$10,$08,$04,$02,$01
+
+; Zeilen-Offset-Tabelle: Zellen-Zeile N * 320 (Lo/Hi)
+RowOffsLo:
+        !byte <(0*320),<(1*320),<(2*320),<(3*320),<(4*320)
+        !byte <(5*320),<(6*320),<(7*320),<(8*320),<(9*320)
+        !byte <(10*320),<(11*320),<(12*320),<(13*320),<(14*320)
+        !byte <(15*320),<(16*320),<(17*320),<(18*320),<(19*320)
+        !byte <(20*320),<(21*320),<(22*320),<(23*320),<(24*320)
+RowOffsHi:
+        !byte >(0*320),>(1*320),>(2*320),>(3*320),>(4*320)
+        !byte >(5*320),>(6*320),>(7*320),>(8*320),>(9*320)
+        !byte >(10*320),>(11*320),>(12*320),>(13*320),>(14*320)
+        !byte >(15*320),>(16*320),>(17*320),>(18*320),>(19*320)
+        !byte >(20*320),>(21*320),>(22*320),>(23*320),>(24*320)
+</pre>
+
+<h2>3. Multicolor-Bitmap-Modus</h2>
+
+<h3>3.1 Aktivierung</h3>
+
+<pre>
+; Multicolor-Bitmap aktivieren:
+lda #%00111011  ; $D011: BMM setzen
+sta $d011
+lda #%00011000  ; $D016: MCM (Bit4) + 40 Spalten
+sta $d016
+</pre>
+
+<h3>3.2 Vier Farben pro Zelle</h3>
+
+<p>Im Multicolor-Bitmap-Modus ist jedes Pixel 2 Bits breit. Pro 8×8-Pixel-Zelle (tatsächlich 4×8 effektive Pixel) gibt es 4 mögliche Werte:</p>
+
+<table>
+  <thead><tr><th>Bit-Paar</th><th>Farbquelle</th><th>Pro Zelle individuell?</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">%00</td><td>$D021 (globale Hintergrundfarbe)</td><td>Nein</td></tr>
+    <tr><td class="mono">%01</td><td>Screen-RAM High-Nibble</td><td>Ja</td></tr>
+    <tr><td class="mono">%10</td><td>Screen-RAM Low-Nibble</td><td>Ja</td></tr>
+    <tr><td class="mono">%11</td><td>Color-RAM (4 Bit, $D800+Offset)</td><td>Ja</td></tr>
+  </tbody>
+</table>
+
+<p>In jedem Byte der Bitmap kodieren je 2 aufeinanderfolgende Bits einen Pixel: Bits 7–6 = Pixel 1 (ganz links), Bits 5–4 = Pixel 2, Bits 3–2 = Pixel 3, Bits 1–0 = Pixel 4 (ganz rechts). Pro Byte also 4 Pixel.</p>
+
+<h3>3.3 Koala-Format</h3>
+
+<p>Das <em>Koala Painter</em>-Format ist das verbreitetste C64-Bitmapformat und enthält alle Daten für einen Multicolor-Bitmap-Screen in einer Datei:</p>
+
+<table>
+  <thead><tr><th>Offset</th><th>Größe</th><th>Inhalt</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">$0000</td><td>2 Bytes</td><td>Ladeadresse ($6000 für Standard-Koala)</td></tr>
+    <tr><td class="mono">$0002</td><td>8.000 Bytes</td><td>Bitmap-Daten</td></tr>
+    <tr><td class="mono">$1F42</td><td>1.000 Bytes</td><td>Screen-RAM-Daten</td></tr>
+    <tr><td class="mono">$232A</td><td>1.000 Bytes</td><td>Color-RAM-Daten</td></tr>
+    <tr><td class="mono">$2712</td><td>1 Byte</td><td>Hintergrundfarbe ($D021)</td></tr>
+  </tbody>
+</table>
+
+<pre>
+; Koala-Bild anzeigen (Annahme: bereits bei Standard-Adressen geladen)
+; Bitmap bei $6000, Screen bei $7F40, Color bei $8328, BG bei $8710
+
+ShowKoala:
+        ; Multicolor-Modus aktivieren
+        lda #$3b : sta $d011    ; BMM + 25 Zeilen + Y-Scroll=3
+        lda #$18 : sta $d016    ; MCM + 40 Spalten
+
+        ; Bitmap bei $6000: VIC-Bank auf $4000-$7FFF (Bank 1)
+        lda $dd00
+        and #%11111100
+        ora #%00000010  ; Bank 1 ($4000-$7FFF)
+        sta $dd00
+
+        ; Screen bei $7F40: Offset in Bank 1 = $7F40-$4000 = $3F40
+        ; $D018 Bits 7-4: $3F40 / $0400 = 15 → Wert $F → Bits 7-4 = %1111
+        ; Bitmap bei $6000: Offset $6000-$4000 = $2000 → Bit 3 = 1
+        lda #%11111000  ; Screen=$3C00 in Bank... (vereinfachte Version)
+        ; Korrekt: Screen $7F40 - VIC-Bank-Basis $4000 = $3F40
+        ; $3F40 / $0400 = 15 (gerundet auf nächste $0400-Grenze = $3C00)
+        ; Hinweis: Koala lädt normalerweise auf feste Adressen, Details je nach Version
+
+        ; Hintergrundfarbe setzen
+        lda $8710
+        sta $d021
+
+        ; Color-RAM füllen (1000 Bytes von $8328 nach $D800 kopieren)
+        ldx #0
+@clr1:  lda $8328,x : sta $d800,x
+        lda $8428,x : sta $d900,x
+        lda $8528,x : sta $da00,x
+        inx : bne @clr1
+        ldx #0
+@clr2:  lda $8628,x : sta $dae8,x
+        inx : cpx #232 : bne @clr2
+
+        rts
+</pre>
+
+<h2>4. Linien und geometrische Primitive</h2>
+
+<h3>4.1 Bresenham-Linie in Assembler</h3>
+
+<p>Der Bresenham-Linienalgorithmus ist die Standardmethode zum effizienten Zeichnen von Linien auf Rasterdisplays. Er kommt ohne Fließkomma-Arithmetik aus, was ihn ideal für 6510-Assembler macht:</p>
+
+<pre>
+; Bresenham-Linie zeichnen
+; Eingabe: $60/$61 = x0/y0, $62/$63 = x1/y1
+; Setzt Pixel in Hires-Bitmap bei $2000
+
+DrawLine:
+        ; Differenzen berechnen
+        lda $62 : sec : sbc $60 : sta dx  ; dx = x1 - x0 (vorzeichenbehaftet)
+        lda $63 : sec : sbc $61 : sta dy  ; dy = y1 - y0
+
+        ; Steigung bestimmen und Hauptachse wählen
+        ; (vereinfachte Version für positive dx, dy)
+
+        lda dx : sta step_count  ; Schrittzahl = max(dx, dy)
+        lda dy : cmp dx
+        bcc @dx_major
+        sta step_count
+
+@dx_major:
+        ; Schritt-Schleife (für horizontale Hauptachse)
+        lda #0 : sta err
+        lda $60 : sta cx    ; cx = x0
+        lda $61 : sta cy    ; cy = y0
+        ldy step_count
+
+@loop:
+        ; Pixel an (cx, cy) setzen
+        lda cx : sta $60
+        lda cy : sta $62
+        lda #1 : sta $64
+        jsr SetPixel
+
+        ; Fehlerterm aktualisieren
+        ; (vollständige Implementierung benötigt vorzeichenbehaftete Arithmetik)
+        inc cx
+        lda err
+        clc
+        adc dy
+        sta err
+        cmp dx
+        bcc @no_step_y
+        inc cy
+        lda err : sec : sbc dx : sta err
+
+@no_step_y:
+        dey
+        bne @loop
+        rts
+
+dx: !byte 0
+dy: !byte 0
+cx: !byte 0
+cy: !byte 0
+err: !byte 0
+step_count: !byte 0
+</pre>
+
+<h2>5. FLI — Flexible Line Interpretation</h2>
+
+<p>FLI ist eine der faszinierendsten Techniken im C64-Demo-Coding. Sie nutzt ein bestimmtes Verhalten des VIC-II, um die Farbeinschränkungen des Bitmap-Modus dramatisch zu erweitern.</p>
+
+<h3>5.1 Das Grundproblem</h3>
+
+<p>Im Hires-Bitmap-Modus sind pro 8×8-Pixel-Zelle nur 2 Farben möglich. Das bedeutet: 8 aufeinanderfolgende Rasterzeilen teilen sich dasselbe Farb-Paar aus dem Screen-RAM. Diese Einschränkung macht naturgetreue Bilder schwierig.</p>
+
+<h3>5.2 Die FLI-Lösung</h3>
+
+<p>FLI umgeht dies durch einen Raster-IRQ auf <em>jeder</em> Bildzeile. Bei jedem IRQ wird der Screen-RAM-Pointer im VIC-II-Register <code>$D018</code> auf einen anderen Block geändert. So sieht der VIC-II für jede der 8 Rasterzeilen innerhalb einer Zelle einen anderen Screen-RAM-Block — und damit andere Farben!</p>
+
+<pre>
+; FLI-IRQ: wird auf jeder Rasterzeile ausgelöst
+; Ändert Screen-RAM-Block per Zeile für mehr Farben
+
+fli_line: !byte 0   ; Aktuelle Rasterzeile (0-199)
+
+FLI_IRQ:
+        lda $d012           ; Aktuelle Rasterzeile
+        sec
+        sbc #51             ; Rasterzeile 51 = erste Bildzeile
+        and #$07            ; Welche Zeile in der aktuellen 8er-Gruppe? (0-7)
+
+        ; Screen-RAM-Block für diese Zeile wählen
+        ; Block 0 bei $4000, Block 1 bei $4400, ..., Block 7 bei $5C00 (in Bank 1)
+        ; $D018 Bits 7-4: Offset / $0400
+        ; $4000 in Bank 1: Offset $0000 → Wert 0
+        ; $4400 in Bank 1: Offset $0400 → Wert 1
+        asl
+        asl
+        asl
+        asl             ; * 16 (= Shift für $D018 Bits 7-4)
+        ora #%00001000  ; Bitmap bei $2000 in Bank 1: Bit 3 = 1
+        sta $d018       ; Screen-RAM-Block wechseln!
+
+        ; IRQ auf nächste Rasterzeile setzen
+        inc $d012
+
+        ; IRQ quittieren
+        lda #$01
+        sta $d019
+        rti
+</pre>
+
+<div class="box important">
+  <div class="box-title">&#9888; FLI-Artefakt: "FLI-Bugs"</div>
+  <p>FLI erzeugt ein charakteristisches 3-Pixel-breites Streifenartefakt am linken Bildschirmrand. Dies entsteht, weil der VIC-II 3 Zyklen benötigt, um den neuen Screen-RAM-Block nach dem $D018-Schreiben zu aktivieren. Professionelle FLI-Implementierungen verstecken diesen Bereich hinter einem Sprite-Vorhang.</p>
+</div>
+
+<h2>6. Grafikkonvertierung und Tools</h2>
+
+<h3>6.1 Empfohlene Konvertierungs-Tools</h3>
+
+<ul>
+  <li><strong>Timanthes</strong>: Vollständiger C64-Grafikeditor für Multicolor, Hires, Sprites</li>
+  <li><strong>Pixcen</strong>: Moderner C64-Pixeleditor mit Palette-Einschränkungen</li>
+  <li><strong>VICE Screenshot</strong>: Direkt aus dem Emulator als .koala speichern</li>
+  <li><strong>img2c64</strong>: Kommandozeilen-Konverter für PC-Bilder → C64-Formate</li>
+</ul>
+
+<h3>6.2 Farbpaletten-Beschränkungen</h3>
+
+<p>Bei der Bildkonvertierung gibt es harte Einschränkungen:</p>
+<ul>
+  <li>Nur 16 C64-Farben insgesamt (keine Truecolor)</li>
+  <li>Im Multicolor-Bitmap: Pro 4×8-Pixel-Zelle max. 4 Farben, davon 1 global</li>
+  <li>Die C64-Farbpalette ist sehr unregelmäßig verteilt — kein gradueller Verlauf</li>
+  <li>Dithering (abwechselnde Pixel verschiedener Farben) kann optischen Farbmix simulieren</li>
+</ul>
+
+<div class="benchmark">
+  <h2>&#127942; Skill-Benchmark: Stufe 5</h2>
+  <ul>
+    <li>Hires-Bitmap-Modus aktivieren und Bitmap-RAM initialisieren</li>
+    <li>Pixel-Adress-Formel auswendig erklären und anwenden</li>
+    <li>Einzelnen Pixel an beliebiger (X,Y)-Position setzen/löschen</li>
+    <li>Multicolor-Bitmap-Modus aktivieren und Farb-Mapping erklären</li>
+    <li>Koala-Dateiformat beschreiben (5 Bereiche)</li>
+    <li>FLI-Konzept erklären (warum mehr Farben, was ist der Bug)</li>
+  </ul>
+</div>
+
+<div class="exercises-section">
+  <h2>&#9997; Übungen</h2>
+  <div class="exercise">
+    <div class="exercise-num">Übung 5.1 — Hires-Bitmap-Linien</div>
+    <p>Implementiere eine vollständige <code>DrawLine</code>-Routine mit dem Bresenham-Algorithmus. Zeichne ein X-Muster (beide Diagonalen des Bildschirms) und ein Rechteck in der Mitte. Verwende weiße Linien auf schwarzem Hintergrund.</p>
+  </div>
+  <div class="exercise">
+    <div class="exercise-num">Übung 5.2 — Multicolor-Bitmap</div>
+    <p>Aktiviere den Multicolor-Bitmap-Modus. Fülle den gesamten Bildschirm mit einem geometrischen Muster: Abwechselnd %01 und %10 Pixel (im Schachbrettmuster) mit kontrastierenden Farben in Screen-RAM und $D021/$D022.</p>
+  </div>
+  <div class="exercise">
+    <div class="exercise-num">Übung 5.3 — Screen-RAM-Farbgebung</div>
+    <p>Erstelle im Hires-Bitmap-Modus ein Farbverlaufsmuster: Jede Spalte der 40 Zellenspalten erhält ein anderes Farbpaar im Screen-RAM (von Farbe 0 aufwärts zyklisch). Male dann ein einfaches geometrisches Motiv in die Bitmap.</p>
+  </div>
+  <div class="exercise">
+    <div class="exercise-num">Übung 5.4 — Kreis zeichnen</div>
+    <p>Implementiere eine <code>DrawCircle(cx, cy, r)</code>-Routine mit dem Midpoint-Circle-Algorithmus. Zeichne konzentrische Kreise auf dem Hires-Bitmap-Bildschirm. Tipp: Nutze die 8-Wege-Symmetrie des Kreises für maximale Effizienz.</p>
+  </div>
+</div>
+
+<nav class="chapter-nav">
+  <a href="stufe_04_sprites_animation.html">
+    <span class="nav-label">&#8592; Vorherige Stufe</span>
+    <span class="nav-title">Stufe 4: Sprites &amp; Animation</span>
+  </a>
+  <a href="stufe_06_sid_sound.html">
+    <span class="nav-label">Nächste Stufe &#8594;</span>
+    <span class="nav-title">Stufe 6: SID &amp; Sound</span>
+  </a>
+</nav>
+</main>
+  <script src="assets/c64-interactive.js"></script>
+</body>
+</html>

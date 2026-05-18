@@ -1,0 +1,243 @@
+/* C64 Mastery System — Print / PDF Stylesheet
+   Einbinden als: <link rel="stylesheet" href="assets/c64-print.css" media="print">
+   Erzeugt saubere 1-seitige Cheat-Sheets aus den Anhang-Seiten.
+*/
+
+@media print {
+
+  /* ── Seitenformat ──────────────────────────────────────────── */
+  @page {
+    size: A4 portrait;
+    margin: 12mm 14mm 14mm 14mm;
+  }
+
+  @page :first {
+    margin-top: 8mm;
+  }
+
+  /* ── Layout zurücksetzen ───────────────────────────────────── */
+  body {
+    display: block !important;
+    background: #fff !important;
+    color: #000 !important;
+    font-family: 'Arial', sans-serif !important;
+    font-size: 9pt !important;
+    line-height: 1.35 !important;
+  }
+
+  /* Sidebar ausblenden */
+  .sidebar,
+  nav.sidebar,
+  #c64-dark-toggle,
+  #c64-hamburger,
+  #c64-overlay,
+  .copy-btn,
+  .collapse-btn,
+  .chapter-nav,
+  .exercises,
+  .skill-benchmark,
+  .bench-checkbox,
+  .spb-wrap,
+  .stage-progress-bar {
+    display: none !important;
+  }
+
+  /* Hauptinhalt volle Breite */
+  main,
+  .content,
+  body > main {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  /* ── Kapitel-Header kompakt ────────────────────────────────── */
+  .chapter-header {
+    background: #1a1a2e !important;
+    color: #fff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    padding: 6pt 10pt !important;
+    margin-bottom: 8pt !important;
+    border-radius: 0 !important;
+  }
+
+  .chapter-header h1 {
+    font-size: 14pt !important;
+    color: #fff !important;
+    margin: 2pt 0 !important;
+  }
+
+  .chapter-number {
+    font-size: 8pt !important;
+    color: #aaccff !important;
+    opacity: 1 !important;
+  }
+
+  .chapter-meta {
+    font-size: 7.5pt !important;
+    color: #ccd !important;
+    margin-top: 2pt !important;
+  }
+
+  /* ── Überschriften ─────────────────────────────────────────── */
+  h1 { font-size: 13pt; margin: 6pt 0 3pt; color: #0033aa; }
+  h2 { font-size: 11pt; margin: 5pt 0 2pt; color: #0033aa; border-bottom: 0.5pt solid #0033aa; padding-bottom: 1pt; }
+  h3 { font-size: 9.5pt; margin: 4pt 0 2pt; color: #003388; }
+  h4 { font-size: 8.5pt; margin: 3pt 0 1pt; color: #1a1a2e; }
+
+  /* ── Tabellen ──────────────────────────────────────────────── */
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    font-size: 8pt !important;
+    page-break-inside: auto;
+    margin: 4pt 0 !important;
+  }
+
+  thead {
+    display: table-header-group; /* wiederholt Header auf Folgeseiten */
+  }
+
+  th {
+    background: #1a1a2e !important;
+    color: #fff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    padding: 3pt 5pt !important;
+    text-align: left;
+    font-size: 7.5pt !important;
+  }
+
+  td {
+    padding: 2pt 5pt !important;
+    border-bottom: 0.3pt solid #ccc !important;
+    vertical-align: top;
+  }
+
+  tr:nth-child(even) td {
+    background: #f5f5f5 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Lange Tabellen umbrechen sauber */
+  tr { page-break-inside: avoid; }
+
+  /* ── Code-Blöcke ───────────────────────────────────────────── */
+  pre, code {
+    font-family: 'Courier New', monospace !important;
+    font-size: 7.5pt !important;
+    background: #f0f0f0 !important;
+    color: #000 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    border: 0.5pt solid #ccc !important;
+    border-left: 2pt solid #0033aa !important;
+    padding: 4pt 6pt !important;
+    white-space: pre-wrap !important;
+    word-break: break-all !important;
+    max-height: none !important;
+    overflow: visible !important;
+    -webkit-mask-image: none !important;
+    mask-image: none !important;
+  }
+
+  /* Spans im Code: Farben auf Schwarz zurücksetzen */
+  pre span, code span {
+    color: #000 !important;
+    background: none !important;
+  }
+
+  /* Kommentar-Spans leicht grau */
+  pre .asm-comment { color: #555 !important; }
+  pre .asm-instr   { font-weight: bold !important; }
+
+  /* ── Info-Boxen ────────────────────────────────────────────── */
+  .hint-box, .tip-box, .warning-box, .info-box,
+  .learning-objectives {
+    border: 0.5pt solid #999 !important;
+    background: #fafafa !important;
+    padding: 4pt 6pt !important;
+    margin: 4pt 0 !important;
+    page-break-inside: avoid;
+    font-size: 8pt !important;
+  }
+
+  .hint-box::before, .tip-box::before,
+  .warning-box::before, .info-box::before {
+    font-weight: bold;
+  }
+
+  /* ── Interaktive Elemente ausblenden ───────────────────────── */
+  button, input[type="search"], select,
+  .filter-bar, .search-bar, #filterBar,
+  .interactive-hint, .js-only {
+    display: none !important;
+  }
+
+  /* Interaktive Speicherkarten-Balken: als Text darstellen */
+  .mem-bar { display: none !important; }
+
+  /* ── Farbkarten (anhang_farben.html) ──────────────────────── */
+  .color-card {
+    display: inline-block !important;
+    width: 60pt !important;
+    margin: 2pt !important;
+    border: 0.5pt solid #999 !important;
+    font-size: 7pt !important;
+  }
+
+  .color-swatch {
+    height: 12pt !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* ── PETSCII-Tabelle (anhang_petscii.html) ─────────────────── */
+  .petscii-grid {
+    font-size: 7pt !important;
+  }
+
+  .petscii-cell {
+    width: 14pt !important;
+    height: 14pt !important;
+    font-size: 6pt !important;
+    border: 0.3pt solid #ddd !important;
+    padding: 1pt !important;
+  }
+
+  /* ── Seitenumbrüche ────────────────────────────────────────── */
+  h2 { page-break-before: auto; }
+  h2:first-of-type { page-break-before: avoid; }
+
+  .page-break-before { page-break-before: always; }
+  .avoid-break { page-break-inside: avoid; }
+
+  /* Abschnitte zusammenhalten wenn möglich */
+  section { page-break-inside: auto; }
+
+  /* ── Links: URL sichtbar machen ────────────────────────────── */
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 7pt;
+    color: #555;
+  }
+
+  /* Interne Links ohne URL-Anhang */
+  a[href^="#"]::after,
+  a[href^="stufe"]::after,
+  a[href^="anhang"]::after {
+    content: none;
+  }
+
+  /* ── Fußzeile ──────────────────────────────────────────────── */
+  @page {
+    @bottom-center {
+      content: "C64 Mastery System — " string(chapter-title) " — Seite " counter(page) " / " counter(pages);
+      font-size: 7pt;
+      color: #666;
+    }
+  }
+}

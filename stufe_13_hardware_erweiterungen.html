@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>C64 Mastery — Stufe 13: Hardware-Erweiterungen</title>
+  <style>
+    :root {
+      --c64-blue: #0033aa;
+      --c64-light-blue: #4477dd;
+      --c64-green: #00ff88;
+      --c64-dark: #1a1a2e;
+      --c64-darker: #0d0d1a;
+      --paper: #f8f6f0;
+      --paper-dark: #ede9df;
+      --text: #1a1a2e;
+      --text-light: #444466;
+      --accent: #cc3300;
+      --gold: #cc8800;
+      --hardware: #884400;
+      --hardware-light: #cc7700;
+      --warning-bg: #fff3cd;
+      --warning-border: #ffc107;
+      --tip-bg: #d4edda;
+      --tip-border: #28a745;
+      --info-bg: #cce5ff;
+      --info-border: #0066cc;
+      --important-bg: #f8d7da;
+      --important-border: #dc3545;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Georgia', 'Times New Roman', serif;
+      font-size: 16px;
+      line-height: 1.75;
+      color: var(--text);
+      background: var(--paper);
+      display: grid;
+      grid-template-columns: 270px 1fr;
+      min-height: 100vh;
+    }
+    .sidebar {
+      background: var(--c64-dark);
+      color: #ccc;
+      padding: 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--hardware) var(--c64-darker);
+    }
+    .sidebar::-webkit-scrollbar { width: 6px; }
+    .sidebar::-webkit-scrollbar-track { background: var(--c64-darker); }
+    .sidebar::-webkit-scrollbar-thumb { background: var(--hardware); }
+    .sidebar-header {
+      background: var(--hardware);
+      padding: 18px 20px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      font-weight: bold;
+      color: white;
+      letter-spacing: 0.5px;
+    }
+    .sidebar-header .logo { font-size: 22px; margin-bottom: 4px; color: #ffcc66; }
+    .sidebar nav { padding: 12px 0; }
+    .sidebar nav a {
+      display: block;
+      padding: 7px 20px;
+      color: #aab;
+      text-decoration: none;
+      font-family: 'Courier New', monospace;
+      font-size: 12.5px;
+      border-left: 3px solid transparent;
+      transition: all 0.2s;
+    }
+    .sidebar nav a:hover { color: white; background: rgba(255,255,255,0.05); border-left-color: #ffcc66; }
+    .sidebar nav a.active { color: #ffcc66; border-left-color: #ffcc66; background: rgba(255,204,102,0.08); font-weight: bold; }
+    .sidebar nav .section-label {
+      padding: 12px 20px 4px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #556;
+      font-family: 'Courier New', monospace;
+    }
+    .sidebar nav .toc-link { padding: 5px 20px 5px 32px; font-size: 11.5px; color: #778; }
+    main { max-width: 860px; padding: 48px 56px; }
+    .chapter-header {
+      border-bottom: 3px solid var(--hardware);
+      padding-bottom: 28px;
+      margin-bottom: 40px;
+    }
+    .chapter-number {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      color: var(--hardware);
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+    }
+    h1 { font-size: 32px; color: var(--c64-dark); line-height: 1.2; margin-bottom: 14px; }
+    .chapter-meta { display: flex; gap: 24px; font-size: 14px; color: var(--text-light); flex-wrap: wrap; }
+    .chapter-meta span { font-family: 'Courier New', monospace; }
+    h2 {
+      font-size: 22px;
+      color: var(--hardware);
+      margin: 48px 0 20px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--hardware);
+    }
+    h3 { font-size: 17px; color: var(--c64-dark); margin: 28px 0 12px; }
+    h4 { font-size: 15px; color: var(--text-light); margin: 20px 0 8px; }
+    p { margin-bottom: 16px; }
+    ul, ol { margin: 0 0 16px 24px; }
+    li { margin-bottom: 6px; }
+    code {
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      background: var(--paper-dark);
+      padding: 1px 5px;
+      border-radius: 3px;
+      color: var(--hardware);
+    }
+    pre {
+      background: var(--c64-dark);
+      color: #e8e8d0;
+      font-family: 'Courier New', monospace;
+      font-size: 13.5px;
+      line-height: 1.55;
+      padding: 20px 24px;
+      border-radius: 6px;
+      border-left: 4px solid var(--hardware);
+      overflow-x: auto;
+      margin: 20px 0;
+      max-height: 420px;
+      overflow-y: auto;
+    }
+    pre .comment { color: #7799aa; }
+    pre .label { color: #ffcc44; font-weight: bold; }
+    pre .directive { color: #ff99cc; }
+    pre .number { color: #aaddff; }
+    pre .instr { color: #88ffcc; }
+    pre .reg { color: #ffaa44; }
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
+    thead th { background: var(--hardware); color: white; padding: 10px 12px; text-align: left; font-family: 'Courier New', monospace; font-size: 13px; }
+    tbody td { padding: 8px 12px; border-bottom: 1px solid #ddd; vertical-align: top; }
+    tbody tr:nth-child(even) { background: var(--paper-dark); }
+    tbody td:first-child { font-family: 'Courier New', monospace; color: var(--hardware); font-weight: bold; }
+    .learning-objectives {
+      background: linear-gradient(135deg, #fff8f0, #fff3e0);
+      border: 1px solid var(--hardware-light);
+      border-left: 5px solid var(--hardware);
+      border-radius: 6px;
+      padding: 24px 28px;
+      margin-bottom: 40px;
+    }
+    .learning-objectives h3 { color: var(--hardware); margin: 0 0 14px; font-size: 15px; text-transform: uppercase; letter-spacing: 1px; }
+    .learning-objectives ul { margin-left: 20px; }
+    .learning-objectives li { margin-bottom: 7px; font-size: 15px; }
+    .box-tip { background: var(--tip-bg); border-left: 4px solid var(--tip-border); border-radius: 4px; padding: 14px 18px; margin: 20px 0; }
+    .box-tip::before { content: "💡 Tipp: "; font-weight: bold; color: #155724; }
+    .box-warning { background: var(--warning-bg); border-left: 4px solid var(--warning-border); border-radius: 4px; padding: 14px 18px; margin: 20px 0; }
+    .box-warning::before { content: "⚠ Achtung: "; font-weight: bold; color: #856404; }
+    .box-info { background: var(--info-bg); border-left: 4px solid var(--info-border); border-radius: 4px; padding: 14px 18px; margin: 20px 0; }
+    .box-info::before { content: "ℹ Info: "; font-weight: bold; color: #004085; }
+    .box-important { background: var(--important-bg); border-left: 4px solid var(--important-border); border-radius: 4px; padding: 14px 18px; margin: 20px 0; }
+    .box-important::before { content: "🔴 Wichtig: "; font-weight: bold; color: #721c24; }
+    .register-table { margin: 20px 0; }
+    .register-table thead th { background: #5c2d00; }
+    .reu-diagram {
+      background: var(--c64-dark);
+      color: #ffcc88;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      padding: 18px 22px;
+      border-radius: 6px;
+      border-left: 4px solid var(--hardware);
+      margin: 20px 0;
+      white-space: pre;
+      line-height: 1.5;
+    }
+    .bank-diagram {
+      background: #1a1a2e;
+      color: #aaddff;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      padding: 18px 22px;
+      border-radius: 6px;
+      border-left: 4px solid var(--hardware-light);
+      margin: 20px 0;
+      white-space: pre;
+      line-height: 1.5;
+    }
+    .hardware-banner {
+      background: linear-gradient(135deg, #2d1200 0%, #884400 100%);
+      border: 1px solid var(--hardware-light);
+      border-radius: 8px;
+      padding: 24px 28px;
+      margin: 32px 0 24px;
+    }
+    .hardware-banner h2 { color: #ffcc88; border: none; margin-top: 0; font-size: 20px; letter-spacing: 1px; }
+    .hardware-banner p { color: #ddaa66; margin: 0; }
+    .benchmark {
+      background: linear-gradient(135deg, #1a0d00 0%, #5c2d00 100%);
+      border: 1px solid var(--hardware-light);
+      border-radius: 8px;
+      padding: 28px 32px;
+      margin: 48px 0 32px;
+      color: #ffe0aa;
+    }
+    .benchmark h2 { color: #ffcc66; border-bottom: 1px solid #884400; padding-bottom: 10px; margin-top: 0; font-size: 20px; }
+    .benchmark-list { list-style: none; margin: 0; padding: 0; }
+    .benchmark-list li { padding: 10px 0; border-bottom: 1px solid rgba(255,204,102,0.15); font-size: 15px; display: flex; align-items: flex-start; gap: 10px; }
+    .benchmark-list li::before { content: "□"; font-family: monospace; color: #cc7700; font-size: 18px; flex-shrink: 0; }
+    .exercises {
+      background: var(--paper-dark);
+      border: 1px solid #c8b89a;
+      border-radius: 8px;
+      padding: 28px 32px;
+      margin: 32px 0;
+    }
+    .exercises h2 { color: var(--hardware); border-bottom: 2px solid var(--hardware); padding-bottom: 8px; margin-top: 0; }
+    .exercise-item { border-left: 4px solid var(--hardware); padding: 14px 18px; margin: 18px 0; background: white; border-radius: 0 6px 6px 0; }
+    .exercise-item h4 { color: var(--hardware); margin: 0 0 8px; font-family: 'Courier New', monospace; }
+    .chapter-nav { display: flex; justify-content: space-between; margin-top: 56px; padding-top: 24px; border-top: 2px solid var(--hardware); }
+    .chapter-nav a { display: inline-flex; align-items: center; gap: 8px; color: var(--hardware); text-decoration: none; font-family: 'Courier New', monospace; font-size: 14px; padding: 10px 18px; border: 2px solid var(--hardware); border-radius: 4px; transition: all 0.2s; }
+    .chapter-nav a:hover { background: var(--hardware); color: white; }
+    @media print { .sidebar { display: none; } body { grid-template-columns: 1fr; } main { max-width: 100%; padding: 20px; } }
+  </style>
+  <link rel="stylesheet" href="assets/c64-interactive.css">
+  <link rel="stylesheet" href="assets/c64-print.css" media="print">
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">■ C64 MASTERY</div>
+    Professioneller Lehrgang
+  </div>
+  <nav>
+    <div class="section-label">Curriculum</div>
+    <a href="index.html">◈ Übersicht &amp; Lernpfad</a>
+    <a href="stufe_00_fundament.html">00 · Fundament</a>
+    <a href="stufe_01_6510_assembler.html">01 · 6510 &amp; Assembler</a>
+    <a href="stufe_02_adressierung_speicher.html">02 · Adressierung &amp; Speicher</a>
+    <a href="stufe_03_bildschirm_zeichen.html">03 · Bildschirm &amp; Zeichen</a>
+    <a href="stufe_04_sprites_animation.html">04 · Sprites &amp; Animation</a>
+    <a href="stufe_05_bitmap_grafik.html">05 · Bitmap-Grafik</a>
+    <a href="stufe_06_sid_sound.html">06 · SID-Sound</a>
+    <a href="stufe_07_interrupts_timing.html">07 · Interrupts &amp; Timing</a>
+    <a href="stufe_08_optimierung.html">08 · Optimierung</a>
+    <a href="stufe_09_demo_effekte.html">09 · Demo-Effekte</a>
+    <a href="stufe_10_meisterschaft.html">10 · Meisterschaft</a>
+
+    <div class="section-label">Workflow &amp; Release</div>
+    <a href="stufe_11_spielentwicklung_workflow.html">11 · Spiel-Workflow</a>
+    <a href="stufe_12_demo_entwicklung_workflow.html">12 · Demo-Workflow</a>
+
+    <div class="section-label">Erweiterte Stufen</div>
+    <a href="stufe_13_hardware_erweiterungen.html" class="active">13 · Hardware-Erweiterungen</a>
+    <a href="stufe_14_modern_workflow.html">14 · Moderner Workflow</a>
+    <a href="stufe_15_debugging_deep_dive.html">15 · Deep Debugging</a>
+
+    <div class="section-label">Diese Seite</div>
+    <a href="#reu-grundlagen" class="toc-link">1. REU 1750 — Grundlagen</a>
+    <a href="#reu-dma" class="toc-link">2. REU-DMA in der Praxis</a>
+    <a href="#reu-anwendungen" class="toc-link">3. REU-Anwendungen</a>
+    <a href="#easyflash" class="toc-link">4. EasyFlash-Cartridge</a>
+    <a href="#userport" class="toc-link">5. CIA2-Userport</a>
+    <a href="#vic-banking" class="toc-link">6. VIC-II Banking</a>
+    <a href="#timing-erweiterungen" class="toc-link">7. Timing &amp; Erkennung</a>
+    <a href="#walkthrough" class="toc-link">8. Walkthrough: Slideshow</a>
+    <a href="#benchmark" class="toc-link">Skill-Benchmark</a>
+
+    <div class="section-label">Anhänge &amp; Referenz</div>
+    <a href="anhang_opcodes.html">A · Opcode-Referenz</a>
+    <a href="anhang_speicherkarte.html">B · Speicherkarte</a>
+    <a href="anhang_vic_register.html">C · VIC-II Register</a>
+    <a href="anhang_sid_register.html">D · SID Register</a>
+    <a href="anhang_cia_register.html">E · CIA Register</a>
+    <a href="anhang_petscii.html">F · PETSCII-Tabelle</a>
+    <a href="anhang_farben.html">G · C64-Farben</a>
+    <a href="anhang_kernal_routinen.html">H · KERNAL-Routinen</a>
+
+    <div class="section-label">Downloads</div>
+    <a href="beispiele/index.html">Beispielcode (.asm)</a>
+    <a href="vice.vicerc" download>VICE Konfiguration</a>
+  </nav>
+</aside>
+
+<main>
+  <header class="chapter-header">
+    <div class="chapter-number">Stufe 13 — Hardware</div>
+    <h1>Hardware-Erweiterungen</h1>
+    <div class="chapter-meta">
+      <span>★ Experten-Niveau</span>
+      <span>⏱ ca. 10–14 Stunden</span>
+      <span>📋 Voraussetzung: Stufen 07–12</span>
+    </div>
+  </header>
+
+  <section class="learning-objectives">
+    <h3>Lernziele dieser Stufe</h3>
+    <ul>
+      <li>REU-DMA-Register verstehen und 64-KB-Blöcke in Mikrosekunden übertragen</li>
+      <li>EasyFlash-Bank-Switching implementieren und ein .crt-Image strukturieren</li>
+      <li>CIA2-Userport als 8-Bit-Parallel-I/O nutzen (LED-Ausgabe, Taster-Eingabe)</li>
+      <li>VIC-II-Banking korrekt konfigurieren — CIA2 $DD00, alle vier Bänke</li>
+      <li>Alle 64 KB Video-RAM gleichzeitig für Charset, Bitmap und Sprite-Daten nutzen</li>
+      <li>Geräteerkennung (REU, EasyFlash) beim Programmstart programmatisch durchführen</li>
+      <li>Eine REU-beschleunigte Bild-Slideshow von Grund auf entwickeln</li>
+    </ul>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section id="reu-grundlagen">
+    <h2>1. RAM Expansion Unit (REU 1750) — 512 KB aus der Steckdose</h2>
+
+    <p>Die REU 1750 ist die mächtigste Erweiterung für den C64 aus der Commodore-Ära. Sie steckt in den Expansion-Port und bringt bis zu 512 KB zusätzlichen RAM mit — und was noch wichtiger ist: einen eigenen DMA-Controller. Mit diesem Direct Memory Access kann die REU Daten zwischen sich selbst und dem C64-RAM übertragen, ohne dass der 6510 jeden einzelnen Byte selbst kopieren muss.</p>
+
+    <h3>1.1 REU-Architektur: Was ist DMA und warum ist es so schnell?</h3>
+    <p>Beim normalen Kopieren läuft jedes Byte durch den Prozessor: <code>LDA $ADDR</code> (2–4 Zyklen) + <code>STA $DEST</code> (3–5 Zyklen) = mindestens 5–9 Zyklen pro Byte. 256 Bytes zu kopieren kostet ca. 1792 Zyklen.</p>
+    <p>Die REU besitzt dagegen einen eigenen Adressbus. Beim DMA-Transfer nimmt der REU-Controller den C64-Bus in Beschlag und schaufelt Daten direkt zwischen C64-RAM und REU-RAM — ein Byte pro Bustakt, mit 2 Zyklen Overhead für Start und Stop. 256 Bytes: 256 + 2 = 258 Zyklen. Sieben Mal schneller als Software-Kopie.</p>
+
+    <div class="box-info">Eine REU 1750 hat 512 KB. Die REU 1764 hat 256 KB, die REU 1700 nur 128 KB. Das Modell erkennt man beim Programmstart via Statusregister (mehr dazu in Abschnitt 1.4).</div>
+
+    <h3>1.2 Register-Übersicht $DF00–$DF0B</h3>
+    <p>Die REU wird über elf Register im I/O-Bereich angesprochen, sichtbar wenn kein Cartridge eingesteckt ist (oder wenn das Cartridge diese Adressen freigibt):</p>
+
+    <table class="register-table">
+      <thead><tr><th>Adresse</th><th>Name</th><th>R/W</th><th>Funktion</th></tr></thead>
+      <tbody>
+        <tr><td>$DF00</td><td>STATUS</td><td>R</td><td>Status: Bit 7=IRQ-ausstehend, Bit 6=End-of-Block, Bit 5=Fault, Bit 4=Size; W: Befehl auslösen</td></tr>
+        <tr><td>$DF01</td><td>COMMAND</td><td>W</td><td>Befehlsregister: $01=Stash (C64→REU), $02=Fetch (REU→C64), $03=Swap, $04=Verify; Bit 4=Autoload; Bit 7=Sofortausführung</td></tr>
+        <tr><td>$DF02</td><td>C64BASE_LO</td><td>R/W</td><td>C64-Basisadresse niederwertiges Byte</td></tr>
+        <tr><td>$DF03</td><td>C64BASE_HI</td><td>R/W</td><td>C64-Basisadresse hochwertiges Byte</td></tr>
+        <tr><td>$DF04</td><td>REUBASE_LO</td><td>R/W</td><td>REU-Adresse Byte 0 (niedrigstes)</td></tr>
+        <tr><td>$DF05</td><td>REUBASE_MI</td><td>R/W</td><td>REU-Adresse Byte 1 (mittleres)</td></tr>
+        <tr><td>$DF06</td><td>REUBASE_HI</td><td>R/W</td><td>REU-Adresse Byte 2 (höchstes, Bits 0–2 für Bank 0–7)</td></tr>
+        <tr><td>$DF07</td><td>LENGTH_LO</td><td>R/W</td><td>Transferlänge niederwertiges Byte</td></tr>
+        <tr><td>$DF08</td><td>LENGTH_HI</td><td>R/W</td><td>Transferlänge hochwertiges Byte (0000 = 65536 Bytes)</td></tr>
+        <tr><td>$DF09</td><td>INTMASK</td><td>R/W</td><td>Interrupt-Maske: Bit 7=IRQ freigeben, Bit 6=End-of-Block IRQ, Bit 5=Verify-Fehler IRQ</td></tr>
+        <tr><td>$DF0A</td><td>ADDRCTRL</td><td>R/W</td><td>Adress-Kontrolle: Bit 7=C64-Adresse fixieren, Bit 6=REU-Adresse fixieren</td></tr>
+      </tbody>
+    </table>
+
+    <h3>1.3 Transfertypen</h3>
+    <p>Das COMMAND-Register ($DF01) kennt vier Transferrichtungen:</p>
+    <ul>
+      <li><strong>$01 — Stash (C64→REU):</strong> Daten aus C64-RAM in REU schreiben</li>
+      <li><strong>$02 — Fetch (REU→C64):</strong> Daten aus REU in C64-RAM laden — der häufigste Fall</li>
+      <li><strong>$03 — Swap:</strong> Inhalt von C64-RAM und REU tauschen (nützlich für Doppelpuffer)</li>
+      <li><strong>$04 — Verify:</strong> Prüft ob C64-RAM und REU identisch sind (kein Transfer, nur Vergleich)</li>
+    </ul>
+    <p>Durch Setzen von Bit 4 im COMMAND-Register aktiviert man den <em>Autoload-Modus</em>: Nach dem Transfer werden die Adressregister automatisch zurückgesetzt, sodass ein erneuter Transfer sofort vom Anfang beginnt. Bit 7 in $DF01 löst den Transfer sofort aus.</p>
+
+    <h3>1.4 REU-Adressierung: 24-Bit-Adressraum</h3>
+    <p>Die REU hat einen 24-Bit-Adressraum — 16 MB theoretisch, in der Praxis 128 KB–512 KB je nach Modell. Die drei Register $DF04/$DF05/$DF06 bilden zusammen die 24-Bit REU-Adresse:</p>
+    <div class="reu-diagram">REU 24-Bit Adressraum:
+
+  $DF06 [Bits 2-0] = Bank (0-7)     Bits 23-16
+  $DF05           = Middle-Byte      Bits 15-8
+  $DF04           = Low-Byte         Bits 7-0
+
+  REU 1700 (128KB): Bänke 0-1  ($00000-$1FFFF)
+  REU 1764 (256KB): Bänke 0-3  ($00000-$3FFFF)
+  REU 1750 (512KB): Bänke 0-7  ($00000-$7FFFF)</div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section id="reu-dma">
+    <h2>2. REU-DMA in der Praxis — Blöcke in Mikrosekunden</h2>
+
+    <h3>2.1 Einen Transfer starten: die sieben Schritte</h3>
+    <p>Ein REU-Transfer wird immer gleich eingeleitet:</p>
+    <ol>
+      <li>C64-Basisadresse in $DF02/$DF03 setzen</li>
+      <li>REU-Basisadresse in $DF04/$DF05/$DF06 setzen</li>
+      <li>Transferlänge in $DF07/$DF08 setzen (0 = 65536 Bytes)</li>
+      <li>Optional: Interrupt-Maske in $DF09 konfigurieren</li>
+      <li>Optional: Adress-Kontroll-Register $DF0A konfigurieren</li>
+      <li>COMMAND-Register $DF01 mit Befehl UND Bit 7 gesetzt schreiben</li>
+      <li>Warten bis $DF00 Bit 6 (End-of-Block) gesetzt ist — oder via IRQ</li>
+    </ol>
+
+    <h3>2.2 Universelle REU-Transfer-Subroutine</h3>
+
+<pre><span class="comment">; reu_transfer — Universelle DMA-Subroutine
+; Parameter werden über Zero-Page übergeben:
+;   REU_C64_LO  ($10): C64-Basisadresse Low
+;   REU_C64_HI  ($11): C64-Basisadresse High
+;   REU_ADDR_LO ($12): REU-Adresse Low
+;   REU_ADDR_MI ($13): REU-Adresse Middle
+;   REU_ADDR_HI ($14): REU-Adresse High (Bank in Bits 0-2)
+;   REU_LEN_LO  ($15): Transferlänge Low
+;   REU_LEN_HI  ($16): Transferlänge High
+;   REU_CMD     ($17): Befehl ($81=C64→REU, $82=REU→C64, $83=Swap)
+; Verändert: A</span>
+
+<span class="label">REU_STATUS</span>  <span class="directive">= $DF00</span>   <span class="comment">; Status-Register</span>
+<span class="label">REU_COMMAND</span> <span class="directive">= $DF01</span>   <span class="comment">; Befehl (Bit 7 = sofort auslösen)</span>
+<span class="label">REU_C64_LO</span>  <span class="directive">= $10</span>    <span class="comment">; ZP: C64-Adresse Low</span>
+<span class="label">REU_C64_HI</span>  <span class="directive">= $11</span>    <span class="comment">; ZP: C64-Adresse High</span>
+<span class="label">REU_ADDR_LO</span> <span class="directive">= $12</span>    <span class="comment">; ZP: REU-Adresse Low</span>
+<span class="label">REU_ADDR_MI</span> <span class="directive">= $13</span>    <span class="comment">; ZP: REU-Adresse Mid</span>
+<span class="label">REU_ADDR_HI</span> <span class="directive">= $14</span>    <span class="comment">; ZP: REU-Adresse High/Bank</span>
+<span class="label">REU_LEN_LO</span>  <span class="directive">= $15</span>    <span class="comment">; ZP: Länge Low</span>
+<span class="label">REU_LEN_HI</span>  <span class="directive">= $16</span>    <span class="comment">; ZP: Länge High</span>
+<span class="label">REU_CMD</span>     <span class="directive">= $17</span>    <span class="comment">; ZP: Befehl</span>
+
+<span class="label">reu_transfer:</span>
+    <span class="instr">lda</span> <span class="reg">REU_C64_LO</span>
+    <span class="instr">sta</span> $DF02            <span class="comment">; C64-Adresse Low</span>
+    <span class="instr">lda</span> <span class="reg">REU_C64_HI</span>
+    <span class="instr">sta</span> $DF03            <span class="comment">; C64-Adresse High</span>
+    <span class="instr">lda</span> <span class="reg">REU_ADDR_LO</span>
+    <span class="instr">sta</span> $DF04            <span class="comment">; REU-Adresse Low</span>
+    <span class="instr">lda</span> <span class="reg">REU_ADDR_MI</span>
+    <span class="instr">sta</span> $DF05            <span class="comment">; REU-Adresse Mid</span>
+    <span class="instr">lda</span> <span class="reg">REU_ADDR_HI</span>
+    <span class="instr">sta</span> $DF06            <span class="comment">; REU-Adresse High (Bank)</span>
+    <span class="instr">lda</span> <span class="reg">REU_LEN_LO</span>
+    <span class="instr">sta</span> $DF07            <span class="comment">; Länge Low</span>
+    <span class="instr">lda</span> <span class="reg">REU_LEN_HI</span>
+    <span class="instr">sta</span> $DF08            <span class="comment">; Länge High</span>
+    <span class="instr">lda</span> <span class="reg">REU_CMD</span>
+    <span class="instr">ora</span> #$80             <span class="comment">; Bit 7 = sofort ausführen</span>
+    <span class="instr">sta</span> $DF01            <span class="comment">; Transfer starten!</span>
+<span class="label">.wait:</span>
+    <span class="instr">lda</span> $DF00            <span class="comment">; Status lesen</span>
+    <span class="instr">and</span> #$40             <span class="comment">; Bit 6 = End-of-Block</span>
+    <span class="instr">beq</span> .wait            <span class="comment">; Warten bis fertig</span>
+    <span class="instr">rts</span></pre>
+
+    <h3>2.3 Timing: Wie viel schneller ist DMA wirklich?</h3>
+    <table>
+      <thead><tr><th>Methode</th><th>256 Bytes</th><th>1 KB</th><th>8 KB (Screen+Color)</th><th>64 KB</th></tr></thead>
+      <tbody>
+        <tr><td>LDA/STA-Schleife</td><td>~1.792 Zyklen</td><td>~7.168 Zyklen</td><td>~57.344 Zyklen</td><td>~458.752 Zyklen</td></tr>
+        <tr><td>REU-DMA</td><td>258 Zyklen</td><td>1.026 Zyklen</td><td>8.194 Zyklen</td><td>65.538 Zyklen</td></tr>
+        <tr><td>Speedup-Faktor</td><td>~6,9×</td><td>~7,0×</td><td>~7,0×</td><td>~7,0×</td></tr>
+      </tbody>
+    </table>
+
+    <div class="box-tip">Der DMA-Transfer blockiert den 6510 vollständig — er kann währenddessen keine Interrupts bearbeiten und keinen Code ausführen. Für kurze Transfers (&lt;256 Bytes) ist das kein Problem. Für große Transfers (mehrere KB) sollte man den IRQ davor sperren (<code>SEI</code>) und danach wieder freigeben (<code>CLI</code>).</div>
+
+    <h3>2.4 REU-Erkennung beim Programmstart</h3>
+
+<pre><span class="comment">; detect_reu — Prüft ob REU vorhanden und ermittelt Kapazität
+; Rückgabe: A = 0 (keine REU), 128 (128KB), 256 (=0 = 256KB), 2 (512KB)
+; Methode: Schreibe Test-Byte in REU-RAM, lese zurück. Kein REU → Schreiben wirkungslos.</span>
+
+<span class="label">detect_reu:</span>
+    <span class="instr">lda</span> $DF00           <span class="comment">; Status lesen</span>
+    <span class="instr">and</span> #$10            <span class="comment">; Bit 4 = Size-Flag (0=512KB, 1=kleinere Modelle)</span>
+    <span class="instr">sta</span> reu_size_flag
+    <span class="comment">; Test: Schreibe $55 ins REU-RAM an Adresse $00000</span>
+    <span class="instr">lda</span> #$55
+    <span class="instr">sta</span> test_byte
+    <span class="instr">lda</span> #&lt;test_byte
+    <span class="instr">sta</span> $DF02           <span class="comment">; C64-Adresse = &amp;test_byte</span>
+    <span class="instr">lda</span> #&gt;test_byte
+    <span class="instr">sta</span> $DF03
+    <span class="instr">lda</span> #$00 : <span class="instr">sta</span> $DF04  <span class="comment">; REU-Adresse = $000000</span>
+    <span class="instr">lda</span> #$00 : <span class="instr">sta</span> $DF05
+    <span class="instr">lda</span> #$00 : <span class="instr">sta</span> $DF06
+    <span class="instr">lda</span> #$01 : <span class="instr">sta</span> $DF07  <span class="comment">; Länge = 1</span>
+    <span class="instr">lda</span> #$00 : <span class="instr">sta</span> $DF08
+    <span class="instr">lda</span> #$81            <span class="comment">; Stash (C64→REU) + sofort</span>
+    <span class="instr">sta</span> $DF01
+    <span class="comment">; Ändere C64-Byte, dann Fetch zurück</span>
+    <span class="instr">lda</span> #$AA : <span class="instr">sta</span> test_byte
+    <span class="instr">lda</span> #$82 : <span class="instr">sta</span> $DF01  <span class="comment">; Fetch (REU→C64) + sofort</span>
+    <span class="instr">lda</span> test_byte
+    <span class="instr">cmp</span> #$55            <span class="comment">; $55 zurückgekommen? Dann REU vorhanden</span>
+    <span class="instr">bne</span> .no_reu
+    <span class="instr">lda</span> #1              <span class="comment">; REU gefunden</span>
+    <span class="instr">rts</span>
+<span class="label">.no_reu:</span>
+    <span class="instr">lda</span> #0
+    <span class="instr">rts</span></pre>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section id="reu-anwendungen">
+    <h2>3. REU-Anwendungen — Screenramer, Musikdaten, Sprite-Frames</h2>
+
+    <h3>3.1 Screen-Buffer im REU — Sofortige Screen-Umschaltung</h3>
+    <p>Der häufigste Anwendungsfall für die REU ist das blitzschnelle Sichern und Wiederherstellen des gesamten Bildschirminhalts. Ein vollständiger C64-Screen besteht aus 1000 Bytes Screen-RAM ($0400–$07E7) plus 1000 Bytes Color-RAM ($D800–$DBE7). Mit einer Software-Kopieschleife dauert das über 10.000 Zyklen — mit der REU sind es zwei DMA-Transfers, zusammen unter 2200 Zyklen.</p>
+
+<pre><span class="comment">; screen_save — Sichert Screen-RAM + Color-RAM in REU
+; screen_restore — Lädt Screen+Color aus REU zurück
+; REU-Layout: $00000-$003E7 = Screen-RAM (1000 Bytes)
+;             $003E8-$007CF = Color-RAM  (1000 Bytes)</span>
+
+<span class="label">screen_save:</span>
+    <span class="comment">; Screen-RAM ($0400) → REU $00000</span>
+    <span class="instr">lda</span> #$00 : <span class="instr">sta</span> $DF02  <span class="comment">; C64: $0400</span>
+    <span class="instr">lda</span> #$04 : <span class="instr">sta</span> $DF03
+    <span class="instr">lda</span> #$00 : <span class="instr">sta</span> $DF04  <span class="comment">; REU: $000000</span>
+    <span class="instr">lda</span> #$00 : <span class="instr">sta</span> $DF05
+    <span class="instr">lda</span> #$00 : <span class="instr">sta</span> $DF06
+    <span class="instr">lda</span> #$E8 : <span class="instr">sta</span> $DF07  <span class="comment">; Länge = 1000 = $03E8</span>
+    <span class="instr">lda</span> #$03 : <span class="instr">sta</span> $DF08
+    <span class="instr">lda</span> #$81 : <span class="instr">sta</span> $DF01  <span class="comment">; Stash (C64→REU)</span>
+    <span class="comment">; Color-RAM ($D800) → REU $003E8</span>
+    <span class="instr">lda</span> #$00 : <span class="instr">sta</span> $DF02
+    <span class="instr">lda</span> #$D8 : <span class="instr">sta</span> $DF03  <span class="comment">; C64: $D800</span>
+    <span class="instr">lda</span> #$E8 : <span class="instr">sta</span> $DF04  <span class="comment">; REU: $0003E8</span>
+    <span class="instr">lda</span> #$03 : <span class="instr">sta</span> $DF05
+    <span class="instr">lda</span> #$00 : <span class="instr">sta</span> $DF06
+    <span class="instr">lda</span> #$E8 : <span class="instr">sta</span> $DF07
+    <span class="instr">lda</span> #$03 : <span class="instr">sta</span> $DF08
+    <span class="instr">lda</span> #$81 : <span class="instr">sta</span> $DF01
+    <span class="instr">rts</span>
+
+<span class="label">screen_restore:</span>
+    <span class="comment">; REU $00000 → Screen-RAM ($0400)</span>
+    <span class="instr">lda</span> #$00 : <span class="instr">sta</span> $DF02
+    <span class="instr">lda</span> #$04 : <span class="instr">sta</span> $DF03
+    <span class="instr">lda</span> #$00 : <span class="instr">sta</span> $DF04
+    <span class="instr">lda</span> #$00 : <span class="instr">sta</span> $DF05
+    <span class="instr">lda</span> #$00 : <span class="instr">sta</span> $DF06
+    <span class="instr">lda</span> #$E8 : <span class="instr">sta</span> $DF07
+    <span class="instr">lda</span> #$03 : <span class="instr">sta</span> $DF08
+    <span class="instr">lda</span> #$82 : <span class="instr">sta</span> $DF01  <span class="comment">; Fetch (REU→C64)</span>
+    <span class="comment">; REU $003E8 → Color-RAM ($D800)</span>
+    <span class="instr">lda</span> #$00 : <span class="instr">sta</span> $DF02
+    <span class="instr">lda</span> #$D8 : <span class="instr">sta</span> $DF03
+    <span class="instr">lda</span> #$E8 : <span class="instr">sta</span> $DF04
+    <span class="instr">lda</span> #$03 : <span class="instr">sta</span> $DF05
+    <span class="instr">lda</span> #$00 : <span class="instr">sta</span> $DF06
+    <span class="instr">lda</span> #$E8 : <span class="instr">sta</span> $DF07
+    <span class="instr">lda</span> #$03 : <span class="instr">sta</span> $DF08
+    <span class="instr">lda</span> #$82 : <span class="instr">sta</span> $DF01
+    <span class="instr">rts</span></pre>
+
+    <h3>3.2 Mehrere SID-Tunes im REU</h3>
+    <p>Musik-Daten sind typischerweise 4–16 KB groß. Vier verschiedene SID-Tunes gleichzeitig im C64-RAM zu halten ist nicht möglich, aber per REU sehr einfach. Beim Start werden alle Tunes per Disk-Loader in den REU-Speicher geladen (REU-Adresse $10000, $14000, $18000, $1C000). Beim Tune-Wechsel: ein einziger DMA-Fetch ersetzt die Musikdaten im C64-RAM in Millisekunden.</p>
+
+    <h3>3.3 REU als Sprite-Animations-Puffer</h3>
+    <p>Sprite-Animationen mit vielen Frames benötigen viel Speicher. Ein 12-Frame-Sprite braucht 12 × 63 = 756 Bytes. Für einen vollständigen 64-Frame-Zyklus wären das 4 KB — problemlos im REU unterzubringen. Im IRQ-Handler wird der nächste Animationsframe via DMA in das aktive Sprite-Daten-RAM übertragen.</p>
+
+    <div class="box-tip">Für alle REU-Transfers gilt: Die REU-Adresse wird nach dem Transfer automatisch erhöht, die C64-Adresse ebenso. Wenn man die Adresse fixieren möchte (z. B. um dieselbe Adresse wiederholt zu beschreiben), kann man Bit 7 ($C64-Adresse fixieren) oder Bit 6 (REU-Adresse fixieren) in $DF0A setzen.</div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section id="easyflash">
+    <h2>4. EasyFlash-Cartridge — 1 MB Flash im Steckmodul</h2>
+
+    <p>EasyFlash ist ein modernes Cartridge-Format für den C64, entworfen von Skoe. Es enthält 1 MB Flash-Speicher aufgeteilt in 64 Bänke à 16 KB (je 8 KB für ROML bei $8000 und 8 KB für ROMH bei $A000/$E000). Durch Bank-Switching kann ein Programm bis zu 1 MB Code und Daten im Cartridge-Speicher ablegen — deutlich mehr als im 64 KB RAM des C64.</p>
+
+    <h3>4.1 EasyFlash-Architektur</h3>
+    <div class="bank-diagram">EasyFlash Speicherlayout:
+
+  64 Bänke × 16 KB = 1 MB Flash
+
+  Jede Bank:  ROML  8 KB → sichtbar bei $8000-$9FFF
+              ROMH  8 KB → sichtbar bei $A000-$BFFF (Ultimax: $E000-$FFFF)
+
+  Bank 0: Pflicht-Startbank — enthält RESET/NMI-Vektoren in ROMH
+  Bänke 1-63: Frei verfügbar für Code, Daten, Level-Inhalte</div>
+
+    <h3>4.2 Bank-Switching-Register</h3>
+    <table class="register-table">
+      <thead><tr><th>Adresse</th><th>Name</th><th>Funktion</th></tr></thead>
+      <tbody>
+        <tr><td>$DE00</td><td>BANK</td><td>Bank-Nummer 0–63 (Bits 0–5). Schreibzugriff schaltet sofort um.</td></tr>
+        <tr><td>$DE02</td><td>MODE</td><td>Bit 2: Onboard-LED. Bit 1: GAME. Bit 0: EXROM. Standardmodus: $04 (GAME=1,EXROM=0 = 16KB Cartridge Mode)</td></tr>
+        <tr><td>$DE04</td><td>NV (optional)</td><td>EasyFlash NV: nicht-volatile Speicherung der aktuellen Bankeinstellung über Reset hinaus</td></tr>
+      </tbody>
+    </table>
+
+    <h3>4.3 Bank-Switching in ACME</h3>
+
+<pre><span class="comment">; bank_switch — EasyFlash-Bank aktivieren
+; Eingabe: A = Banknummer (0-63)
+; GAME/EXROM auf 16KB-Cartridge-Modus ($04)</span>
+
+<span class="label">EF_BANK</span>  <span class="directive">= $DE00</span>   <span class="comment">; Bank-Register</span>
+<span class="label">EF_MODE</span>  <span class="directive">= $DE02</span>   <span class="comment">; Mode-Register</span>
+
+<span class="label">bank_switch:</span>
+    <span class="instr">sta</span> EF_BANK          <span class="comment">; Bank 0-63 aktivieren</span>
+    <span class="instr">lda</span> #$04             <span class="comment">; GAME=1, EXROM=0 → 16KB Cartridge Mode</span>
+    <span class="instr">sta</span> EF_MODE          <span class="comment">; Modus setzen</span>
+    <span class="instr">rts</span>
+
+<span class="comment">; Beispiel: Code aus Bank 3 aufrufen
+; In Bank 3 liegt Routine 'gfx_init' bei $8200</span>
+<span class="label">call_bank3_routine:</span>
+    <span class="instr">lda</span> #3
+    <span class="instr">jsr</span> bank_switch      <span class="comment">; Bank 3 aktivieren</span>
+    <span class="instr">jsr</span> $8200            <span class="comment">; Routine in ROML aufrufen</span>
+    <span class="instr">lda</span> #0
+    <span class="instr">jsr</span> bank_switch      <span class="comment">; Zurück zu Bank 0</span>
+    <span class="instr">rts</span></pre>
+
+    <h3>4.4 .crt-Image-Erstellung</h3>
+    <p>Ein EasyFlash-Cartridge-Image hat das CRT-Format. Es besteht aus einem 64-Byte-Header gefolgt von CHIP-Chunks, einen pro Bank und Bereich (ROML/ROMH). Das Tool <code>cartconv</code> (Teil des VICE-Pakets) erstellt CRT-Images aus Binärdateien.</p>
+    <p>Typischer Ablauf mit <code>cartconv</code>:</p>
+    <div class="reu-diagram">cartconv -t EasyFlash \
+           -b 0 -l bank0_roml.bin -r bank0_romh.bin \
+           -b 1 -l bank1_roml.bin -r bank1_romh.bin \
+           ... \
+           -o mein_cartridge.crt</div>
+
+    <div class="box-info">EasyFlash eignet sich besonders für Programme über 50 KB, große Datentabellen (vollständige Sinustabellen, Level-Daten) oder Demos mit vielen Parts, die nicht alle gleichzeitig im C64-RAM Platz haben.</div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section id="userport">
+    <h2>5. CIA2-Userport — 8-Bit-Parallel-I/O an $DD01</h2>
+
+    <p>Der Userport des C64 ist ein 24-poliger Edge-Connector auf der Rückseite des Gehäuses. Über ihn kann man eigene Hardware anschließen — 8 Datenleitungen plus Handshaking-Leitungen, Stromversorgung und GND. Gesteuert wird er durch CIA2 bei $DD00–$DDFF.</p>
+
+    <h3>5.1 Userport-Pinbelegung (relevante Pins)</h3>
+    <table class="register-table">
+      <thead><tr><th>Pin</th><th>Name</th><th>CIA2-Register</th><th>Funktion</th></tr></thead>
+      <tbody>
+        <tr><td>C–J</td><td>PB0–PB7</td><td>$DD01 (Port B)</td><td>8 bidirektionale Datenleitungen</td></tr>
+        <tr><td>B</td><td>/FLAG2</td><td>$DD0D Bit 4</td><td>Handshake-Eingang (Edge-Trigger)</td></tr>
+        <tr><td>M</td><td>PA2</td><td>$DD00 Bit 2</td><td>Handshake-Ausgang</td></tr>
+        <tr><td>A,N</td><td>GND</td><td>—</td><td>Masse</td></tr>
+        <tr><td>2</td><td>+5V</td><td>—</td><td>+5 Volt (max. 100mA entnehmen)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>5.2 CIA2 konfigurieren: Direction-Register $DD03</h3>
+    <p>Bevor man den Userport nutzen kann, muss man festlegen, welche Pins Ausgang und welche Eingang sind. Das Data-Direction-Register $DD03 steuert dies bitweise: Bit = 1 → Ausgang, Bit = 0 → Eingang.</p>
+
+    <h3>5.3 LED-Ausgabe und Taster-Eingabe</h3>
+
+<pre><span class="comment">; userport_leds — Schreibt LED-Muster an Userport-Pins PB0-PB7
+; Eingabe: A = LED-Bitmuster (Bit 0 = LED 1, Bit 7 = LED 8)
+; userport_read_buttons — Liest Tasterstatus mit 3-Frame-Debounce
+; Rückgabe: A = gedrückte Tasten (0=gedrückt da Pull-Up)</span>
+
+<span class="label">CIA2_PORTB</span>  <span class="directive">= $DD01</span>   <span class="comment">; Port B Datenregister</span>
+<span class="label">CIA2_DDRB</span>   <span class="directive">= $DD03</span>   <span class="comment">; Port B Direction (1=Ausgang)</span>
+
+<span class="label">userport_init_output:</span>
+    <span class="instr">lda</span> #$FF             <span class="comment">; Alle Pins als Ausgang</span>
+    <span class="instr">sta</span> CIA2_DDRB
+    <span class="instr">lda</span> #$00             <span class="comment">; Alle LEDs aus</span>
+    <span class="instr">sta</span> CIA2_PORTB
+    <span class="instr">rts</span>
+
+<span class="label">userport_leds:</span>
+    <span class="instr">sta</span> CIA2_PORTB       <span class="comment">; LED-Muster direkt schreiben</span>
+    <span class="instr">rts</span>
+
+<span class="label">userport_init_input:</span>
+    <span class="instr">lda</span> #$00             <span class="comment">; Alle Pins als Eingang</span>
+    <span class="instr">sta</span> CIA2_DDRB
+    <span class="instr">rts</span>
+
+<span class="label">btn_prev:</span>   <span class="directive">!byte</span> $FF  <span class="comment">; Vorheriger Zustand</span>
+<span class="label">btn_count:</span>  <span class="directive">!byte</span> 0   <span class="comment">; Debounce-Zähler (Frames)</span>
+
+<span class="label">userport_read_buttons:</span>
+    <span class="instr">lda</span> CIA2_PORTB       <span class="comment">; Port lesen (0=gedrückt wegen Pull-Up)</span>
+    <span class="instr">cmp</span> btn_prev
+    <span class="instr">beq</span> .same            <span class="comment">; Gleich wie vorher?</span>
+    <span class="instr">sta</span> btn_prev         <span class="comment">; Neuer Zustand</span>
+    <span class="instr">lda</span> #0
+    <span class="instr">sta</span> btn_count        <span class="comment">; Debounce-Zähler reset</span>
+    <span class="instr">lda</span> #$FF             <span class="comment">; Noch kein stabiles Ergebnis</span>
+    <span class="instr">rts</span>
+<span class="label">.same:</span>
+    <span class="instr">inc</span> btn_count
+    <span class="instr">lda</span> btn_count
+    <span class="instr">cmp</span> #3               <span class="comment">; 3 Frames stabil = entprellt</span>
+    <span class="instr">bcc</span> .not_stable
+    <span class="instr">lda</span> btn_prev         <span class="comment">; Stabilen Zustand zurückgeben</span>
+    <span class="instr">rts</span>
+<span class="label">.not_stable:</span>
+    <span class="instr">lda</span> #$FF
+    <span class="instr">rts</span></pre>
+
+    <div class="box-warning">Die Taster-Eingänge am Userport verwenden interne Pull-Up-Widerstände. Ein gedrückter Taster zieht den Pin auf GND → gelesen wird 0. Nicht gedrückt → gelesen wird 1. Die Logik ist also invertiert!</div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section id="vic-banking">
+    <h2>6. VIC-II Banking — 64 KB Video-RAM voll nutzen</h2>
+
+    <p>Der VIC-II Grafikchip sieht nur einen 16-KB-Bereich des Speichers — seinen <em>Bank</em>. Dieser Bank kann in einem von vier möglichen Bereichen des C64-RAMs liegen. Durch bewusstes Planen der Speicherbelegung kann man alle 64 KB für Video-Daten nutzen, indem man verschiedene Objekte (Charset, Bitmap, Sprites) in verschiedene VIC-Bänke legt und zwischen ihnen umschaltet.</p>
+
+    <h3>6.1 Die vier VIC-Bänke</h3>
+    <div class="bank-diagram">VIC-II Banking — CIA2 $DD00 Bits 1-0 (invertiert!):
+
+  CIA2[1:0]  VIC-Bank  Bereich         Besonderheit
+  ─────────────────────────────────────────────────────
+     11       Bank 0   $0000-$3FFF     DEFAULT — hier startet der C64
+     10       Bank 1   $4000-$7FFF     Kein ROM-Overlay
+     01       Bank 2   $8000-$BFFF     Kein ROM-Overlay
+     00       Bank 3   $C000-$FFFF     Kein ROM-Overlay
+
+  ACHTUNG: Bits sind INVERTIERT! 11 = $0000 (Bank 0), 00 = $C000 (Bank 3)
+
+  VIC-Bank setzen:
+    LDA CIA2_PORT  ; $DD00 lesen
+    AND #%11111100 ; Bits 0+1 löschen
+    ORA #bank_bits ; Bank-Bits setzen (invertiert)
+    STA CIA2_PORT</div>
+
+    <h3>6.2 Charset-ROM-Fenster beachten</h3>
+    <p>In Bank 0 und Bank 2 gibt es eine wichtige Einschränkung: Bei $1000–$1FFF (Bank 0) und $9000–$9FFF (Bank 2) sieht der VIC-II immer den eingeblendeten Zeichensatz-ROM, unabhängig davon was im RAM steht. Diese Bereiche eignen sich daher <em>nicht</em> für eigene Grafik-Daten.</p>
+
+    <h3>6.3 $D018 — VIC-Bank-intern: Screen und Charset platzieren</h3>
+    <p>Innerhalb des aktiven VIC-Banks steuert das Register $D018, wo Screen-RAM und Charset-ROM/RAM liegen:</p>
+    <table class="register-table">
+      <thead><tr><th>$D018 Bits</th><th>Funktion</th><th>Adress-Formel</th></tr></thead>
+      <tbody>
+        <tr><td>Bits 7–4</td><td>Screen-RAM Basis (0–15)</td><td>Bankbasis + Wert × $0400</td></tr>
+        <tr><td>Bits 3–1</td><td>Charset/Bitmap Basis (0–7)</td><td>Bankbasis + Wert × $0800</td></tr>
+        <tr><td>Bit 0</td><td>Bitmap-Modus Offset</td><td>0=$0000, 1=$2000 innerhalb der Bitmap-Basis</td></tr>
+      </tbody>
+    </table>
+
+    <h3>6.4 Vollständige VIC-Banking-Konfiguration</h3>
+
+<pre><span class="comment">; vic_bank_setup — Vollständige VIC-II Bank-Konfiguration
+; Ziel-Layout in Bank 1 ($4000-$7FFF):
+;   Screen-RAM:   $4000 (Offset 0 × $0400 = $0000 in Bank)
+;   Charset:      $4800 (Offset 1 × $0800 = $0800 in Bank) [kein ROM-Overlay in Bank 1]
+;   Sprite-Daten: $4FC0 (Sprite-Pointer bei $4FF8: Wert $3F = $4000 + $3F*$40 = $4FC0)
+;   Bitmap:       $6000 (Offset 4 × $2000 = Bitmap-Basis $4000+$2000 = $6000, Bit0=1)</span>
+
+<span class="label">CIA2_PORT</span>  <span class="directive">= $DD00</span>
+<span class="label">VIC_CTRL1</span>  <span class="directive">= $D011</span>
+<span class="label">VIC_MEMCTL</span> <span class="directive">= $D018</span>
+
+<span class="label">vic_bank_setup:</span>
+    <span class="comment">; CIA2: VIC-Bank 1 aktivieren ($4000-$7FFF)
+    ; Bank 1 = CIA2-Bits 1:0 = 10 binär</span>
+    <span class="instr">lda</span> CIA2_PORT
+    <span class="instr">and</span> #%11111100       <span class="comment">; Bits 0+1 löschen</span>
+    <span class="instr">ora</span> #%00000010       <span class="comment">; Bank 1 = 10 binär (invertiert!)</span>
+    <span class="instr">sta</span> CIA2_PORT
+
+    <span class="comment">; $D018: Screen bei Offset 0 ($4000), Charset bei Offset 1 ($4800)
+    ; Bits 7-4 = Screen-Offset = 0 → $0000 in Bank = $4000
+    ; Bits 3-1 = Charset-Offset = 1 → $0800 in Bank = $4800</span>
+    <span class="instr">lda</span> #%00000010       <span class="comment">; Screen=0 ($4000), Charset=1 ($4800)</span>
+    <span class="instr">sta</span> VIC_MEMCTL
+
+    <span class="comment">; Sprite-Pointer im Screen-RAM ($4FF8-$4FFF) setzen
+    ; Sprite 0 Daten bei $4FC0: Pointer = ($4FC0-$4000)/$40 = $3F</span>
+    <span class="instr">ldx</span> #7
+<span class="label">.sptr_loop:</span>
+    <span class="instr">lda</span> #$3F
+    <span class="instr">sta</span> $4FF8,x          <span class="comment">; Alle 8 Sprites auf $4FC0</span>
+    <span class="instr">dex</span>
+    <span class="instr">bpl</span> .sptr_loop
+    <span class="instr">rts</span></pre>
+
+    <div class="box-important">Beim Wechsel des VIC-Banks (CIA2 $DD00) muss auch $D018 entsprechend angepasst werden, da die Adressen relativ zur Bankbasis sind. Außerdem: Sprites werden immer aus dem <em>aktuell aktiven</em> VIC-Bank geladen — Sprite-Daten müssen also im gleichen Bank wie Screen-RAM liegen.</div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section id="timing-erweiterungen">
+    <h2>7. Timing, DMA-Interaktion und Geräteerkennung</h2>
+
+    <h3>7.1 DMA-Stalls und Interrupt-Handling</h3>
+    <p>Während ein REU-DMA-Transfer läuft, hält der DMA-Controller den 6510-Bus-Request aktiv. Der Prozessor kann in dieser Zeit keine Interrupts bearbeiten. Für kurze Transfers (&lt;1 KB) ist das unproblematisch — der Raster-IRQ wartet wenige Hundert Zyklen. Für längere Transfers (mehrere KB) sollte man:</p>
+    <ul>
+      <li>Den Transfer im vertikalen Blanking (Rasterzeile &gt; 250 PAL) starten</li>
+      <li><code>SEI</code> vor dem Transfer ausführen, <code>CLI</code> danach</li>
+      <li>Oder den REU-End-of-Block-IRQ nutzen und darauf reagieren</li>
+    </ul>
+
+    <h3>7.2 EasyFlash und Raster-IRQ</h3>
+    <p>Bankwechsel via $DE00 dauern genau einen Schreibzyklus. Das ist schnell genug, um im Raster-IRQ die Bank zu wechseln, Daten abzurufen und zurückzuschalten. Für zeitkritische Raster-Effekte gilt: Bankwechsel außerhalb der Badline-Region durchführen, da diese ohnehin 40 Zyklen stiehlt.</p>
+
+    <h3>7.3 Universelle Erkennungsroutine für Erweiterungen</h3>
+    <p>Ein robustes Programm erkennt beim Start, welche Hardware verfügbar ist, und aktiviert entsprechende Codepfade:</p>
+
+<pre><span class="comment">; hardware_detect — Erkennt verfügbare Erweiterungen
+; Ergebnis in hw_flags:
+;   Bit 0 = REU vorhanden
+;   Bit 1 = EasyFlash vorhanden
+;   Bit 2 = 1764/1750 (REU &gt;= 256KB)</span>
+
+<span class="label">hw_flags:</span> <span class="directive">!byte</span> 0
+
+<span class="label">hardware_detect:</span>
+    <span class="instr">lda</span> #0 : <span class="instr">sta</span> hw_flags
+    <span class="comment">; REU-Test: Schreibe Kennung in REU, lies zurück</span>
+    <span class="instr">jsr</span> detect_reu
+    <span class="instr">beq</span> .check_ef
+    <span class="instr">lda</span> hw_flags
+    <span class="instr">ora</span> #%00000001       <span class="comment">; REU-Bit setzen</span>
+    <span class="instr">sta</span> hw_flags
+    <span class="comment">; REU-Größe prüfen: $DF00 Bit 4 = 0 → 512KB</span>
+    <span class="instr">lda</span> $DF00
+    <span class="instr">and</span> #$10
+    <span class="instr">bne</span> .check_ef
+    <span class="instr">lda</span> hw_flags
+    <span class="instr">ora</span> #%00000100       <span class="comment">; 512KB-Bit setzen</span>
+    <span class="instr">sta</span> hw_flags
+<span class="label">.check_ef:</span>
+    <span class="comment">; EasyFlash-Test: $DE00 schreiben und prüfen ob Freeze-Button reagiert</span>
+    <span class="instr">lda</span> $DE02            <span class="comment">; Mode-Register lesen</span>
+    <span class="instr">cmp</span> #$FF             <span class="comment">; $FF = kein EasyFlash (ungültiger Wert)</span>
+    <span class="instr">beq</span> .done
+    <span class="instr">lda</span> hw_flags
+    <span class="instr">ora</span> #%00000010       <span class="comment">; EasyFlash-Bit setzen</span>
+    <span class="instr">sta</span> hw_flags
+<span class="label">.done:</span>
+    <span class="instr">rts</span></pre>
+
+    <div class="box-tip">Zeige dem Benutzer beim Programmstart eine Statusmeldung: "REU 512KB erkannt — Extrastufen verfügbar" oder "Kein REU — Standard-Modus". Das ist guter Stil und hilft beim Testen auf echter Hardware.</div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section id="walkthrough">
+    <div class="hardware-banner">
+      <h2>8. Walkthrough: REU-beschleunigte Bild-Slideshow</h2>
+      <p>Vollständiges Beispielprojekt: Vier Bitmap-Screens wechseln sich automatisch ab — jeder Wechsel in unter 2 ms per DMA.</p>
+    </div>
+
+    <h3>8.1 Konzept und REU-Layout</h3>
+    <p>Vier Hires-Bitmap-Screens (je 8 KB Bitmap-Daten + 1 KB Color-RAM = 9 KB pro Screen) werden beim Start von Disk in den REU-Speicher geladen. Im Hauptprogramm läuft ein Frame-Counter. Nach jeweils 150 Frames (3 Sekunden PAL) wird der nächste Screen per DMA in das sichtbare C64-RAM transferiert.</p>
+
+    <div class="bank-diagram">REU-Speicherbelegung für 4 Screens:
+
+  REU $00000-$01F3F  Screen 0 Bitmap  (8000 Bytes)
+  REU $01F40-$023C7  Screen 0 Color   (1000 Bytes)
+  REU $04000-$05F3F  Screen 1 Bitmap  (8000 Bytes)
+  REU $05F40-$063C7  Screen 1 Color   (1000 Bytes)
+  REU $08000-$09F3F  Screen 2 Bitmap  (8000 Bytes)
+  REU $09F40-$0A3C7  Screen 2 Color   (1000 Bytes)
+  REU $0C000-$0DF3F  Screen 3 Bitmap  (8000 Bytes)
+  REU $0DF40-$0E3C7  Screen 3 Color   (1000 Bytes)
+
+  Gesamtbedarf: ~36 KB (passt komfortabel in REU 1700)</div>
+
+    <h3>8.2 Hauptschleife mit DMA-Screen-Wechsel</h3>
+
+<pre><span class="comment">; slideshow_loop — Hauptschleife der REU-Slideshow
+; Wechselt alle 150 Frames (3 Sek. PAL) zum nächsten Screen</span>
+
+<span class="label">frame_count:</span>    <span class="directive">!byte</span> 0
+<span class="label">current_screen:</span> <span class="directive">!byte</span> 0
+
+<span class="comment">; REU-Basisadressen pro Screen (High-Byte und Mid-Byte)</span>
+<span class="label">reu_screen_hi:</span> <span class="directive">!byte</span> $00,$04,$08,$0C  <span class="comment">; Bitmap High-Bytes</span>
+<span class="label">reu_color_hi:</span>  <span class="directive">!byte</span> $01,$05,$09,$0D  <span class="comment">; Color-RAM High-Bytes (Offset $1F40)</span>
+
+<span class="label">slideshow_loop:</span>
+<span class="label">.wait_vbl:</span>
+    <span class="instr">lda</span> $D011
+    <span class="instr">bpl</span> .wait_vbl        <span class="comment">; Warten bis Bit 7 = Rasterzeile &gt; 255</span>
+
+    <span class="instr">inc</span> frame_count
+    <span class="instr">lda</span> frame_count
+    <span class="instr">cmp</span> #150
+    <span class="instr">bcc</span> .no_switch
+
+    <span class="comment">; Screen wechseln</span>
+    <span class="instr">lda</span> #0 : <span class="instr">sta</span> frame_count
+    <span class="instr">inc</span> current_screen
+    <span class="instr">lda</span> current_screen
+    <span class="instr">cmp</span> #4
+    <span class="instr">bcc</span> .do_fetch
+    <span class="instr">lda</span> #0 : <span class="instr">sta</span> current_screen
+
+<span class="label">.do_fetch:</span>
+    <span class="instr">ldy</span> current_screen
+
+    <span class="comment">; Bitmap: REU → $2000 (Hires-Bitmap-Adresse in Bank 0)</span>
+    <span class="instr">lda</span> #$00 : <span class="instr">sta</span> $DF02  <span class="comment">; C64: $2000</span>
+    <span class="instr">lda</span> #$20 : <span class="instr">sta</span> $DF03
+    <span class="instr">lda</span> #$00 : <span class="instr">sta</span> $DF04
+    <span class="instr">lda</span> reu_screen_hi,y
+    <span class="instr">sta</span> $DF05            <span class="comment">; REU-Adresse Mid</span>
+    <span class="instr">lda</span> #$00 : <span class="instr">sta</span> $DF06
+    <span class="instr">lda</span> #$40 : <span class="instr">sta</span> $DF07  <span class="comment">; Länge $1F40 = 8000 Bytes</span>
+    <span class="instr">lda</span> #$1F : <span class="instr">sta</span> $DF08
+    <span class="instr">lda</span> #$82 : <span class="instr">sta</span> $DF01  <span class="comment">; Fetch (REU→C64)</span>
+
+    <span class="comment">; Color-RAM: REU → $D800</span>
+    <span class="instr">lda</span> #$00 : <span class="instr">sta</span> $DF02
+    <span class="instr">lda</span> #$D8 : <span class="instr">sta</span> $DF03
+    <span class="instr">lda</span> #$40 : <span class="instr">sta</span> $DF04  <span class="comment">; Offset $1F40 innerhalb des Blocks</span>
+    <span class="instr">lda</span> reu_color_hi,y
+    <span class="instr">sta</span> $DF05
+    <span class="instr">lda</span> #$00 : <span class="instr">sta</span> $DF06
+    <span class="instr">lda</span> #$E8 : <span class="instr">sta</span> $DF07  <span class="comment">; Länge $03E8 = 1000 Bytes</span>
+    <span class="instr">lda</span> #$03 : <span class="instr">sta</span> $DF08
+    <span class="instr">lda</span> #$82 : <span class="instr">sta</span> $DF01
+
+<span class="label">.no_switch:</span>
+    <span class="instr">jmp</span> slideshow_loop</pre>
+
+    <h3>8.3 Performance-Ergebnis</h3>
+    <p>Ein vollständiger Screen-Wechsel (8 KB Bitmap + 1 KB Color-RAM) dauert mit REU-DMA:</p>
+    <ul>
+      <li>Bitmap-Transfer: 8.000 + 2 = 8.002 Zyklen = ca. 8,1 ms PAL</li>
+      <li>Color-RAM-Transfer: 1.000 + 2 = 1.002 Zyklen = ca. 1,0 ms</li>
+      <li><strong>Gesamt: ~9 ms</strong> gegenüber ~73 ms für eine Software-Kopierschleife</li>
+    </ul>
+    <p>Der Transfer findet im VBlank statt und ist im ersten Frame vollständig abgeschlossen — kein Tearing, kein sichtbares Flackern.</p>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section id="benchmark" class="benchmark">
+    <h2>Skill-Benchmark: Stufe 13</h2>
+    <ul class="benchmark-list">
+      <li>Du kannst erklären, warum REU-DMA ca. 7× schneller ist als eine LDA/STA-Kopierschleife</li>
+      <li>Du schreibst einen vollständigen REU-Transfer (C64→REU) mit korrekten Register-Werten und wartest auf End-of-Block</li>
+      <li>Du berechnest, wie viele 8-KB-Blöcke in eine REU 1750 (512 KB) passen und welche REU-Adresse Block 5 hat</li>
+      <li>Du konfigurierst EasyFlash-Bankwechsel via $DE00 und rufst eine Routine aus Bank 7 auf</li>
+      <li>Du setzt CIA2 $DD03 auf $FF für reinen Userport-Ausgang und schreibst ein LED-Bitmuster</li>
+      <li>Du kennst die VIC-Bank-Adressen auswendig und weißt, warum CIA2-Bits invertiert sind</li>
+      <li>Du planst ein Speicher-Layout für simultane Nutzung von Charset + Bitmap + Sprites über 64 KB in Bank 1</li>
+      <li>Du implementierst die Slideshow-Hauptschleife mit VBlank-synchronisiertem DMA und korrekter Color-RAM-Adresse</li>
+    </ul>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section class="exercises">
+    <h2>Übungsaufgaben</h2>
+
+    <div class="exercise-item">
+      <h4>Übung 13.1 — REU-Kopierbenchmark</h4>
+      <p>Schreibe zwei Routinen zum Kopieren von 1 KB Daten: eine mit LDA/STA-Schleife, eine mit REU-DMA. Messe die Zeit jeder Routine mit der Rahmenfarben-Methode (<code>sta $D020</code> / Routine / <code>sta $D020</code>, dann Raster zählen). Um welchen Faktor ist DMA schneller? Dokumentiere das Ergebnis als Kommentar im Code.</p>
+    </div>
+
+    <div class="exercise-item">
+      <h4>Übung 13.2 — EasyFlash-Daten-Lookup</h4>
+      <p>Erstelle ein EasyFlash-Layout für ein Programm, das eine 32-KB-Sinustabelle in ROML-Bänken 0–3 ablegt. Implementiere eine <code>sin_lookup</code>-Routine, die den Tabellenindex in A nimmt, die richtige Bank aktiviert und das Sinusbyte zurückgibt. Wie hoch ist der Overhead für den Bankwechsel in Zyklen?</p>
+    </div>
+
+    <div class="exercise-item">
+      <h4>Übung 13.3 — Userport-Reaktionsspiel</h4>
+      <p>Implementiere ein einfaches Reaktionsspiel: 8 LEDs am Userport leuchten in zufälliger Reihenfolge auf. Sobald eine LED leuchtet, muss der Spieler den entsprechenden Taster (Pull-Up, Eingang) drücken. Korrekte Reaktion: Score +1, neue LED. Falsch oder zu langsam: Game Over. Entprellung muss korrekt sein (mindestens 3 Frames).</p>
+    </div>
+
+    <div class="exercise-item">
+      <h4>Übung 13.4 — Vollständiges VIC-Banking-Layout</h4>
+      <p>Plane und implementiere ein vollständiges VIC-Banking-Layout in Bank 2 ($8000–$BFFF). Platziere: Custom-Charset bei $9800 (Achtung: kein ROM-Overlay in der Region $8000–$8FFF!), Screen-RAM bei $8000, Sprites bei $BFC0. Berechne alle nötigen $D018- und CIA2-$DD00-Werte. Zeige einen Testscreen mit Custom-Charset und einem animierten Sprite.</p>
+    </div>
+  </section>
+
+  <nav class="chapter-nav">
+    <a href="stufe_12_demo_entwicklung_workflow.html">← Stufe 12: Demo-Workflow</a>
+    <a href="stufe_14_modern_workflow.html">Stufe 14: Moderner Workflow →</a>
+  </nav>
+</main>
+
+  <script src="assets/c64-interactive.js"></script>
+</body>
+</html>

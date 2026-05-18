@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>C64 Mastery — Anhang: C64-Farbpalette</title>
+  <style>
+    :root{--c64-blue:#0033aa;--c64-green:#00ff88;--c64-dark:#1a1a2e;--c64-darker:#0d0d1a;--paper:#f8f6f0;--paper-dark:#ede9df;--text:#1a1a2e;--text-light:#444466;--accent:#cc3300;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Georgia',serif;font-size:15px;line-height:1.7;color:var(--text);background:var(--paper);display:grid;grid-template-columns:270px 1fr;min-height:100vh;}
+    .sidebar{background:var(--c64-dark);color:#ccc;position:sticky;top:0;height:100vh;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--c64-blue) var(--c64-darker);}
+    .sidebar::-webkit-scrollbar{width:6px;}.sidebar::-webkit-scrollbar-thumb{background:var(--c64-blue);}
+    .sidebar-header{background:var(--c64-blue);padding:18px 20px;font-family:'Courier New',monospace;font-size:13px;font-weight:bold;color:white;}
+    .sidebar-header .logo{font-size:22px;margin-bottom:4px;color:var(--c64-green);}
+    .sidebar nav{padding:12px 0;}
+    .sidebar nav a{display:block;padding:7px 20px;color:#aab;text-decoration:none;font-family:'Courier New',monospace;font-size:12.5px;border-left:3px solid transparent;transition:all 0.2s;}
+    .sidebar nav a:hover{color:white;background:rgba(255,255,255,0.05);border-left-color:var(--c64-green);}
+    .sidebar nav a.active{color:var(--c64-green);border-left-color:var(--c64-green);background:rgba(0,255,136,0.07);font-weight:bold;}
+    .sidebar nav .section-label{padding:12px 20px 4px;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:#556;font-family:'Courier New',monospace;}
+    main{max-width:980px;padding:40px 48px;}
+    h1{font-size:32px;color:var(--c64-dark);margin-bottom:8px;}
+    .chapter-number{font-family:'Courier New',monospace;font-size:13px;color:var(--c64-blue);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;}
+    .chapter-meta{display:flex;gap:16px;font-family:'Courier New',monospace;font-size:12px;color:var(--text-light);margin:12px 0 28px;flex-wrap:wrap;}
+    .chapter-meta span{background:var(--paper-dark);padding:4px 10px;border-radius:3px;}
+    h2{font-size:22px;color:var(--c64-blue);margin:36px 0 14px;padding-bottom:6px;border-bottom:1px solid #d0ccc0;}
+    h3{font-size:17px;color:var(--c64-dark);margin:22px 0 10px;}
+    p{margin-bottom:14px;}
+    code{font-family:'Courier New',monospace;font-size:13px;background:#e8e4da;padding:2px 5px;border-radius:3px;color:var(--accent);}
+    table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px;}
+    thead{background:var(--c64-blue);color:white;}
+    thead th{padding:9px 10px;text-align:left;font-family:'Courier New',monospace;font-size:12px;}
+    tbody tr:nth-child(even){background:var(--paper-dark);}
+    tbody tr:hover{background:#e0dbd0;}
+    tbody td{padding:7px 10px;border-bottom:1px solid #d0ccc0;vertical-align:middle;}
+    td code{font-size:12px;}
+    /* Color swatches */
+    .color-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:20px 0;}
+    .color-card{border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.15);cursor:pointer;transition:transform 0.15s;}
+    .color-card:hover{transform:translateY(-2px);}
+    .color-swatch{height:80px;display:flex;align-items:flex-end;padding:8px 12px;}
+    .color-swatch .idx{font-family:'Courier New',monospace;font-size:24px;font-weight:bold;opacity:0.4;}
+    .color-info{padding:10px 12px;background:var(--paper-dark);}
+    .color-name{font-weight:bold;font-size:14px;color:var(--text);}
+    .color-codes{font-family:'Courier New',monospace;font-size:11px;color:var(--text-light);margin-top:3px;}
+    .color-codes span{display:inline-block;background:#d8d4c8;border-radius:2px;padding:1px 5px;margin:1px 2px;}
+    /* Combo grid */
+    .combo-grid{display:grid;grid-template-columns:repeat(16,28px);gap:2px;margin:16px 0;font-family:'Courier New',monospace;font-size:10px;}
+    .combo-cell{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:2px;font-size:9px;cursor:pointer;}
+    .combo-header{background:var(--c64-dark);color:var(--c64-green);font-size:9px;text-align:center;padding:2px;}
+    /* Luminance bar */
+    .lum-bar{display:flex;gap:4px;margin:12px 0;align-items:stretch;}
+    .lum-item{flex:1;border-radius:4px;padding:8px 4px;text-align:center;font-family:'Courier New',monospace;font-size:10px;}
+  </style>
+  <link rel="stylesheet" href="assets/c64-interactive.css">
+  <link rel="stylesheet" href="assets/c64-print.css" media="print">
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-header"><div class="logo">■ C64 MASTERY</div>Referenz</div>
+  <nav>
+    <div class="section-label">Curriculum</div>
+    <a href="index.html">◈ Übersicht</a>
+    <a href="stufe_03_bildschirm_zeichen.html">03 · VIC-II Zeichen</a>
+    <div class="section-label">Erweiterte Stufen</div>
+    <a href="stufe_13_hardware_erweiterungen.html">13 · Hardware-Erweiterungen</a>
+    <a href="stufe_14_modern_workflow.html">14 · Moderner Workflow</a>
+    <a href="stufe_15_debugging_deep_dive.html">15 · Deep Debugging</a>
+    <div class="section-label">Anhänge</div>
+    <a href="anhang_opcodes.html">Opcode-Referenz</a>
+    <a href="anhang_speicherkarte.html">Speicherkarte</a>
+    <a href="anhang_vic_register.html">VIC-II Register</a>
+    <a href="anhang_sid_register.html">SID Register</a>
+    <a href="anhang_cia_register.html">CIA Register</a>
+    <a href="anhang_petscii.html">PETSCII-Tabelle</a>
+    <a href="anhang_farben.html" class="active">C64-Farben</a>
+    <a href="anhang_kernal_routinen.html">KERNAL-Routinen</a>
+  </nav>
+</aside>
+<main>
+  <div class="chapter-number">Anhang G</div>
+  <h1>C64-Farbpalette</h1>
+  <div class="chapter-meta">
+    <span>16 Farben</span><span>VICE-Standard-Palette</span><span>Klick für RGB-Werte</span>
+  </div>
+  <p>Der C64 kennt exakt 16 Farben (0–15). Diese werden über Color-RAM (<code>$D800</code>), Sprite-Farb-Register (<code>$D027–$D02E</code>), Hintergrundfarbe (<code>$D021</code>) und Rahmenfarbe (<code>$D020</code>) gesetzt. Die RGB-Werte sind abhängig von der Monitor-Kalibrierung — hier die gängigen VICE-Standard-Werte.</p>
+
+  <div class="color-grid" id="colorGrid"></div>
+
+  <h2>Vollständige Farbtabelle</h2>
+  <table id="colorTable">
+    <thead><tr><th>Nr.</th><th>Farbe</th><th>Name</th><th>Hex RGB</th><th>R</th><th>G</th><th>B</th><th>Luminanz</th><th>Verwendung</th></tr></thead>
+    <tbody id="colorTableBody"></tbody>
+  </table>
+
+  <h2>Farben nach Luminanz (hell → dunkel)</h2>
+  <div class="lum-bar" id="lumBar"></div>
+
+  <h2>Kontrast-Kombinationen</h2>
+  <p>Welche Farben sind zusammen gut lesbar? Faustregel: Luminanz-Differenz &gt; 4 = gut lesbar.</p>
+  <p>Beste Kombinationen für Text:</p>
+  <table>
+    <thead><tr><th>Hintergrund</th><th>Empfohlene Textfarben</th><th>Schlechte Textfarben</th></tr></thead>
+    <tbody>
+      <tr><td><span style="display:inline-block;width:14px;height:14px;background:#000;border:1px solid #666;vertical-align:middle;margin-right:4px;"></span>0 Schwarz</td><td>1 Weiß, 7 Gelb, 3 Cyan, 5 Grün</td><td>6 Blau, 9 Braun, 11 Dunkelgrau</td></tr>
+      <tr><td><span style="display:inline-block;width:14px;height:14px;background:#fff;border:1px solid #ccc;vertical-align:middle;margin-right:4px;"></span>1 Weiß</td><td>0 Schwarz, 2 Rot, 6 Blau, 4 Lila</td><td>7 Gelb, 1 Weiß, 15 Hellgrau</td></tr>
+      <tr><td><span style="display:inline-block;width:14px;height:14px;background:#0033aa;border:1px solid #666;vertical-align:middle;margin-right:4px;"></span>6 Blau</td><td>1 Weiß, 7 Gelb, 3 Cyan, 15 Hellgrau</td><td>4 Lila, 9 Braun</td></tr>
+      <tr><td><span style="display:inline-block;width:14px;height:14px;background:#338733;border:1px solid #666;vertical-align:middle;margin-right:4px;"></span>5 Grün</td><td>0 Schwarz, 1 Weiß, 6 Blau</td><td>13 Hellgrün, 14 Hellblau</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Farben für Rasterbar-Effekte</h2>
+  <p>Klassische C64-Rasterbar-Sequenzen — von dunkel nach hell und zurück:</p>
+  <div id="rasterBars"></div>
+
+  <h2>VICE Palette vs. Pepto-Palette</h2>
+  <p>Es gibt verschiedene Interpretationen der C64-Farben. Die bekanntesten sind:</p>
+  <table>
+    <thead><tr><th>Nr.</th><th>Name</th><th>VICE Standard</th><th>Pepto (wissenschaftlich)</th></tr></thead>
+    <tbody id="paletteComp"></tbody>
+  </table>
+
+<script>
+const colors = [
+  {name:'Schwarz',      rgb:[0,0,0],         lum:0,  lum_s:0},
+  {name:'Weiß',         rgb:[255,255,255],   lum:15, lum_s:255},
+  {name:'Rot',          rgb:[136,0,0],       lum:3,  lum_s:68},
+  {name:'Cyan',         rgb:[170,255,238],   lum:13, lum_s:208},
+  {name:'Lila/Violett', rgb:[204,68,204],    lum:6,  lum_s:136},
+  {name:'Grün',         rgb:[0,204,85],      lum:9,  lum_s:136},
+  {name:'Blau',         rgb:[0,0,170],       lum:2,  lum_s:51},
+  {name:'Gelb',         rgb:[238,238,119],   lum:12, lum_s:204},
+  {name:'Orange',       rgb:[221,136,85],    lum:7,  lum_s:119},
+  {name:'Braun',        rgb:[102,68,0],      lum:4,  lum_s:68},
+  {name:'Hellrot',      rgb:[255,119,119],   lum:8,  lum_s:136},
+  {name:'Dunkelgrau',   rgb:[51,51,51],      lum:1,  lum_s:51},
+  {name:'Grau',         rgb:[119,119,119],   lum:10, lum_s:153},
+  {name:'Hellgrün',     rgb:[170,255,102],   lum:14, lum_s:221},
+  {name:'Hellblau',     rgb:[0,136,255],     lum:11, lum_s:170},
+  {name:'Hellgrau',     rgb:[187,187,187],   lum:15, lum_s:204},
+];
+
+const peptoRGB = [
+  [0,0,0],[255,255,255],[129,26,26],[105,211,196],[128,42,128],[0,168,68],[0,0,168],[212,212,75],
+  [196,100,28],[75,50,0],[214,114,114],[75,75,75],[120,120,120],[147,228,105],[85,128,212],[150,150,150]
+];
+
+function rgbHex(r,g,b){return'#'+[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('');}
+function textColor(rgb){const lum=0.299*rgb[0]+0.587*rgb[1]+0.114*rgb[2];return lum>128?'#000':'#fff';}
+
+// Color cards
+const grid = document.getElementById('colorGrid');
+colors.forEach((c,i)=>{
+  const hex=rgbHex(...c.rgb);
+  const tc=textColor(c.rgb);
+  const card=document.createElement('div');
+  card.className='color-card';
+  card.innerHTML=`<div class="color-swatch" style="background:${hex};color:${tc}40"><span class="idx">${i}</span></div><div class="color-info"><div class="color-name">${i} — ${c.name}</div><div class="color-codes"><span>${hex.toUpperCase()}</span><span>R${c.rgb[0]} G${c.rgb[1]} B${c.rgb[2]}</span></div></div>`;
+  card.onclick=()=>navigator.clipboard?.writeText(hex);
+  grid.appendChild(card);
+});
+
+// Table
+const tbody=document.getElementById('colorTableBody');
+colors.forEach((c,i)=>{
+  const hex=rgbHex(...c.rgb);
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td style="font-family:'Courier New'">${i}</td><td><div style="width:32px;height:20px;background:${hex};border-radius:3px;border:1px solid #ccc"></div></td><td>${c.name}</td><td style="font-family:'Courier New'">${hex.toUpperCase()}</td><td>${c.rgb[0]}</td><td>${c.rgb[1]}</td><td>${c.rgb[2]}</td><td>${c.lum_s}</td><td style="font-size:12px">${c.lum > 10 ? 'Helle Farbe' : c.lum < 4 ? 'Dunkle Farbe' : 'Mittlere Helligkeit'}</td>`;
+  tbody.appendChild(tr);
+});
+
+// Luminance bar (sorted)
+const lumSorted=[...colors.map((c,i)=>({...c,i}))].sort((a,b)=>a.lum_s-b.lum_s);
+const lumBar=document.getElementById('lumBar');
+lumSorted.forEach(c=>{
+  const div=document.createElement('div');
+  div.className='lum-item';
+  div.style.background=rgbHex(...c.rgb);
+  div.style.color=textColor(c.rgb);
+  div.innerHTML=`${c.i}<br>${c.name.slice(0,6)}`;
+  lumBar.appendChild(div);
+});
+
+// Raster bar sequences
+const rasterSeqs = [
+  {name:'Blau-Weiß', seq:[0,6,4,6,1,1,6,4,6,0]},
+  {name:'Regenbogen', seq:[2,8,7,5,3,14,6,4]},
+  {name:'Klassisch (Grau)', seq:[0,11,12,15,1,15,12,11,0]},
+  {name:'Feuer', seq:[9,2,8,7,7,8,2,9,0]},
+];
+const rbDiv=document.getElementById('rasterBars');
+rasterSeqs.forEach(rs=>{
+  const section=document.createElement('div');
+  section.style.marginBottom='16px';
+  section.innerHTML=`<div style="font-family:'Courier New';font-size:13px;color:var(--text-light);margin-bottom:6px">${rs.name}:</div>`;
+  const bar=document.createElement('div');
+  bar.style.cssText='display:flex;border-radius:4px;overflow:hidden;height:40px;';
+  rs.seq.forEach(ci=>{
+    const s=document.createElement('div');
+    s.style.cssText=`flex:1;background:${rgbHex(...colors[ci].rgb)};display:flex;align-items:center;justify-content:center;font-family:'Courier New';font-size:11px;color:${textColor(colors[ci].rgb)}`;
+    s.textContent=ci;
+    bar.appendChild(s);
+  });
+  section.appendChild(bar);
+  rbDiv.appendChild(section);
+});
+
+// Palette comparison
+const pcTbody=document.getElementById('paletteComp');
+colors.forEach((c,i)=>{
+  const ph=rgbHex(...peptoRGB[i]);
+  const vh=rgbHex(...c.rgb);
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td style="font-family:'Courier New'">${i}</td><td>${c.name}</td><td><div style="display:flex;align-items:center;gap:8px"><div style="width:24px;height:16px;background:${vh};border-radius:2px;border:1px solid #ccc"></div><code>${vh.toUpperCase()}</code></div></td><td><div style="display:flex;align-items:center;gap:8px"><div style="width:24px;height:16px;background:${ph};border-radius:2px;border:1px solid #ccc"></div><code>${ph.toUpperCase()}</code></div></td>`;
+  pcTbody.appendChild(tr);
+});
+</script>
+</main>
+  <script src="assets/c64-interactive.js"></script>
+</body>
+</html>

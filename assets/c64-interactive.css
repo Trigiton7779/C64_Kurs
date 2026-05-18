@@ -1,0 +1,336 @@
+/* C64 Mastery System — Shared Interactive Styles */
+
+/* ── Dark Mode ─────────────────────────────────────────────────── */
+body.dark-mode {
+  --paper:       #0d0d1a;
+  --paper-dark:  #1a1a2e;
+  --text:        #d0d0e0;
+  --text-light:  #9090b0;
+  --border:      #2a2a4a;
+  --c64-blue:    #3355cc;
+  --heading:     #aaccff;
+}
+
+body.dark-mode .sidebar {
+  background: #0a0a14;
+  border-right-color: #2a2a4a;
+}
+
+body.dark-mode main {
+  background: var(--paper);
+  color: var(--text);
+}
+
+body.dark-mode h1, body.dark-mode h2, body.dark-mode h3 {
+  color: var(--heading);
+}
+
+body.dark-mode p, body.dark-mode li, body.dark-mode td, body.dark-mode th {
+  color: var(--text);
+}
+
+body.dark-mode .learning-objectives,
+body.dark-mode .hint-box,
+body.dark-mode .tip-box,
+body.dark-mode .warning-box,
+body.dark-mode .info-box {
+  background: #1a1a30;
+  border-color: #2a2a50;
+  color: var(--text);
+}
+
+body.dark-mode table {
+  background: #1a1a2e;
+}
+
+body.dark-mode th {
+  background: #12122a;
+  color: #aaccff;
+}
+
+body.dark-mode tr:nth-child(even) td {
+  background: #1e1e36;
+}
+
+body.dark-mode tr:hover td {
+  background: #22223a;
+}
+
+body.dark-mode .chapter-header {
+  background: linear-gradient(135deg, #0a0a20, #1a1a3e);
+  border-bottom-color: #2a2a50;
+}
+
+body.dark-mode .chapter-number {
+  color: #6688dd;
+}
+
+/* ── Dark Mode Toggle Button ───────────────────────────────────── */
+#c64-dark-toggle {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 1000;
+  background: rgba(0, 51, 170, 0.85);
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-family: 'Courier New', monospace;
+  cursor: pointer;
+  transition: background 0.2s, opacity 0.2s;
+  opacity: 0.7;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+#c64-dark-toggle:hover {
+  opacity: 1;
+  background: rgba(0, 51, 170, 1);
+}
+
+body.dark-mode #c64-dark-toggle {
+  background: rgba(0, 170, 100, 0.85);
+}
+
+body.dark-mode #c64-dark-toggle:hover {
+  background: rgba(0, 200, 120, 1);
+}
+
+/* ── Copy Button ───────────────────────────────────────────────── */
+.pre-wrapper {
+  position: relative;
+  margin: 20px 0;
+}
+
+.pre-wrapper pre {
+  margin: 0;
+}
+
+.copy-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0, 51, 170, 0.75);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-family: 'Courier New', monospace;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s, background 0.15s;
+  letter-spacing: 0.5px;
+}
+
+.pre-wrapper:hover .copy-btn {
+  opacity: 1;
+}
+
+.copy-btn.copied {
+  background: rgba(0, 136, 68, 0.9);
+}
+
+.copy-btn:active {
+  transform: scale(0.97);
+}
+
+/* ── Collapsible Code Blocks ───────────────────────────────────── */
+.pre-wrapper.collapsible pre.collapsed {
+  max-height: 180px;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+}
+
+.collapse-btn {
+  display: block;
+  width: 100%;
+  background: rgba(0, 51, 170, 0.12);
+  color: #0033aa;
+  border: 1px solid rgba(0, 51, 170, 0.3);
+  border-top: none;
+  padding: 5px;
+  font-size: 12px;
+  font-family: 'Courier New', monospace;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.15s;
+  border-radius: 0 0 4px 4px;
+}
+
+.collapse-btn:hover {
+  background: rgba(0, 51, 170, 0.22);
+}
+
+body.dark-mode .collapse-btn {
+  background: rgba(0, 80, 200, 0.2);
+  border-color: rgba(0, 80, 200, 0.4);
+  color: #7799ee;
+}
+
+/* ── Benchmark Checkboxes ──────────────────────────────────────── */
+.benchmark-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.bench-checkbox {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  accent-color: #00cc66;
+  cursor: pointer;
+}
+
+.benchmark-list li.bench-done {
+  opacity: 0.55;
+  text-decoration: line-through;
+  text-decoration-color: rgba(0, 200, 100, 0.6);
+}
+
+/* ── Stage Progress Bar (sidebar) ─────────────────────────────── */
+.spb-wrap {
+  margin: 3px 0 6px 0;
+  padding: 0 8px;
+}
+
+.spb-track {
+  height: 5px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.spb-fill {
+  height: 100%;
+  background: linear-gradient(to right, #00aa66, #00ff88);
+  border-radius: 3px;
+  transition: width 0.4s ease;
+  min-width: 0;
+}
+
+.spb-label {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.45);
+  font-family: 'Courier New', monospace;
+  margin-top: 2px;
+}
+
+/* ── Index Page Progress Cards ─────────────────────────────────── */
+.stage-progress-bar {
+  margin-top: 10px;
+}
+
+.stage-progress-bar .spb-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+body.dark-mode .stage-progress-bar .spb-track {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.stage-progress-bar .spb-label {
+  color: #666;
+  font-size: 11px;
+}
+
+body.dark-mode .stage-progress-bar .spb-label {
+  color: #888;
+}
+
+/* ── Search Highlight ──────────────────────────────────────────── */
+mark.c64-highlight {
+  background: rgba(255, 200, 0, 0.35);
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+body.dark-mode mark.c64-highlight {
+  background: rgba(255, 200, 0, 0.25);
+}
+
+/* ── Responsive Mobile Layout ──────────────────────────────────── */
+@media (max-width: 900px) {
+  body {
+    display: block !important;
+    grid-template-columns: unset !important;
+  }
+
+  .sidebar {
+    position: fixed !important;
+    top: 0;
+    left: -280px;
+    height: 100vh;
+    width: 270px;
+    z-index: 500;
+    transition: left 0.28s ease;
+    overflow-y: auto;
+    box-shadow: 4px 0 16px rgba(0,0,0,0.4);
+  }
+
+  .sidebar.open {
+    left: 0;
+  }
+
+  main {
+    margin-left: 0 !important;
+    padding: 16px !important;
+  }
+
+  pre {
+    overflow-x: auto;
+  }
+
+  table {
+    display: block;
+    overflow-x: auto;
+  }
+
+  #c64-hamburger {
+    display: flex !important;
+  }
+
+  #c64-dark-toggle {
+    top: 14px;
+    right: 60px;
+  }
+}
+
+/* ── Hamburger Button ──────────────────────────────────────────── */
+#c64-hamburger {
+  display: none;
+  position: fixed;
+  top: 12px;
+  right: 14px;
+  z-index: 600;
+  background: rgba(0, 51, 170, 0.9);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  width: 38px;
+  height: 38px;
+  font-size: 20px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+#c64-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 490;
+}
+
+#c64-overlay.visible {
+  display: block;
+}

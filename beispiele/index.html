@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>C64 Mastery — Beispielcode-Sammlung</title>
+  <style>
+    :root {
+      --c64-blue: #0033aa;
+      --c64-green: #00ff88;
+      --paper: #f8f6f0;
+      --dark: #1a1a2e;
+      --text: #1a1a2e;
+      --border: #ddd;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Georgia, serif;
+      background: var(--paper);
+      color: var(--text);
+      padding: 40px 20px;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    header {
+      background: var(--dark);
+      color: #fff;
+      padding: 30px 36px;
+      border-radius: 8px;
+      margin-bottom: 36px;
+    }
+    header .kurs-label {
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: #6688cc;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    header h1 {
+      font-size: 26px;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+    header p {
+      color: #aab;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+    .stats {
+      display: flex;
+      gap: 24px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+    .stat {
+      background: rgba(255,255,255,0.08);
+      border-radius: 6px;
+      padding: 10px 18px;
+      text-align: center;
+    }
+    .stat .num {
+      font-size: 28px;
+      font-weight: bold;
+      color: var(--c64-green);
+      font-family: 'Courier New', monospace;
+    }
+    .stat .lbl {
+      font-size: 11px;
+      color: #889;
+      margin-top: 2px;
+    }
+
+    .usage-box {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--c64-blue);
+      border-radius: 4px;
+      padding: 18px 22px;
+      margin-bottom: 30px;
+      font-size: 14px;
+      line-height: 1.65;
+    }
+    .usage-box h2 {
+      font-size: 15px;
+      color: var(--c64-blue);
+      margin-bottom: 10px;
+    }
+    .usage-box code {
+      background: var(--dark);
+      color: var(--c64-green);
+      font-family: 'Courier New', monospace;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 13px;
+    }
+    .usage-box pre {
+      background: var(--dark);
+      color: var(--c64-green);
+      font-family: 'Courier New', monospace;
+      padding: 12px 16px;
+      border-radius: 4px;
+      margin: 10px 0;
+      font-size: 13px;
+      overflow-x: auto;
+    }
+
+    .stufe-section {
+      margin-bottom: 28px;
+    }
+    .stufe-header {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+      border-bottom: 2px solid var(--c64-blue);
+      padding-bottom: 6px;
+      margin-bottom: 14px;
+    }
+    .stufe-header h2 {
+      font-size: 17px;
+      color: var(--c64-blue);
+    }
+    .stufe-header a {
+      font-size: 12px;
+      color: #0055cc;
+      text-decoration: none;
+    }
+    .stufe-header a:hover { text-decoration: underline; }
+    .stufe-header .count {
+      margin-left: auto;
+      font-size: 12px;
+      color: #888;
+      font-family: 'Courier New', monospace;
+    }
+
+    .file-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 8px;
+    }
+    .file-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      text-decoration: none;
+      color: inherit;
+    }
+    .file-card:hover {
+      border-color: var(--c64-blue);
+      box-shadow: 0 2px 6px rgba(0,51,170,0.1);
+    }
+    .file-icon {
+      font-family: 'Courier New', monospace;
+      font-size: 10px;
+      font-weight: bold;
+      padding: 3px 6px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+    .file-icon.asm {
+      background: rgba(0, 51, 170, 0.12);
+      color: var(--c64-blue);
+    }
+    .file-icon.sh {
+      background: rgba(0, 150, 80, 0.12);
+      color: #007040;
+    }
+    .file-name {
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: #333;
+      word-break: break-all;
+    }
+
+    .vice-box {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid #008844;
+      border-radius: 4px;
+      padding: 18px 22px;
+      margin-bottom: 30px;
+    }
+    .vice-box h2 {
+      font-size: 15px;
+      color: #006633;
+      margin-bottom: 10px;
+    }
+    .vice-box code {
+      background: var(--dark);
+      color: var(--c64-green);
+      font-family: 'Courier New', monospace;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 13px;
+    }
+    .vice-box pre {
+      background: var(--dark);
+      color: var(--c64-green);
+      font-family: 'Courier New', monospace;
+      padding: 12px 16px;
+      border-radius: 4px;
+      margin: 10px 0;
+      font-size: 12px;
+      overflow-x: auto;
+      line-height: 1.6;
+    }
+
+    footer {
+      margin-top: 50px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: 13px;
+      color: #888;
+    }
+    footer a { color: #0033aa; text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="kurs-label">C64 Mastery System</div>
+  <h1>Beispielcode-Sammlung</h1>
+  <p>Alle Assembler-Codebeispiele aus dem Kurs als herunterladbare Dateien.<br>
+  Direkt in ACME laden, kompilieren und in VICE testen.</p>
+  <div class="stats">
+    <div class="stat"><div class="num">165</div><div class="lbl">.asm Dateien</div></div>
+    <div class="stat"><div class="num">9</div><div class="lbl">.sh Skripte</div></div>
+    <div class="stat"><div class="num">16</div><div class="lbl">Stufen</div></div>
+  </div>
+</header>
+
+<div class="vice-box">
+  <h2>VICE-Konfiguration einrichten</h2>
+  <p style="font-size:14px;line-height:1.6;margin-bottom:10px">
+    Empfohlene VICE-Einstellungen aus Stufe 00 als fertige Konfigurationsdatei:
+  </p>
+  <pre>
+# Linux/macOS:
+cp ../vice.vicerc ~/.config/vice/vicerc
+
+# Oder direkt beim Start:
+x64sc -config ../vice.vicerc meinprogramm.prg
+
+# Windows: Datei nach %APPDATA%\vice\vicerc kopieren</pre>
+</div>
+
+<div class="usage-box">
+  <h2>Schnellstart — Codebeispiel kompilieren und ausführen</h2>
+  <p style="margin-bottom:8px">Voraussetzung: <a href="https://sourceforge.net/projects/acme-crossass/" style="color:#0033aa">ACME Assembler</a> und
+  <a href="https://vice-emu.sourceforge.io/" style="color:#0033aa">VICE Emulator</a> installiert.</p>
+  <pre>
+# Beispiel aus Stufe 01 kompilieren:
+cd stufe_01/
+acme --cpu 6510 -f cbm -o beispiel.prg 3_1_lade_und_speicherbefehle_load_store.asm
+
+# In VICE öffnen:
+x64sc beispiel.prg
+
+# Alle .asm Dateien einer Stufe auf einmal kompilieren:
+for f in *.asm; do
+  acme --cpu 6510 -f cbm -o "${f%.asm}.prg" "$f" && echo "OK: $f"
+done</pre>
+  <p style="font-size:13px;color:#555;margin-top:8px">
+    Jede <code>.asm</code>-Datei enthält einen Kommentar-Header mit dem genauen ACME-Aufruf.
+    Nicht alle Beispiele sind eigenständige Programme — manche zeigen nur einzelne Techniken
+    als Codeausschnitt und müssen in einen vollständigen Rahmen eingebettet werden.
+  </p>
+</div>
+
+<div class="stufe-section">
+  <div class="stufe-header">
+    <h2>Stufe 00 — Das Fundament</h2>
+    <a href="../stufe_00_fundament.html">→ Zum Kapitel</a>
+    <span class="count">2 .asm · 3 .sh</span>
+  </div>
+  <div class="file-grid">
+    <a class="file-card" href="stufe_00/4_2_das_vollstandige_erste_programm.asm"><span class="file-icon asm">.asm</span><span class="file-name">4_2_das_vollstandige_erste_programm.asm</span></a>
+    <a class="file-card" href="stufe_00/4_4_erweiterung_text_auf_dem_bildschirm.asm"><span class="file-icon asm">.asm</span><span class="file-name">4_4_erweiterung_text_auf_dem_bildschirm.asm</span></a>
+    <a class="file-card" href="stufe_00/3_1_vice_emulator.sh"><span class="file-icon sh">.sh</span><span class="file-name">3_1_vice_emulator.sh</span></a>
+    <a class="file-card" href="stufe_00/3_3_empfohlener_build_workflow.sh"><span class="file-icon sh">.sh</span><span class="file-name">3_3_empfohlener_build_workflow.sh</span></a>
+    <a class="file-card" href="stufe_00/4_3_kompilieren_und_ausfuhren.sh"><span class="file-icon sh">.sh</span><span class="file-name">4_3_kompilieren_und_ausfuhren.sh</span></a>
+  </div>
+</div>
+
+<div class="stufe-section">
+  <div class="stufe-header">
+    <h2>Stufe 01 — 6510 CPU &amp; Assembler Grundlagen</h2>
+    <a href="../stufe_01_6510_assembler.html">→ Zum Kapitel</a>
+    <span class="count">12 .asm</span>
+  </div>
+  <div class="file-grid" id="grid-01"></div>
+</div>
+
+<div class="stufe-section">
+  <div class="stufe-header">
+    <h2>Stufe 02 — Adressierungsarten &amp; Speicher</h2>
+    <a href="../stufe_02_adressierung_speicher.html">→ Zum Kapitel</a>
+    <span class="count">18 .asm</span>
+  </div>
+  <div class="file-grid" id="grid-02"></div>
+</div>
+
+<div class="stufe-section">
+  <div class="stufe-header">
+    <h2>Stufe 03 — VIC-II &amp; Zeichenmodus</h2>
+    <a href="../stufe_03_bildschirm_zeichen.html">→ Zum Kapitel</a>
+    <span class="count">6 .asm</span>
+  </div>
+  <div class="file-grid" id="grid-03"></div>
+</div>
+
+<div class="stufe-section">
+  <div class="stufe-header">
+    <h2>Stufe 04 — Sprites &amp; Animation</h2>
+    <a href="../stufe_04_sprites_animation.html">→ Zum Kapitel</a>
+    <span class="count">7 .asm</span>
+  </div>
+  <div class="file-grid" id="grid-04"></div>
+</div>
+
+<div class="stufe-section">
+  <div class="stufe-header">
+    <h2>Stufe 05 — Bitmap-Grafik</h2>
+    <a href="../stufe_05_bitmap_grafik.html">→ Zum Kapitel</a>
+    <span class="count">8 .asm</span>
+  </div>
+  <div class="file-grid" id="grid-05"></div>
+</div>
+
+<div class="stufe-section">
+  <div class="stufe-header">
+    <h2>Stufe 06 — SID-Chip &amp; Klangsynthese</h2>
+    <a href="../stufe_06_sid_sound.html">→ Zum Kapitel</a>
+    <span class="count">5 .asm</span>
+  </div>
+  <div class="file-grid" id="grid-06"></div>
+</div>
+
+<div class="stufe-section">
+  <div class="stufe-header">
+    <h2>Stufe 07 — Interrupts &amp; Timing</h2>
+    <a href="../stufe_07_interrupts_timing.html">→ Zum Kapitel</a>
+    <span class="count">7 .asm</span>
+  </div>
+  <div class="file-grid" id="grid-07"></div>
+</div>
+
+<div class="stufe-section">
+  <div class="stufe-header">
+    <h2>Stufe 08 — Optimierung &amp; Profitechniken</h2>
+    <a href="../stufe_08_optimierung.html">→ Zum Kapitel</a>
+    <span class="count">23 .asm</span>
+  </div>
+  <div class="file-grid" id="grid-08"></div>
+</div>
+
+<div class="stufe-section">
+  <div class="stufe-header">
+    <h2>Stufe 09 — Demo-Programmierung &amp; Effekte</h2>
+    <a href="../stufe_09_demo_effekte.html">→ Zum Kapitel</a>
+    <span class="count">23 .asm</span>
+  </div>
+  <div class="file-grid" id="grid-09"></div>
+</div>
+
+<div class="stufe-section">
+  <div class="stufe-header">
+    <h2>Stufe 10 — Meisterschaft &amp; Spieleprogrammierung</h2>
+    <a href="../stufe_10_meisterschaft.html">→ Zum Kapitel</a>
+    <span class="count">15 .asm</span>
+  </div>
+  <div class="file-grid" id="grid-10"></div>
+</div>
+
+<div class="stufe-section">
+  <div class="stufe-header">
+    <h2>Stufe 11 — Spielentwicklung von A bis Z</h2>
+    <a href="../stufe_11_spielentwicklung_workflow.html">→ Zum Kapitel</a>
+    <span class="count">10 .asm, 2 .sh</span>
+  </div>
+  <div class="file-grid" id="grid-11"></div>
+</div>
+
+<div class="stufe-section">
+  <div class="stufe-header">
+    <h2>Stufe 12 — Demo-Entwicklung von A bis Z</h2>
+    <a href="../stufe_12_demo_entwicklung_workflow.html">→ Zum Kapitel</a>
+    <span class="count">10 .asm, 1 .sh</span>
+  </div>
+  <div class="file-grid" id="grid-12"></div>
+</div>
+
+<div class="stufe-section">
+  <div class="stufe-header">
+    <h2>Stufe 13 — Hardware-Erweiterungen</h2>
+    <a href="../stufe_13_hardware_erweiterungen.html">→ Zum Kapitel</a>
+    <span class="count">8 .asm</span>
+  </div>
+  <div class="file-grid" id="grid-13"></div>
+</div>
+
+<div class="stufe-section">
+  <div class="stufe-header">
+    <h2>Stufe 14 — Moderner Cross-Development-Workflow</h2>
+    <a href="../stufe_14_modern_workflow.html">→ Zum Kapitel</a>
+    <span class="count">4 .asm, 3 .sh</span>
+  </div>
+  <div class="file-grid" id="grid-14"></div>
+</div>
+
+<div class="stufe-section">
+  <div class="stufe-header">
+    <h2>Stufe 15 — Deep Debugging</h2>
+    <a href="../stufe_15_debugging_deep_dive.html">→ Zum Kapitel</a>
+    <span class="count">7 .asm</span>
+  </div>
+  <div class="file-grid" id="grid-15"></div>
+</div>
+
+<footer>
+  <p><a href="../index.html">← Zurück zum Kurs-Index</a></p>
+  <p style="margin-top:8px">C64 Mastery System · Alle Codebeispiele unter freier Nutzung für Lernzwecke</p>
+</footer>
+
+<script>
+(function() {
+  var files = {
+    '01': ['3_1_lade_und_speicherbefehle_load_store.asm','3_3_arithmetik_addition_und_subtraktion.asm','3_3_arithmetik_addition_und_subtraktion_2.asm','3_3_arithmetik_addition_und_subtraktion_3.asm','3_4_logische_operationen.asm','3_5_shift_und_rotate_operationen.asm','3_6_sprungbefehle_kontrollfluss.asm','3_7_stack_operationen.asm','3_7_stack_operationen_2.asm','5_1_zahlschleifen.asm','6_vollstandiges_beispielprogramm_16_farben.asm','7_vertiefung_sprung_tabellen_mit_jmp_indirect.asm'],
+    '02': ['1_2_implied_implizite_adressierung.asm','1_3_accumulator_akkumulator_adressierung.asm','1_4_immediate_unmittelbare_adressierung.asm','1_5_zero_page_die_nullseite_als_schnellzugriffs_re.asm','1_6_zero_page_x_nullseiten_indizierung_mit_x.asm','1_7_zero_page_y_nullseiten_indizierung_mit_y.asm','1_8_absolute_vollstandige_16_bit_adressierung.asm','1_9_absolute_x_absolute_adressierung_mit_x_offset_.asm','1_10_absolute_y_absolute_adressierung_mit_y_offset.asm','1_11_indirect_indirekter_sprung_nur_jmp.asm','1_12_indirect_x_pre_indexed_indirect.asm','1_13_indirect_y_post_indexed_indirect_der_machtigs.asm','1_14_relative_bedingte_sprunge_mit_reichweitenbesc.asm','2_2_die_zero_page_heiliger_boden_der_c64_programmi.asm','2_3_der_hardware_stack_0100_01ff.asm','2_4_das_bank_switching_system_register_0001.asm','2_5_vic_ii_speicher_banking_via_cia_2.asm','praktische_ubungen_stufe_2.asm'],
+    '03': ['3_2_vollstandiges_beispiel_text_ohne_kernal_ausgeb.asm','5_1_zeichensatz_rom_in_ram_kopieren.asm','5_2_zeichen_von_grund_auf_gestalten.asm','6_1_aktivierung.asm','6_3_multicolor_zeichendefinition.asm','7_animierte_zeichensatze.asm'],
+    '04': ['2_1_sprite_daten_format.asm','4_sprites_initialisieren_vollstandiges_beispiel.asm','5_1_frame_layout_im_speicher.asm','6_joystick_gesteuerte_sprite_bewegung.asm','7_1_sprite_sprite_kollision.asm','8_multicolor_sprites.asm','9_sprite_multiplexer_das_konzept.asm'],
+    '05': ['2_1_aktivierung.asm','2_3_bitmap_byte_layout.asm','2_4_vollstandige_hires_bitmap_initialisierung.asm','2_5_pixel_setzen_und_loschen.asm','3_1_aktivierung.asm','3_3_koala_format.asm','4_1_bresenham_linie_in_assembler.asm','5_2_die_fli_losung.asm'],
+    '06': ['3_2_vollstandige_noten_tabelle_pal.asm','5_1_einfacher_ton_auf_voice_1.asm','5_2_percussion_sounds.asm','6_voice_3_als_lfo_vibrato_effekt.asm','7_einfacher_musik_player.asm'],
+    '07': ['1_2_nmi_nicht_maskierbarer_interrupt.asm','2_2_tastatur_scannen.asm','2_3_cia2_vic_bank_und_iec_dd00_ddff.asm','3_2_praziser_50_hz_timer_irq.asm','4_1_grundaufbau.asm','4_2_das_jitter_problem_und_die_double_irq_losung.asm','5_vollstandiger_musik_irq.asm'],
+    '08': ['1_cycle_counting_jeder_takt_zahlt.asm','1_2_cycle_counting_in_der_praxis.asm','2_2_zero_page_layout_beispiel.asm','2_3_geschwindigkeitsvergleich.asm','3_1_einfaches_unrolling.asm','3_2_duff_s_device_fur_6510.asm','3_3_schleife_mit_dex_statt_inx_cmp.asm','4_1_sinustabelle.asm','4_2_multiplikations_lut_a_4_methode.asm','4_3_row_offset_tabellen_fur_bitmap.asm','5_1_adress_patching.asm','5_2_smc_fur_konstanten_substitution.asm','5_3_unrolled_smc_kopierer_maximum_speed.asm','6_1_lax_lade_a_und_x_gleichzeitig.asm','6_2_dcp_decrement_und_compare.asm','6_3_slo_shift_left_und_or.asm','7_1_bad_lines_die_teuersten_zeilen.asm','7_2_sprite_dma_kosten.asm','7_3_refresh_zyklen.asm','8_1_stack_als_schneller_puffer.asm','8_2_indirekte_dispatch_tabellen.asm','8_3_inline_subroutinen_jsr_elimination.asm','8_4_16_bit_arithmetik_optimieren.asm'],
+    '09': ['1_1_demo_architektur.asm','1_2_part_wechsel_mechanismus.asm','2_1_einfache_rasterbars.asm','2_2_copper_bars_mehrere_balken_gleichzeitig.asm','2_3_sinusbewegung_der_rasterbars.asm','3_1_horizontaler_hardware_scroller.asm','3_2_vertikaler_soft_scroll.asm','3_3_fld_scroller_flexible_line_distance.asm','4_1_datenstrukturen.asm','4_2_y_sortierung.asm','4_3_irq_gestutzter_sprite_multiplexer.asm','5_1_open_border_trick.asm','5_fld_flexible_line_distance.asm','6_1_plasma_mit_d800_page_trick.asm','6_plasma_effekt.asm','7_1_einfaches_dysp_sprite_welleneffekt.asm','7_2_sprite_stretching_horizontale_vergrosserung.asm','8_1_rotierende_zeichen.asm','8_2_zwei_screen_puffer_fur_flimmerfreie_charset_up.asm','9_2_vertikaler_open_border_oben_und_unten.asm','9_3_horizontaler_open_border_d016_38_spalten.asm','9_4_vollbild_rasterbalken_h_v_kombiniert.asm','9_5_vollbild_laufschrift_inkl_border_bereich.asm'],
+    '10': ['1_2_state_machine.asm','2_game_loop_das_herzstuck.asm','2_1_input_handler_mit_joystick.asm','3_1_bounding_box_kollision.asm','3_2_hardware_kollisionserkennung_kombiniert_nutzen.asm','3_3_tilemap_kollision.asm','4_1_tilemap_struktur.asm','4_2_tilemap_rendern.asm','4_3_horizontales_scrollen_mit_column_update.asm','5_datenkompression_rle.asm','6_disk_i_o_via_kernal.asm','7_1_projektstruktur.asm','7_2_spieler_update.asm','7_3_feind_ki_sinus_bewegungsmuster.asm','7_4_score_anzeige.asm'],
+    '11': ['1_2_das_game_design_document_gdd_fur_den_c64.asm','2_1_die_memory_map_als_projektplan.asm','2_2_modul_aufteilung_und_multi_file_projekte_mit_a.sh','3_1_sprite_design_spritepad_acme_integration.asm','3_2_charset_design_charpad_export.asm','3_3_musik_pipeline_goattracker_sid_daten_einbinden.asm','4_1_phase_1_im_detail_das_leere_framework.asm','4_2_phase_4_sprung_physik_mit_gravitation.asm','5_2_cycle_budget_uberwachen.asm','7_4_woche_2_plattform_logik_kollision.asm','7_5_woche_3_score_hud_game_over_musik.asm','7_6_woche_4_polish_test_release_build.sh'],
+    '12': ['2_3_sync_tabelle_in_acme_implementieren.asm','3_1_part_speicherlayout.asm','3_3_fade_to_black_implementieren.asm','5_1_standard_kernal_loader_fur_die_demo.asm','6_2_pal_ntsc_detektion_im_code.asm','6_3_bewegungsgeschwindigkeiten_anpassen.asm','7_2_raster_jitter_mit_vice_diagnostizieren.asm','9_3_part_1_intro_rasterbars_sinusscroller.asm','9_4_part_2_plasma_mit_musik_synchronisation.asm','9_6_integration_und_timing_feinschliff.asm','9_7_build_skript_und_release.sh'],
+    '13': ['2_2_universelle_reu_transfer_subroutine.asm','2_4_reu_erkennung_beim_programmstart.asm','3_1_screen_buffer_im_reu_sofortige_screen_umschalt.asm','4_3_bank_switching_in_acme.asm','5_3_led_ausgabe_und_taster_eingabe.asm','6_4_vollstandige_vic_banking_konfiguration.asm','7_3_universelle_erkennungsroutine_fur_erweiterunge.asm','8_2_hauptschleife_mit_dma_screen_wechsel.asm'],
+    '14': ['2_2_pal_ntsc_defines_in_acme_verwenden.asm','3_3_dekomprimierer_integration_in_acme.asm','4_1_vollstandiger_github_actions_workflow.sh','5_2_screenshot_vergleichs_testskript.sh','6_2_memory_map_asm_zentrales_zp_register.asm','6_3_macros_asm_bibliothek_haufiger_makros.asm','8_4_referenz_screenshot_fur_tests_erstellen.sh'],
+    '15': ['3_1_die_rahmenfarben_methode_inline.asm','3_2_cycle_measure_makro_cia2_timer_basierte_messun.asm','4_3_fld_flexible_line_distance_badlines_eliminiere.asm','5_3_tabellen_page_aligned_ablegen.asm','6_2_stack_overflow_erkennen.asm','7_2_sprites_in_kritischen_zeilen_deaktivieren.asm','8_4_branch_reichweite_uberschritten.asm']
+  };
+
+  Object.keys(files).forEach(function(stufe) {
+    var grid = document.getElementById('grid-' + stufe);
+    if (!grid) return;
+    files[stufe].forEach(function(fname) {
+      var ext = fname.split('.').pop();
+      var a = document.createElement('a');
+      a.className = 'file-card';
+      a.href = 'stufe_' + stufe + '/' + fname;
+      a.innerHTML = '<span class="file-icon ' + ext + '">.' + ext + '</span>' +
+                    '<span class="file-name">' + fname + '</span>';
+      grid.appendChild(a);
+    });
+  });
+})();
+</script>
+</body>
+</html>

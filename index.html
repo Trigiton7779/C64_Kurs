@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C64 Mastery System — Übersicht &amp; Curriculum</title>
+<style>
+:root {
+    --c64-blue: #0033aa;
+    --c64-light-blue: #4466cc;
+    --c64-green: #00ff88;
+    --c64-dark: #1a1a2e;
+    --paper: #f8f6f0;
+    --paper-dark: #ede9e0;
+    --text: #1a1a2e;
+    --text-light: #444466;
+    --border: #c0b8a8;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: 'Georgia', 'Times New Roman', serif;
+    font-size: 17px; line-height: 1.75;
+    color: var(--text); background: var(--paper);
+    display: grid; grid-template-columns: 270px 1fr; min-height: 100vh;
+}
+.sidebar {
+    background: var(--c64-dark); color: #ccc;
+    position: sticky; top: 0; height: 100vh; overflow-y: auto;
+    font-family: 'Courier New', monospace; font-size: 13px;
+}
+.sidebar-header { background: var(--c64-blue); color: white; padding: 20px 16px; text-align: center; }
+.sidebar-header .logo { font-size: 26px; font-weight: bold; color: var(--c64-green); letter-spacing: 2px; }
+.sidebar-header .sub { font-size: 11px; color: #aac; margin-top: 4px; }
+.sidebar nav ul { list-style: none; padding: 8px 0; }
+.sidebar nav ul li a {
+    display: block; padding: 7px 16px; color: #99b; text-decoration: none;
+    border-left: 3px solid transparent; transition: all 0.2s; font-size: 12.5px;
+}
+.sidebar nav ul li a:hover, .sidebar nav ul li a.active {
+    background: rgba(0,51,170,0.3); color: var(--c64-green); border-left-color: var(--c64-green);
+}
+.sidebar nav ul li.section-label {
+    padding: 8px 16px 2px; font-size: 10px; color: #445;
+    text-transform: uppercase; letter-spacing: 1px; margin-top: 8px;
+}
+main { max-width: 860px; padding: 0 56px 80px; }
+.chapter-header { border-bottom: 3px solid var(--c64-blue); padding: 48px 0 28px; margin-bottom: 40px; }
+.chapter-number {
+    font-family: 'Courier New', monospace; font-size: 12px; color: var(--c64-blue);
+    text-transform: uppercase; letter-spacing: 3px; font-weight: bold; margin-bottom: 10px;
+}
+.chapter-header h1 { font-size: 40px; font-weight: bold; color: var(--c64-dark); line-height: 1.2; margin-bottom: 18px; }
+.chapter-meta { display: flex; gap: 24px; font-family: 'Courier New', monospace; font-size: 13px; color: var(--text-light); flex-wrap: wrap; }
+.badge { background: var(--c64-blue); color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px; }
+.badge.green { background: #2e7d32; }
+.badge.orange { background: #e65100; }
+.badge.red { background: #b71c1c; }
+.objectives {
+    background: #e3f2fd; border-left: 4px solid #1565c0; border-radius: 0 8px 8px 0;
+    padding: 22px 26px; margin-bottom: 40px;
+}
+.objectives h3 { color: #1565c0; font-size: 13px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; font-family: 'Courier New', monospace; }
+.objectives ul { padding-left: 20px; }
+.objectives ul li { margin-bottom: 5px; }
+h2 { font-size: 26px; color: var(--c64-dark); border-bottom: 2px solid var(--c64-blue); padding-bottom: 8px; margin: 44px 0 20px; }
+h3 { font-size: 19px; color: var(--c64-blue); margin: 28px 0 14px; }
+h4 { font-size: 15px; color: var(--text); margin: 20px 0 10px; font-family: 'Courier New', monospace; text-transform: uppercase; letter-spacing: 1px; }
+p { margin-bottom: 15px; }
+ul, ol { padding-left: 24px; margin-bottom: 15px; }
+li { margin-bottom: 5px; }
+pre {
+    background: var(--c64-dark); color: var(--c64-green);
+    font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.65;
+    padding: 22px; border-radius: 8px; overflow-x: auto; margin: 18px 0;
+    border: 1px solid #2a2a4a;
+}
+.asm-comment { color: #667799; font-style: italic; }
+.asm-label { color: #ffcc44; font-weight: bold; }
+.asm-instr { color: #44bbff; }
+.asm-addr { color: #ff88aa; }
+.asm-num { color: #ff9944; }
+code { font-family: 'Courier New', monospace; background: #e5e0d4; padding: 2px 6px; border-radius: 3px; font-size: 0.88em; color: #8b0000; }
+pre code { background: none; padding: 0; color: inherit; }
+table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 14.5px; }
+thead { background: var(--c64-blue); color: white; }
+thead th { padding: 11px 14px; text-align: left; font-family: 'Courier New', monospace; font-size: 12px; letter-spacing: 0.5px; }
+tbody tr:nth-child(even) { background: var(--paper-dark); }
+tbody td { padding: 9px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+tbody tr:hover { background: #dde8ff; }
+.mono { font-family: 'Courier New', monospace; color: #8b0000; font-weight: bold; }
+.box { border-radius: 0 8px 8px 0; padding: 18px 22px; margin: 22px 0; border-left: 4px solid; }
+.box .box-title { font-family: 'Courier New', monospace; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+.box.warning { background: #fff8e1; border-color: #f0a000; }
+.box.warning .box-title { color: #e65100; }
+.box.tip { background: #e8f5e9; border-color: #2e7d32; }
+.box.tip .box-title { color: #1b5e20; }
+.box.note { background: #e3f2fd; border-color: #1565c0; }
+.box.note .box-title { color: #0d47a1; }
+.box.important { background: #fce4ec; border-color: #c62828; }
+.box.important .box-title { color: #b71c1c; }
+.benchmark {
+    background: linear-gradient(135deg, #001166 0%, #0033aa 100%);
+    color: white; padding: 30px; border-radius: 12px; margin: 44px 0;
+}
+.benchmark h2 { color: var(--c64-green); border-color: rgba(0,255,136,0.3); margin-top: 0; font-size: 22px; }
+.benchmark ul { list-style: none; padding: 0; }
+.benchmark ul li { padding: 7px 0 7px 28px; position: relative; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.benchmark ul li:before { content: '☐'; position: absolute; left: 0; color: var(--c64-green); }
+.exercises-section { border: 2px solid var(--c64-blue); border-radius: 12px; padding: 28px; margin: 44px 0; }
+.exercises-section h2 { color: var(--c64-blue); margin-top: 0; border: none; padding: 0; }
+.exercise { background: var(--paper-dark); border-radius: 8px; padding: 18px; margin: 14px 0; }
+.exercise-num { font-family: 'Courier New', monospace; font-size: 11px; color: var(--c64-blue); font-weight: bold; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 6px; }
+.chapter-nav { display: flex; justify-content: space-between; margin-top: 56px; padding-top: 28px; border-top: 2px solid var(--border); gap: 16px; }
+.chapter-nav a { display: flex; flex-direction: column; padding: 14px 22px; background: var(--c64-dark); color: white; text-decoration: none; border-radius: 8px; min-width: 180px; transition: background 0.2s; }
+.chapter-nav a:hover { background: var(--c64-blue); }
+.nav-label { font-size: 10px; color: #889; font-family: 'Courier New', monospace; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 4px; }
+.nav-title { font-size: 15px; font-weight: bold; }
+.register-diagram { display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px; margin: 16px 0; font-family: 'Courier New', monospace; font-size: 12px; text-align: center; }
+.reg-bit { background: var(--c64-dark); color: var(--c64-green); padding: 8px 4px; border-radius: 4px; }
+.reg-bit.set { background: var(--c64-blue); }
+.memory-map { border: 2px solid var(--c64-blue); border-radius: 8px; overflow: hidden; font-family: 'Courier New', monospace; font-size: 13px; }
+.mem-row { display: grid; grid-template-columns: 100px 1fr; border-bottom: 1px solid var(--border); }
+.mem-addr { background: var(--c64-dark); color: var(--c64-green); padding: 6px 12px; font-weight: bold; }
+.mem-desc { padding: 6px 14px; }
+.mem-row.highlight .mem-desc { background: #dde8ff; font-weight: bold; }
+.mem-row.io .mem-desc { background: #fff3e0; }
+.mem-row.rom .mem-desc { background: #e8f5e9; }
+
+/* Index-spezifische Styles */
+.stufen-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin: 30px 0; }
+.stufe-card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 24px; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.08); text-decoration: none; color: inherit; display: block; }
+.stufe-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,51,170,0.15); border-color: var(--c64-blue); }
+.stufe-card .stufe-num { font-family: 'Courier New', monospace; font-size: 11px; color: var(--c64-blue); font-weight: bold; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+.stufe-card h3 { font-size: 18px; margin: 0 0 10px; color: var(--c64-dark); }
+.stufe-card p { font-size: 14px; color: var(--text-light); margin: 0 0 12px; line-height: 1.5; }
+.stufe-card .meta { font-family: 'Courier New', monospace; font-size: 12px; color: #889; }
+.hero { background: linear-gradient(135deg, var(--c64-dark) 0%, #0033aa 100%); color: white; padding: 60px 56px; margin: 0 -56px 48px; }
+.hero h1 { font-size: 44px; color: var(--c64-green); margin-bottom: 16px; line-height: 1.1; }
+.hero .subtitle { font-size: 20px; color: #aac; margin-bottom: 24px; }
+.hero p { font-size: 16px; color: #cce; max-width: 680px; line-height: 1.7; }
+.tools-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin: 24px 0; }
+.tool-card { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+.tool-card .tool-name { font-family: 'Courier New', monospace; font-size: 15px; font-weight: bold; color: var(--c64-blue); margin-bottom: 6px; }
+.tool-card .tool-type { font-family: 'Courier New', monospace; font-size: 10px; color: #889; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+.tool-card p { font-size: 13px; color: var(--text-light); margin: 0; line-height: 1.5; }
+.lernpfad { background: var(--c64-dark); border-radius: 10px; padding: 28px; margin: 28px 0; }
+.lernpfad pre { background: transparent; border: none; padding: 0; margin: 0; font-size: 12px; color: #aac; }
+.total-time { background: linear-gradient(90deg, #1a1a2e, #002277); color: white; border-radius: 10px; padding: 22px 28px; margin: 28px 0; display: flex; align-items: center; gap: 28px; }
+.total-time .big-num { font-size: 52px; font-weight: bold; color: var(--c64-green); font-family: 'Courier New', monospace; line-height: 1; }
+.total-time .big-label { font-size: 14px; color: #aac; }
+.prereq-list { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+.prereq-item { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 16px 20px; }
+.prereq-item strong { color: var(--c64-blue); display: block; margin-bottom: 6px; font-family: 'Courier New', monospace; font-size: 13px; }
+.prereq-item p { font-size: 13px; color: var(--text-light); margin: 0; }
+.phase-block { border-left: 4px solid var(--c64-blue); padding: 16px 22px; margin: 18px 0; background: white; border-radius: 0 8px 8px 0; }
+.phase-block h4 { color: var(--c64-blue); margin: 0 0 8px; font-size: 14px; }
+.phase-block p { font-size: 14px; margin: 0; color: var(--text-light); }
+</style>
+  <link rel="stylesheet" href="assets/c64-interactive.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">C64</div>
+    <div class="sub">MASTERY SYSTEM</div>
+  </div>
+  <nav>
+    <ul>
+      <li><a href="index.html" class="active">&#9632; Übersicht &amp; Curriculum</a></li>
+      <li class="section-label">Grundlagen</li>
+      <li><a href="stufe_00_fundament.html">Stufe 0 — Fundament</a></li>
+      <li><a href="stufe_01_6510_assembler.html">Stufe 1 — 6510 Assembler</a></li>
+      <li><a href="stufe_02_adressierung_speicher.html">Stufe 2 — Adressierung &amp; Speicher</a></li>
+      <li class="section-label">Grafik &amp; Sound</li>
+      <li><a href="stufe_03_bildschirm_zeichen.html">Stufe 3 — VIC-II &amp; Zeichen</a></li>
+      <li><a href="stufe_04_sprites_animation.html">Stufe 4 — Sprites &amp; Animation</a></li>
+      <li><a href="stufe_05_bitmap_grafik.html">Stufe 5 — Bitmap-Grafik</a></li>
+      <li><a href="stufe_06_sid_sound.html">Stufe 6 — SID &amp; Sound</a></li>
+      <li class="section-label">Fortgeschritten</li>
+      <li><a href="stufe_07_interrupts_timing.html">Stufe 7 — Interrupts &amp; Timing</a></li>
+      <li><a href="stufe_08_optimierung.html">Stufe 8 — Optimierung</a></li>
+      <li><a href="stufe_09_demo_effekte.html">Stufe 9 — Demo-Effekte</a></li>
+      <li><a href="stufe_10_meisterschaft.html">Stufe 10 — Meisterschaft</a></li>
+      <li class="section-label">Workflow &amp; Release</li>
+      <li><a href="stufe_11_spielentwicklung_workflow.html">Stufe 11 — Spielentwicklung</a></li>
+      <li><a href="stufe_12_demo_entwicklung_workflow.html">Stufe 12 — Demo-Workflow</a></li>
+      <li class="section-label">Erweiterte Stufen</li>
+      <li><a href="stufe_13_hardware_erweiterungen.html">Stufe 13 — Hardware-Erweiterungen</a></li>
+      <li><a href="stufe_14_modern_workflow.html">Stufe 14 — Moderner Workflow</a></li>
+      <li><a href="stufe_15_debugging_deep_dive.html">Stufe 15 — Deep Debugging</a></li>
+      <li class="section-label">Anhänge &amp; Referenz</li>
+      <li><a href="anhang_opcodes.html">A — Opcode-Referenz</a></li>
+      <li><a href="anhang_speicherkarte.html">B — Speicherkarte</a></li>
+      <li><a href="anhang_vic_register.html">C — VIC-II Register</a></li>
+      <li><a href="anhang_sid_register.html">D — SID Register</a></li>
+      <li><a href="anhang_cia_register.html">E — CIA Register</a></li>
+      <li><a href="anhang_petscii.html">F — PETSCII-Tabelle</a></li>
+      <li><a href="anhang_farben.html">G — C64-Farben</a></li>
+      <li><a href="anhang_kernal_routinen.html">H — KERNAL-Routinen</a></li>
+      <li class="section-label">Downloads</li>
+      <li><a href="beispiele/index.html">Beispielcode (.asm)</a></li>
+      <li><a href="vice.vicerc" download>VICE Konfiguration</a></li>
+    </ul>
+  </nav>
+</nav>
+
+<main>
+  <div class="hero">
+    <h1>C64 Mastery System</h1>
+    <div class="subtitle">Vom Anfänger zum Experten — strukturiert, praxisnah, vollständig</div>
+    <p>
+      Dieses Curriculum führt Sie Schritt für Schritt von den absoluten Grundlagen der 8-Bit-Programmierung
+      bis hin zur Meisterschaft in Maschinensprache, Grafik, Sound und Demo-Effekten auf dem legendären
+      Commodore 64. Jede Stufe baut auf der vorherigen auf — fachbuchhaft erklärt, mit vollständig
+      lauffähigen Code-Beispielen und verifizierbaren Lernzielen.
+    </p>
+  </div>
+
+  <div class="chapter-header" style="padding-top:0; border-top:none;">
+    <div class="chapter-number">C64 Mastery System — Lehrplan</div>
+    <h1 style="font-size:32px;">Übersicht &amp; Curriculum</h1>
+    <div class="chapter-meta">
+      <span>16 Stufen</span>
+      <span>&#9632;</span>
+      <span class="badge green">Alle Niveaus</span>
+      <span class="badge">140+ Stunden</span>
+    </div>
+  </div>
+
+  <h2>Einleitung: Warum C64-Programmierung im 21. Jahrhundert?</h2>
+
+  <p>
+    Der Commodore 64 ist kein Nostalgie-Objekt — er ist eine Lehrmaschine ohne Gleichen. Wer gelernt hat,
+    diese 1-MHz-CPU mit ihren knapp 64 Kilobyte RAM zum Tanzen zu bringen, der versteht Computer auf einer
+    fundamentalen Ebene, die kein modernes Betriebssystem und kein abstrahiertes Framework jemals vermitteln
+    könnte. Kein Betriebssystem steht zwischen Programmierer und Hardware. Jeder Takt zählt. Jedes Byte ist
+    kostbar. Jede Optimierung wird sofort sichtbar — auf dem Bildschirm, in der Musik, in der Bewegung eines
+    Sprites.
+  </p>
+
+  <p>
+    Der C64 wurde zwischen 1982 und 1994 über zwölf Millionen Mal verkauft und ist damit einer der
+    meistverkauften Heimcomputer der Geschichte. Doch während er in den Wohnzimmern der Welt stand,
+    entstand in Kellern und Jugendzimmern etwas Einzigartiges: eine Demo-Szene, die die technischen
+    Grenzen der Maschine immer wieder neu definierte, Effekte zeigte, die als unmöglich galten, und eine
+    Programmierkultur prägte, die bis heute lebendig ist. Intertexture, Comalight, Plush, Crest — die
+    Gruppen der C64-Demo-Szene haben Programme geschrieben, die selbst heute noch Informatiker zum Staunen
+    bringen.
+  </p>
+
+  <p>
+    Dieses Mastery-System ist als vollständiger, strukturierter Lehrgang konzipiert. Es richtet sich an
+    Menschen mit grundlegenden Programmierkenntnissen (in irgendeiner Sprache), die verstehen wollen, wie
+    Computer wirklich funktionieren. Es eignet sich gleichsam für Retro-Enthusiasten, Embedded-Systems-
+    Entwickler, Demoszene-Neulinge, Spieleentwickler mit Interesse an Low-Level-Optimierung — und für
+    jeden, der die intellektuelle Herausforderung schätzt, das Maximum aus minimalsten Ressourcen
+    herauszuholen.
+  </p>
+
+  <div class="box note">
+    <div class="box-title">Hinweis zum Lernsystem</div>
+    Dieses Curriculum ist so strukturiert, dass jede Stufe auf den vorherigen aufbaut. Einsteiger
+    beginnen bei Stufe 0 und arbeiten sich linear vor. Erfahrene Programmierer mit Assembler-Kenntnissen
+    können ab Stufe 2 oder 3 einsteigen. Alle Code-Beispiele sind mit ACME Assembler kompilierbar und
+    im VICE Emulator testbar — keine Original-Hardware erforderlich.
+  </div>
+
+  <div class="total-time">
+    <div>
+      <div class="big-num">140+</div>
+      <div class="big-label">Gesamtstunden<br>strukturiertes Lernen</div>
+    </div>
+    <div>
+      <p style="color:#aac; font-size:14px; margin:0;">
+        Das Curriculum ist in sechzehn aufeinander aufbauende Stufen gegliedert. Die Zeitangaben
+        sind Richtwerte für aktives Lernen mit Übungen — Eigenexperimente und Projekte
+        können die Lernzeit deutlich verlängern. Empfehlung: mindestens 2–3 Stunden
+        pro Lernsitzung, um im Thema zu bleiben.
+      </p>
+    </div>
+  </div>
+
+  <h2>Das Curriculum im Überblick</h2>
+
+  <p>
+    Das C64 Mastery System ist in drei Phasen unterteilt: <strong>Grundlagen</strong> (Stufen 0–2),
+    <strong>Grafik &amp; Sound</strong> (Stufen 3–6) und <strong>Fortgeschrittene Techniken</strong>
+    (Stufen 7–10). Jede Phase schließt mit einem Projekt ab, das das Gelernte konsolidiert. Die folgende
+    Übersicht gibt einen ersten Eindruck der Inhalte; jede Stufe ist als vollständiges Kapitel mit
+    Theorie, Code-Beispielen, Übungen und einem Skill-Benchmark ausgearbeitet.
+  </p>
+
+  <div class="stufen-grid">
+    <a class="stufe-card" href="stufe_00_fundament.html">
+      <div class="stufe-num">Stufe 0 &mdash; Phase 1</div>
+      <h3>Das Fundament</h3>
+      <p>Geschichte des C64, Hardware-Architektur, Entwicklungsumgebung einrichten, erstes Maschinenprogramm kompilieren und ausführen.</p>
+      <div class="meta">
+        <span class="badge green" style="font-size:11px;">Einsteiger</span>
+        &nbsp; ~4 Stunden
+      </div>
+    </a>
+
+    <a class="stufe-card" href="stufe_01_6510_assembler.html">
+      <div class="stufe-num">Stufe 1 &mdash; Phase 1</div>
+      <h3>6510 Assembler-Grundlagen</h3>
+      <p>CPU-Register, Status-Flags, vollständiger Opcode-Satz, Schleifen, Verzweigungen, Unterprogramme und Stack-Verwaltung.</p>
+      <div class="meta">
+        <span class="badge" style="font-size:11px;">Anfänger</span>
+        &nbsp; ~8 Stunden
+      </div>
+    </a>
+
+    <a class="stufe-card" href="stufe_02_adressierung_speicher.html">
+      <div class="stufe-num">Stufe 2 &mdash; Phase 1</div>
+      <h3>Adressierung &amp; Speicher</h3>
+      <p>Alle Adressierungsarten des 6510, die vollständige Memory Map, Zero-Page-Optimierung, Pointer-Arithmetik und Memory-Banking.</p>
+      <div class="meta">
+        <span class="badge" style="font-size:11px;">Anfänger</span>
+        &nbsp; ~6 Stunden
+      </div>
+    </a>
+
+    <a class="stufe-card" href="stufe_03_bildschirm_zeichen.html">
+      <div class="stufe-num">Stufe 3 &mdash; Phase 2</div>
+      <h3>VIC-II &amp; Zeichenmodus</h3>
+      <p>Der VIC-II Chip im Detail, Text- und Zeichenmodi, Color-RAM, Custom-Zeichensätze, Bildschirm-Scrolling und Text-Effekte.</p>
+      <div class="meta">
+        <span class="badge orange" style="font-size:11px;">Fortgeschritten</span>
+        &nbsp; ~8 Stunden
+      </div>
+    </a>
+
+    <a class="stufe-card" href="stufe_04_sprites_animation.html">
+      <div class="stufe-num">Stufe 4 &mdash; Phase 2</div>
+      <h3>Sprites &amp; Animation</h3>
+      <p>Hardware-Sprites des VIC-II, Sprite-Daten, Positions-Register, Kollisionserkennung, Multiplexing und Animations-Sequenzen.</p>
+      <div class="meta">
+        <span class="badge orange" style="font-size:11px;">Fortgeschritten</span>
+        &nbsp; ~6 Stunden
+      </div>
+    </a>
+
+    <a class="stufe-card" href="stufe_05_bitmap_grafik.html">
+      <div class="stufe-num">Stufe 5 &mdash; Phase 2</div>
+      <h3>Bitmap-Grafik</h3>
+      <p>Hires-Modus (320×200), Multicolor-Modus (160×200), FLI-Technik, Bitmap-Konvertierung und das Zeichnen grafischer Primitiven.</p>
+      <div class="meta">
+        <span class="badge orange" style="font-size:11px;">Fortgeschritten</span>
+        &nbsp; ~8 Stunden
+      </div>
+    </a>
+
+    <a class="stufe-card" href="stufe_06_sid_sound.html">
+      <div class="stufe-num">Stufe 6 &mdash; Phase 2</div>
+      <h3>SID &amp; Sound-Synthese</h3>
+      <p>Der SID-Chip (6581/8580), Wellenformen, ADSR-Hüllkurven, Filterprogrammierung, Musik-Player-Architektur und SFX-Programmierung.</p>
+      <div class="meta">
+        <span class="badge orange" style="font-size:11px;">Fortgeschritten</span>
+        &nbsp; ~10 Stunden
+      </div>
+    </a>
+
+    <a class="stufe-card" href="stufe_07_interrupts_timing.html">
+      <div class="stufe-num">Stufe 7 &mdash; Phase 3</div>
+      <h3>Interrupts &amp; Timing</h3>
+      <p>IRQ und NMI-Mechanismus, CIA-Timer-Konfiguration, Raster-IRQ, Double-IRQ-Technik, Timing-kritische Programmierung.</p>
+      <div class="meta">
+        <span class="badge red" style="font-size:11px;">Experte</span>
+        &nbsp; ~8 Stunden
+      </div>
+    </a>
+
+    <a class="stufe-card" href="stufe_08_optimierung.html">
+      <div class="stufe-num">Stufe 8 &mdash; Phase 3</div>
+      <h3>Optimierung &amp; Performance</h3>
+      <p>Zyklus-genaues Timing, Look-Up-Tables, Unrolled Loops, Self-Modifying Code, Speicher-Layout-Optimierung und Profiling-Techniken.</p>
+      <div class="meta">
+        <span class="badge red" style="font-size:11px;">Experte</span>
+        &nbsp; ~8 Stunden
+      </div>
+    </a>
+
+    <a class="stufe-card" href="stufe_09_demo_effekte.html">
+      <div class="stufe-num">Stufe 9 &mdash; Phase 3</div>
+      <h3>Demo-Effekte</h3>
+      <p>Scroller, Rasterbars, Copper-Bars, Sinus-Scroller, Plasma-Effekte, Starfields, 3D-Linien — die klassischen Werkzeuge der Demo-Szene.</p>
+      <div class="meta">
+        <span class="badge red" style="font-size:11px;">Experte</span>
+        &nbsp; ~10 Stunden
+      </div>
+    </a>
+
+    <a class="stufe-card" href="stufe_10_meisterschaft.html" style="border-color: var(--c64-blue); background: linear-gradient(135deg, #f0f4ff, white);">
+      <div class="stufe-num">Stufe 10 &mdash; Meisterschaft</div>
+      <h3>Meisterschaft &amp; Komplett-Projekt</h3>
+      <p>Vollständiges Spiel oder Demo von Grund auf: Design, Codearchitektur, Integration aller Techniken, Loader, Crunch-Algorithmen, Veröffentlichung.</p>
+      <div class="meta">
+        <span class="badge red" style="font-size:11px; background:#7b0000;">Meister</span>
+        &nbsp; ~20+ Stunden
+      </div>
+    </a>
+
+    <a class="stufe-card" href="stufe_11_spielentwicklung_workflow.html" style="border-color: #005588; background: linear-gradient(135deg, #f0f8ff, white);">
+      <div class="stufe-num">Stufe 11 &mdash; Workflow</div>
+      <h3>Spielentwicklung von A bis Z</h3>
+      <p>Vollständiger Prozess: GDD, Memory-Map-Planung, Asset-Pipeline, Entwicklungsphasen, Testing im VICE-Monitor, D64-Packaging und CSDb-Release.</p>
+      <div class="meta">
+        <span class="badge red" style="font-size:11px; background:#005588;">Workflow</span>
+        &nbsp; ~15 Stunden
+      </div>
+    </a>
+
+    <a class="stufe-card" href="stufe_12_demo_entwicklung_workflow.html" style="border-color: #6633aa; background: linear-gradient(135deg, #f5f0ff, white);">
+      <div class="stufe-num">Stufe 12 &mdash; Workflow</div>
+      <h3>Demo-Entwicklung von A bis Z</h3>
+      <p>Demo-Workflow: Musik-Synchronisation, Part-Struktur, PAL/NTSC-Kompatibilität, Loader, Timing-Feinschliff, Release-NFO und vollständiger BITWAVE-Walkthrough.</p>
+      <div class="meta">
+        <span class="badge red" style="font-size:11px; background:#6633aa;">Demo-Szene</span>
+        &nbsp; ~15 Stunden
+      </div>
+    </a>
+
+    <a class="stufe-card" href="stufe_13_hardware_erweiterungen.html" style="border-color: #884400; background: linear-gradient(135deg, #fff8f0, white);">
+      <div class="stufe-num">Stufe 13 &mdash; Erweitert</div>
+      <h3>Hardware-Erweiterungen</h3>
+      <p>REU 1750 DMA-Transfers, EasyFlash Cartridge (64 Bänke), Userport I/O via CIA2, VIC-II Banking für 64-KB-Vollnutzung — mit vollständigem Slideshow-Walkthrough.</p>
+      <div class="meta">
+        <span class="badge red" style="font-size:11px; background:#884400;">Hardware</span>
+        &nbsp; ~12 Stunden
+      </div>
+    </a>
+
+    <a class="stufe-card" href="stufe_14_modern_workflow.html" style="border-color: #006644; background: linear-gradient(135deg, #f0fff8, white);">
+      <div class="stufe-num">Stufe 14 &mdash; Erweitert</div>
+      <h3>Moderner Cross-Development-Workflow</h3>
+      <p>VS Code mit ACME-Extension, Makefile, Exomizer-Packer, GitHub Actions CI/CD, headless VICE-Testing, Multi-File-Projekte und vollständige Release-Pipeline.</p>
+      <div class="meta">
+        <span class="badge red" style="font-size:11px; background:#006644;">DevOps</span>
+        &nbsp; ~10 Stunden
+      </div>
+    </a>
+
+    <a class="stufe-card" href="stufe_15_debugging_deep_dive.html" style="border-color: #880022; background: linear-gradient(135deg, #fff0f2, white);">
+      <div class="stufe-num">Stufe 15 &mdash; Erweitert</div>
+      <h3>Deep Debugging</h3>
+      <p>VICE Monitor-Kommandos, bedingte Breakpoints, CPU-Profiling, Badline-Analyse, Page-Cross-Bugs, Sprite-DMA-Timing, Stack-Guard — mit Buggy-Platformer-Walkthrough.</p>
+      <div class="meta">
+        <span class="badge red" style="font-size:11px; background:#880022;">Debugging</span>
+        &nbsp; ~12 Stunden
+      </div>
+    </a>
+  </div>
+
+  <h2>Lernpfad und Phasen-Struktur</h2>
+
+  <p>
+    Das Curriculum folgt einem sorgfältig durchdachten Lernpfad. Jede neue Stufe setzt die Inhalte der
+    vorherigen voraus — nicht als formale Hürde, sondern weil tatsächliche Abhängigkeiten bestehen.
+    Man kann keine sinnvollen Raster-Interrupts programmieren, ohne Interrupts zu verstehen; man kann
+    Interrupts nicht verstehen, ohne die CIA-Chips zu kennen; und die CIA-Chips erschließen sich erst
+    vollständig, wenn die Grundlagen des Adressbusses und des Memory-Mappings sitzen.
+  </p>
+
+  <div class="lernpfad">
+    <pre>
+PHASE 1: GRUNDLAGEN (Stufen 0–2)
+════════════════════════════════
+[Stufe 0: Fundament]
+      │
+      ▼
+[Stufe 1: Assembler]
+      │
+      ▼
+[Stufe 2: Adressierung]
+      │
+      ├──────────────────────────┐
+      ▼                          ▼
+PHASE 2: GRAFIK &amp; SOUND (3–6)  │
+══════════════════════════════  │
+[Stufe 3: VIC-II Text]         │
+      │                          │
+      ▼                          │
+[Stufe 4: Sprites]              │
+      │                          │
+      ▼                          │
+[Stufe 5: Bitmap]               │
+      │                          │
+      ▼                          │
+[Stufe 6: SID Sound] ◄──────────┘
+      │
+      ▼
+PHASE 3: FORTGESCHRITTEN (7–10)
+═══════════════════════════════
+[Stufe 7: Interrupts]
+      │
+      ▼
+[Stufe 8: Optimierung]
+      │
+      ▼
+[Stufe 9: Demo-Effekte]
+      │
+      ▼
+[Stufe 10: Meisterschaft]
+    </pre>
+  </div>
+
+  <div class="phase-block">
+    <h4>Phase 1 — Grundlagen (Stufen 0–2)</h4>
+    <p>Aufbau eines soliden Fundaments in Hardware-Verständnis, Assembler-Syntax und Speicherorganisation.
+    Nach Phase 1 können Sie eigenständige kleine Programme schreiben, den VICE-Monitor bedienen und
+    die Speicherstruktur des C64 navigieren.</p>
+  </div>
+
+  <div class="phase-block">
+    <h4>Phase 2 — Grafik &amp; Sound (Stufen 3–6)</h4>
+    <p>Erkundung der drei Spezialchips des C64: VIC-II (Video), SID (Sound) und deren Register. Nach
+    Phase 2 können Sie Sprites animieren, Bitmaps darstellen, eigene Musik programmieren und
+    vollständige spielfähige Programme realisieren.</p>
+  </div>
+
+  <div class="phase-block">
+    <h4>Phase 3 — Fortgeschrittene Techniken (Stufen 7–10)</h4>
+    <p>Timing-kritische Programmierung, maximale Performance-Optimierung, Demo-Effekte auf Profi-Niveau
+    und schließlich das Meisterschaftsprojekt. Nach Phase 3 sind Sie in der Lage, technisch anspruchsvolle
+    Demo-Teile und vollständige Spiele zu programmieren.</p>
+  </div>
+
+  <h2>Voraussetzungen</h2>
+
+  <p>
+    Das C64 Mastery System setzt keine Kenntnisse in Assembler-Programmierung voraus — wohl aber
+    eine grundlegende Vertrautheit mit dem Konzept von Variablen, Schleifen und Funktionen aus
+    irgendeiner Programmiersprache. Wer noch nie programmiert hat, dem sei empfohlen, zunächst
+    einen Einführungskurs in einer höheren Sprache (Python, JavaScript, C) zu absolvieren, bevor
+    er hier beginnt.
+  </p>
+
+  <div class="prereq-list">
+    <div class="prereq-item">
+      <strong>Allgemeine Programmierung</strong>
+      <p>Grundverständnis von Variablen, Schleifen, Bedingungen und Funktionen in irgendeiner
+      Programmiersprache. Kein C64-Wissen erforderlich.</p>
+    </div>
+    <div class="prereq-item">
+      <strong>Zahlensysteme</strong>
+      <p>Verständnis von Dezimal-, Hexadezimal- und Binärzahlen sowie deren Umrechnung.
+      Hex-Notation ($FF, $D020) wird intensiv verwendet.</p>
+    </div>
+    <div class="prereq-item">
+      <strong>Hardware (optional)</strong>
+      <p>Ein echter C64 ist nicht erforderlich. Der VICE-Emulator ist kostenlos und für
+      alle gängigen Betriebssysteme verfügbar. Ein originaler C64 bereichert
+      das Lernerlebnis, ist aber keine Voraussetzung.</p>
+    </div>
+    <div class="prereq-item">
+      <strong>Englischkenntnisse</strong>
+      <p>Die meisten weiterführenden Ressourcen (Handbücher, Datenblätter, Forum-Posts)
+      sind auf Englisch. Grundlegende Lesekenntnisse sind hilfreich.</p>
+    </div>
+  </div>
+
+  <h2>Benötigte Software und Werkzeuge</h2>
+
+  <p>
+    Alle in diesem Kurs verwendeten Werkzeuge sind kostenlos und quelloffen. Die Entwicklung
+    findet primär am modernen PC statt — mit dem VICE-Emulator als Zielsystem. Alternativ kann
+    auf echter Hardware mit einem originalen C64 und einem SD2IEC oder 1541 Ultimate Cartridge
+    entwickelt werden. Die folgende Übersicht stellt die wichtigsten Werkzeuge vor.
+  </p>
+
+  <div class="tools-grid">
+    <div class="tool-card">
+      <div class="tool-name">VICE</div>
+      <div class="tool-type">Emulator &mdash; Pflicht</div>
+      <p>Versatile Commodore Emulator — hochpräzise Emulation des C64, C128, VIC-20 und mehr.
+      Enthält eingebauten Monitor/Debugger. Verfügbar für Windows, macOS, Linux.</p>
+    </div>
+    <div class="tool-card">
+      <div class="tool-name">ACME</div>
+      <div class="tool-type">Assembler &mdash; Empfohlen</div>
+      <p>Schneller, moderner Cross-Assembler für 6502/6510. Unterstützt Makros, Includes,
+      Pseudo-Opcodes. Kompakte Syntax, ideal für den Einstieg und für erfahrene Entwickler.</p>
+    </div>
+    <div class="tool-card">
+      <div class="tool-name">Kick Assembler</div>
+      <div class="tool-type">Assembler &mdash; Alternative</div>
+      <p>Java-basierter Assembler mit mächtigem Macro- und Skript-System. Sehr beliebt in der
+      Demo-Szene. Exzellente IDE-Integration (VS Code Plugin verfügbar).</p>
+    </div>
+    <div class="tool-card">
+      <div class="tool-name">CBM prg Studio</div>
+      <div class="tool-type">IDE &mdash; Windows</div>
+      <p>Vollständige integrierte Entwicklungsumgebung für Windows. Enthält Assembler, Basic-Editor,
+      Sprite-Editor, Zeichensatz-Editor und direkte VICE-Integration.</p>
+    </div>
+    <div class="tool-card">
+      <div class="tool-name">Turbo Macro Pro</div>
+      <div class="tool-type">Assembler &mdash; Auf dem C64</div>
+      <p>Assembler, der direkt auf dem C64 läuft. Ideal für Puristen und für die Erfahrung,
+      auf der echten Hardware zu entwickeln. Kurze Feedback-Zyklen durch direkte Ausführung.</p>
+    </div>
+    <div class="tool-card">
+      <div class="tool-name">Exomizer / Pucrunch</div>
+      <div class="tool-type">Packer &mdash; Fortgeschritten</div>
+      <p>Komprimierungstools für fertige C64-Programme. Reduzieren die Dateigröße erheblich;
+      relevant ab Stufe 9 für die Veröffentlichung von Demos und Spielen.</p>
+    </div>
+  </div>
+
+  <h3>VICE Emulator — Schnellkonfiguration</h3>
+
+  <p>
+    Nach der Installation von VICE sind folgende Einstellungen für optimales Lernen empfohlen.
+    VICE bietet sowohl eine grafische Benutzeroberfläche als auch eine Kommandozeilen-Schnittstelle,
+    die sich besonders für automatisierte Build-Pipelines eignet. Im Rahmen dieses Kurses wird
+    primär die GUI verwendet.
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Einstellung</th>
+        <th>Empfohlener Wert</th>
+        <th>Begründung</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="mono">Machine Type</td>
+        <td>PAL (C64 European)</td>
+        <td>PAL-Timing (50 Hz) entspricht der europäischen Standard-Hardware; alle Timing-Beispiele in diesem Kurs sind PAL-basiert</td>
+      </tr>
+      <tr>
+        <td class="mono">True Drive Emulation</td>
+        <td>EIN (für Authentizität)</td>
+        <td>Emuliert die 1541-Floppy korrekt; für schnelles Testen kann man auf AUS wechseln</td>
+      </tr>
+      <tr>
+        <td class="mono">Warp Mode</td>
+        <td>Taste: Alt+W</td>
+        <td>Beschleunigt die Emulation; nützlich beim Laden langer Programme</td>
+      </tr>
+      <tr>
+        <td class="mono">Monitor Hotkey</td>
+        <td>Alt+H / F9</td>
+        <td>Öffnet den eingebauten Maschinensprache-Monitor zum Debuggen</td>
+      </tr>
+      <tr>
+        <td class="mono">Sound</td>
+        <td>SID 6581 (reSID)</td>
+        <td>Der reSID-Emulator ist die genaueste Emulation des originalen 6581-Chips</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>ACME Assembler — Installation</h3>
+
+  <p>
+    ACME ist ein schlanker, schneller Cross-Assembler, der sich optimal für die Befehlszeile eignet
+    und keine Java-Runtime oder andere Abhängigkeiten benötigt. Die empfohlene Build-Pipeline ist
+    einfach: Quellcode editieren → ACME aufrufen → VICE öffnet automatisch die erzeugte PRG-Datei.
+  </p>
+
+  <pre><span class="asm-comment"># Linux/macOS: ACME aus dem Paketmanager oder GitHub</span>
+sudo apt install acme        <span class="asm-comment"># Debian/Ubuntu</span>
+brew install acme            <span class="asm-comment"># macOS mit Homebrew</span>
+
+<span class="asm-comment"># Windows: ACME.EXE von acme.quibb.net herunterladen</span>
+
+<span class="asm-comment"># Kompilieren einer Quelldatei:</span>
+acme -f cbm -o output.prg meinprogramm.asm
+
+<span class="asm-comment"># Kompilieren und direkt in VICE starten:</span>
+acme -f cbm -o output.prg meinprogramm.asm &amp;&amp; x64sc output.prg
+
+<span class="asm-comment"># Mit Fehlerliste und Label-Export:</span>
+acme -f cbm -o output.prg --labeldump labels.txt meinprogramm.asm</pre>
+
+  <h2>Zeitplanung und Lernempfehlungen</h2>
+
+  <p>
+    Die Zeitangaben in diesem Curriculum sind konservative Schätzungen für aktives Lernen — das bedeutet:
+    Texte lesen, Code-Beispiele nachvollziehen, Übungen bearbeiten, eigene Varianten ausprobieren.
+    Wer bereits Assembler-Erfahrung auf einem anderen Prozessor (Z80, ARM, x86) mitbringt, wird
+    Stufen 1 und 2 deutlich schneller abschließen. Wer bereits Erfahrung mit dem C64 oder der
+    6502-Familie hat, kann die entsprechenden Abschnitte als Referenz verwenden.
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Stufe</th>
+        <th>Thema</th>
+        <th>Zeitaufwand</th>
+        <th>Schwierigkeit</th>
+        <th>Voraussetzung</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="mono">0</td>
+        <td>Das Fundament</td>
+        <td>~4 Std.</td>
+        <td><span class="badge green">Einsteiger</span></td>
+        <td>Keine</td>
+      </tr>
+      <tr>
+        <td class="mono">1</td>
+        <td>6510 Assembler</td>
+        <td>~8 Std.</td>
+        <td><span class="badge">Anfänger</span></td>
+        <td>Stufe 0</td>
+      </tr>
+      <tr>
+        <td class="mono">2</td>
+        <td>Adressierung &amp; Speicher</td>
+        <td>~6 Std.</td>
+        <td><span class="badge">Anfänger</span></td>
+        <td>Stufe 1</td>
+      </tr>
+      <tr>
+        <td class="mono">3</td>
+        <td>VIC-II &amp; Zeichenmodus</td>
+        <td>~8 Std.</td>
+        <td><span class="badge orange">Fortgeschritten</span></td>
+        <td>Stufen 0–2</td>
+      </tr>
+      <tr>
+        <td class="mono">4</td>
+        <td>Sprites &amp; Animation</td>
+        <td>~6 Std.</td>
+        <td><span class="badge orange">Fortgeschritten</span></td>
+        <td>Stufe 3</td>
+      </tr>
+      <tr>
+        <td class="mono">5</td>
+        <td>Bitmap-Grafik</td>
+        <td>~8 Std.</td>
+        <td><span class="badge orange">Fortgeschritten</span></td>
+        <td>Stufen 3–4</td>
+      </tr>
+      <tr>
+        <td class="mono">6</td>
+        <td>SID &amp; Sound</td>
+        <td>~10 Std.</td>
+        <td><span class="badge orange">Fortgeschritten</span></td>
+        <td>Stufen 0–2</td>
+      </tr>
+      <tr>
+        <td class="mono">7</td>
+        <td>Interrupts &amp; Timing</td>
+        <td>~8 Std.</td>
+        <td><span class="badge red">Experte</span></td>
+        <td>Stufen 0–6</td>
+      </tr>
+      <tr>
+        <td class="mono">8</td>
+        <td>Optimierung</td>
+        <td>~8 Std.</td>
+        <td><span class="badge red">Experte</span></td>
+        <td>Stufen 0–7</td>
+      </tr>
+      <tr>
+        <td class="mono">9</td>
+        <td>Demo-Effekte</td>
+        <td>~10 Std.</td>
+        <td><span class="badge red">Experte</span></td>
+        <td>Stufen 0–8</td>
+      </tr>
+      <tr>
+        <td class="mono">10</td>
+        <td>Meisterschaft</td>
+        <td>~20+ Std.</td>
+        <td><span class="badge red" style="background:#7b0000;">Meister</span></td>
+        <td>Alle Stufen</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Weiterführende Ressourcen</h2>
+
+  <p>
+    Das C64 Mastery System ist als primäre Lernquelle konzipiert, aber keine Lernquelle existiert
+    im Vakuum. Die folgenden Referenzwerke, Websites und Gemeinschaften sind unverzichtbare Ergänzungen
+    für jeden, der tiefer einsteigen möchte. Sie werden an passenden Stellen im Curriculum referenziert.
+  </p>
+
+  <h3>Unverzichtbare Referenz-Dokumentation</h3>
+  <ul>
+    <li><strong>Commodore 64 Programmer's Reference Guide</strong> — Das offizielle Handbuch, als PDF frei verfügbar. Vollständige Register-Tabellen für VIC-II, SID und CIA.</li>
+    <li><strong>C64 Wiki (www.c64-wiki.com)</strong> — Deutschsprachige Wiki mit detaillierten Artikel zu allen Aspekten der C64-Programmierung.</li>
+    <li><strong>codebase64.org</strong> — Umfangreiche Code-Sammlung mit Erklärungen, von einfachen Routinen bis zu komplexen Demo-Effekten.</li>
+    <li><strong>6502.org</strong> — Referenz für den 6502-Prozessor (Basis des 6510) mit vollständigen Opcode-Tabellen und Timing-Informationen.</li>
+    <li><strong>VICE-Emulator Dokumentation</strong> — Vollständige Anleitung zum integrierten Monitor, zu Konfigurationsoptionen und Debugging-Werkzeugen.</li>
+  </ul>
+
+  <h3>Gemeinschaften und Foren</h3>
+  <ul>
+    <li><strong>CSDb (C64 Scene Database)</strong> — Archiv aller C64-Demos, -Spiele und -Tools der Demoszene. Unverzichtbar für Inspiration.</li>
+    <li><strong>Lemon64.com</strong> — Forum für C64-Enthusiasten; freundliche Community für Einsteigerfragen.</li>
+    <li><strong>pouet.net</strong> — Demoszene-Portal mit Kommentaren und Wertungen zu C64-Demos (und vielen anderen Plattformen).</li>
+    <li><strong>Forum64.de</strong> — Deutschsprachiges C64-Forum mit aktivem Entwickler-Unterforum.</li>
+  </ul>
+
+  <div class="benchmark">
+    <h2>Bereit? Los geht's!</h2>
+    <p style="color:#aac; margin-bottom:16px;">Bevor Sie mit Stufe 0 beginnen, stellen Sie sicher, dass Sie folgendes erledigt haben:</p>
+    <ul>
+      <li>VICE Emulator heruntergeladen und installiert (vice-emu.sourceforge.io)</li>
+      <li>ACME Assembler installiert und auf der Kommandozeile verfügbar (<code style="color:var(--c64-green);">acme --version</code> funktioniert)</li>
+      <li>Einen Texteditor mit Syntax-Highlighting für 6502-Assembler eingerichtet (VS Code + Erweiterung empfohlen)</li>
+      <li>Grundlegende Hexadezimal-Arithmetik geübt ($FF = 255, $0400 = 1024, etc.)</li>
+      <li>Das Programmers Reference Guide (PDF) heruntergeladen und griffbereit</li>
+    </ul>
+  </div>
+
+  <div class="chapter-nav">
+    <span></span>
+    <a href="stufe_00_fundament.html">
+      <span class="nav-label">Erste Stufe</span>
+      <span class="nav-title">Stufe 0 &mdash; Das Fundament &rarr;</span>
+    </a>
+  </div>
+</main>
+
+  <script src="assets/c64-interactive.js"></script>
+</body>
+</html>

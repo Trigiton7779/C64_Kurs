@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>C64 Mastery — Stufe 8: Optimierung & Profitechniken</title>
+  <link rel="stylesheet" href="assets/c64-base.css">
+  <link rel="stylesheet" href="assets/c64-interactive.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">■ C64 MASTERY</div>
+    Professioneller Lehrgang
+  </div>
+  <nav>
+    <div class="section-label">Curriculum</div>
+    <a href="index.html">◈ Übersicht & Lernpfad</a>
+    <a href="stufe_00_fundament.html">00 · Fundament</a>
+    <a href="stufe_01_6510_assembler.html">01 · 6510 &amp; Assembler</a>
+    <a href="stufe_02_adressierung_speicher.html">02 · Adressierung &amp; Speicher</a>
+    <a href="stufe_03_bildschirm_zeichen.html">03 · Bildschirm &amp; Zeichen</a>
+    <a href="stufe_04_sprites_animation.html">04 · Sprites &amp; Animation</a>
+    <a href="stufe_05_bitmap_grafik.html">05 · Bitmap-Grafik</a>
+    <a href="stufe_06_sid_sound.html">06 · SID-Sound</a>
+    <a href="stufe_07_interrupts_timing.html">07 · Interrupts &amp; Timing</a>
+    <a href="stufe_08_optimierung.html" class="active">08 · Optimierung</a>
+    <a href="stufe_09_demo_effekte.html">09 · Demo-Effekte</a>
+    <a href="stufe_10_meisterschaft.html">10 · Meisterschaft</a>
+
+    <div class="section-label">Workflow &amp; Release</div>
+    <a href="stufe_11_spielentwicklung_workflow.html">11 · Spielentwicklung</a>
+    <a href="stufe_12_demo_entwicklung_workflow.html">12 · Demo-Workflow</a>
+
+    <div class="section-label">Erweiterte Stufen</div>
+    <a href="stufe_13_hardware_erweiterungen.html">13 · Hardware-Erweiterungen</a>
+    <a href="stufe_14_modern_workflow.html">14 · Moderner Workflow</a>
+    <a href="stufe_15_debugging_deep_dive.html">15 · Deep Debugging</a>
+
+    <div class="section-label">Anhänge &amp; Referenz</div>
+    <a href="anhang_kernal_routinen.html">H · KERNAL-Routinen</a>
+
+    <div class="section-label">Diese Seite</div>
+    <a href="#timing" class="toc-link">1. Cycle Counting</a>
+    <a href="#zeropage" class="toc-link">2. Zero Page Strategie</a>
+    <a href="#loops" class="toc-link">3. Loop-Optimierung</a>
+    <a href="#lut" class="toc-link">4. Lookup-Tabellen</a>
+    <a href="#selfmod" class="toc-link">5. Selbstmodifiz. Code</a>
+    <a href="#undoc" class="toc-link">6. Undokumentierte Ops</a>
+    <a href="#dma" class="toc-link">7. DMA &amp; Bad Lines</a>
+    <a href="#stack" class="toc-link">8. Stack-Tricks</a>
+    <a href="#benchmark" class="toc-link">Skill-Benchmark</a>
+    <a href="#exercises" class="toc-link">Übungen</a>
+  </nav>
+</aside>
+
+<main>
+  <header class="chapter-header">
+    <div class="chapter-number">Stufe 8</div>
+    <h1>Optimierung &amp; Profitechniken</h1>
+    <div class="chapter-meta">
+      <span>⚡ Fortgeschritten</span>
+      <span>⏱ ca. 10 Stunden</span>
+      <span>📋 Voraussetzung: Stufen 01–07</span>
+    </div>
+  </header>
+
+  <section class="learning-objectives">
+    <h3>Lernziele dieser Stufe</h3>
+    <ul>
+      <li>Cycle Counting beherrschen: jeden Taktzyklus verstehen und kalkulieren</li>
+      <li>Zero Page als strategische Ressource optimal einsetzen</li>
+      <li>Loop Unrolling, Lookup-Tabellen und selbstmodifizierenden Code anwenden</li>
+      <li>Undokumentierte 6510-Opcodes kennen und gezielt nutzen</li>
+      <li>DMA-Delays, Bad Lines und Sprite-Fetch-Kosten verstehen</li>
+      <li>Performance-kritischen Code um 30–50 % beschleunigen</li>
+    </ul>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="timing">
+    <h2>1. Cycle Counting — Jeder Takt zählt</h2>
+
+    <p>Der 6510-Prozessor im C64 arbeitet mit exakt <strong>985.248 Hz</strong> (PAL) bzw. <strong>1.022.727 Hz</strong> (NTSC). Ein Taktzyklus dauert damit ca. <strong>1,015 Mikrosekunden</strong>. Der VIC-II zeichnet 312 Rasterzeilen pro Frame (PAL), wobei <strong>63 Taktzyklen</strong> pro Rasterzeile zur Verfügung stehen:</p>
+
+    <pre><span class="comment">; PAL-Timing:</span>
+<span class="comment">; 985248 Hz / 50 Frames = 19704,96 Zyklen pro Frame</span>
+<span class="comment">; 19705 Zyklen / 312 Zeilen = 63,15 ≈ 63 Zyklen pro Zeile</span>
+<span class="comment">; Sichtbarer Bereich: 200 Zeilen × 63 Zyklen = 12600 Zyklen</span>
+<span class="comment">; VBlank: 112 Zeilen × 63 Zyklen = 7056 Zyklen</span>
+
+<span class="comment">; NTSC-Timing:</span>
+<span class="comment">; 1022727 Hz / 60 Frames = 17045,45 Zyklen pro Frame</span>
+<span class="comment">; 17045 Zyklen / 263 Zeilen = 64,8 ≈ 65 Zyklen pro Zeile</span></pre>
+
+    <div class="box box-info">
+      <div class="box-title">Warum Cycle Counting?</div>
+      Für Rastereffekte, Musik-Player und zeitkritischen Code musst du genau wissen, wie viele Zyklen jede Routine verbraucht. Ein Raster-Handler muss garantiert innerhalb von 63 Zyklen (PAL) fertig sein — sonst „verrutscht" der Effekt.
+    </div>
+
+    <h3>1.1 Zyklen pro Opcode</h3>
+
+    <p>Jeder 6510-Befehl verbraucht eine bestimmte Anzahl Taktzyklen. Zusätzlich kosten <strong>Page-Crossing</strong> (wenn Adressberechnung eine 256-Byte-Grenze überschreitet) einen Extrazyklus:</p>
+
+    <table class="cycle-table">
+      <thead>
+        <tr><th>Opcode</th><th>Adressierungsart</th><th>Zyklen</th><th>Hinweis</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>LDA #imm</code></td><td>Unmittelbar</td><td><span class="cycles-badge fast">2</span></td><td>Schnellste Ladeform</td></tr>
+        <tr><td><code>LDA zp</code></td><td>Zero Page</td><td><span class="cycles-badge fast">3</span></td><td>1 Byte Adresse</td></tr>
+        <tr><td><code>LDA zp,X</code></td><td>Zero Page,X</td><td><span class="cycles-badge fast">4</span></td><td></td></tr>
+        <tr><td><code>LDA abs</code></td><td>Absolut</td><td><span class="cycles-badge medium">4</span></td><td>2 Byte Adresse</td></tr>
+        <tr><td><code>LDA abs,X</code></td><td>Absolut,X</td><td><span class="cycles-badge medium">4+1</span></td><td>+1 bei Page Cross</td></tr>
+        <tr><td><code>LDA abs,Y</code></td><td>Absolut,Y</td><td><span class="cycles-badge medium">4+1</span></td><td>+1 bei Page Cross</td></tr>
+        <tr><td><code>LDA (zp,X)</code></td><td>Indirekt,X</td><td><span class="cycles-badge slow">6</span></td><td>Teuer!</td></tr>
+        <tr><td><code>LDA (zp),Y</code></td><td>Indirekt,Y</td><td><span class="cycles-badge medium">5+1</span></td><td>+1 bei Page Cross</td></tr>
+        <tr><td><code>STA abs</code></td><td>Absolut</td><td><span class="cycles-badge medium">4</span></td><td>Kein Page-Cross-Bonus</td></tr>
+        <tr><td><code>STA abs,X</code></td><td>Absolut,X</td><td><span class="cycles-badge slow">5</span></td><td>Immer 5, kein Bonus</td></tr>
+        <tr><td><code>JSR abs</code></td><td>Absolut</td><td><span class="cycles-badge slow">6</span></td><td>Stack-Push</td></tr>
+        <tr><td><code>RTS</code></td><td>–</td><td><span class="cycles-badge slow">6</span></td><td>Stack-Pull</td></tr>
+        <tr><td><code>JMP abs</code></td><td>Absolut</td><td><span class="cycles-badge fast">3</span></td><td>Kein Stack</td></tr>
+        <tr><td><code>JMP (ind)</code></td><td>Indirekt</td><td><span class="cycles-badge medium">5</span></td><td>Dispatch-Tabellen</td></tr>
+        <tr><td><code>BEQ rel</code></td><td>Relativ</td><td><span class="cycles-badge fast">2+1+1</span></td><td>+1 genommen, +1 Page</td></tr>
+        <tr><td><code>NOP</code></td><td>–</td><td><span class="cycles-badge fast">2</span></td><td>Nützlich für Timing</td></tr>
+        <tr><td><code>PHA / PLA</code></td><td>–</td><td><span class="cycles-badge fast">3 / 4</span></td><td></td></tr>
+        <tr><td><code>ASL A</code></td><td>Akkumulator</td><td><span class="cycles-badge fast">2</span></td><td>Direkter Shift</td></tr>
+        <tr><td><code>ASL abs</code></td><td>Absolut</td><td><span class="cycles-badge slow">6</span></td><td>Read-Modify-Write</td></tr>
+        <tr><td><code>INC abs</code></td><td>Absolut</td><td><span class="cycles-badge slow">6</span></td><td>Read-Modify-Write</td></tr>
+        <tr><td><code>INC zp</code></td><td>Zero Page</td><td><span class="cycles-badge medium">5</span></td><td>Bevorzugen!</td></tr>
+        <tr><td><code>DEX / INX</code></td><td>–</td><td><span class="cycles-badge fast">2</span></td><td>Schnellste Zähler</td></tr>
+      </tbody>
+    </table>
+
+    <h3>1.2 Cycle Counting in der Praxis</h3>
+
+    <p>Um eine Routine zu analysieren, zählt man jeden Befehl durch. Beispiel: eine einfache Kopierschleife:</p>
+
+    <pre><span class="comment">; Naive Kopierschleife — Analyse</span>
+<span class="comment">;                    Zyklen   Gesamt (×256)</span>
+          LDX #$00   <span class="comment">; 2      512</span>
+CopyLoop:
+          LDA $C000,X <span class="comment">; 4      1024</span>
+          STA $D000,X <span class="comment">; 5      1280</span>
+          INX         <span class="comment">; 2      512</span>
+          BNE CopyLoop <span class="comment">; 3/2   768/512 (letzter Durchlauf: 2)</span>
+<span class="comment">; Total (Schleife): 14 Zyklen × 256 = 3584 Zyklen für 256 Bytes</span>
+<span class="comment">; = ca. 57 Rasterzeilen!</span>
+
+<span class="comment">; Optimiert mit unrolled loop (×8) — siehe Abschnitt 3</span></pre>
+
+    <div class="box box-warning">
+      <div class="box-title">Page-Crossing-Falle</div>
+      <code>LDA $C0FF,X</code> mit X=1 greift auf <code>$C100</code> zu — das ist eine andere Seite! Das kostet einen Extrazyklus. Beim Durchlaufen von Tabellen, die eine 256-Byte-Grenze überschreiten, entstehen so unsichtbare Zeitfresser. Tabellen immer page-aligned anlegen (mit <code>!align $100</code> in ACME).
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="zeropage">
+    <h2>2. Zero Page Strategie — Das goldene Gebiet</h2>
+
+    <p>Die Zero Page (<code>$0000–$00FF</code>) ist das wertvollste RAM des C64. Zero-Page-Befehle benötigen nur 1 Byte Adresse statt 2, sind um 1 Zyklus schneller als absolute Adressen, und ermöglichen die indirekten Adressierungsarten <code>(zp,X)</code> und <code>(zp),Y</code>.</p>
+
+    <h3>2.1 Belegte Zero-Page-Adressen</h3>
+
+    <table>
+      <thead><tr><th>Adressbereich</th><th>Verwendung</th><th>Sicher zu nutzen?</th></tr></thead>
+      <tbody>
+        <tr><td><code>$00–$01</code></td><td>6510 I/O-Port Direction + Data</td><td>Nein (Speicherbanking)</td></tr>
+        <tr><td><code>$02</code></td><td>Nicht verwendet</td><td>Ja</td></tr>
+        <tr><td><code>$03–$0F</code></td><td>OS-Vektoren, BASIC</td><td>Gefährlich</td></tr>
+        <tr><td><code>$10–$1F</code></td><td>Teils KERNAL-Variablen</td><td>Nur wenn KERNAL abgeschaltet</td></tr>
+        <tr><td><code>$20–$7F</code></td><td>Teils BASIC/KERNAL</td><td>Nur wenn abgeschaltet</td></tr>
+        <tr><td><code>$80–$8F</code></td><td>BASIC-Puffer</td><td>Wenn BASIC deaktiviert: Ja</td></tr>
+        <tr><td><code>$90–$9F</code></td><td>KERNAL-Variablen</td><td>Wenn KERNAL deaktiviert: Ja</td></tr>
+        <tr><td><code>$A0–$CF</code></td><td>KERNAL-Variablen</td><td>Wenn KERNAL deaktiviert: Ja</td></tr>
+        <tr><td><code>$FB–$FE</code></td><td>Temporär, frei</td><td>Ja (Scratch-Pointer)</td></tr>
+        <tr><td><code>$FF</code></td><td>Frei</td><td>Ja</td></tr>
+      </tbody>
+    </table>
+
+    <div class="box box-tip">
+      <div class="box-title">Empfohlene ZP-Strategie</div>
+      Schalte BASIC (und ggf. KERNAL) aus: <code>LDA #$35 / STA $01</code> (nur RAM, KERNAL an I/O). Dann stehen dir <strong>$0002–$00FF</strong> fast vollständig zur Verfügung. Lege alle kritischen Variablen, Pointer und Zähler dort ab.
+    </div>
+
+    <h3>2.2 Zero-Page-Layout-Beispiel</h3>
+
+    <pre><span class="comment">; Zero-Page-Layout für ein Spiel</span>
+<span class="directive">*= $0002</span>
+
+<span class="comment">; --- Allgemeine Pointer (4 × 2 Bytes = 8 Bytes) ---</span>
+SrcPtr:   <span class="directive">!byte</span> 0, 0   <span class="comment">; Quell-Pointer (Lo/Hi)</span>
+DstPtr:   <span class="directive">!byte</span> 0, 0   <span class="comment">; Ziel-Pointer</span>
+TmpPtr:   <span class="directive">!byte</span> 0, 0   <span class="comment">; Temporärer Pointer</span>
+MapPtr:   <span class="directive">!byte</span> 0, 0   <span class="comment">; Map-Pointer</span>
+
+<span class="comment">; --- Spielzustand ---</span>
+PlayerX:  <span class="directive">!byte</span> 0     <span class="comment">; Spieler X-Position</span>
+PlayerY:  <span class="directive">!byte</span> 0     <span class="comment">; Spieler Y-Position</span>
+Score:    <span class="directive">!byte</span> 0, 0 <span class="comment">; 16-Bit Punktestand</span>
+Lives:    <span class="directive">!byte</span> 3     <span class="comment">; Leben</span>
+GameState:<span class="directive">!byte</span> 0     <span class="comment">; 0=Titel 1=Spiel 2=GameOver</span>
+
+<span class="comment">; --- Zähler und Flags ---</span>
+FrameCount: <span class="directive">!byte</span> 0   <span class="comment">; Frame-Zähler</span>
+Flags:      <span class="directive">!byte</span> 0   <span class="comment">; Bit-Flags</span>
+TmpA:       <span class="directive">!byte</span> 0   <span class="comment">; Scratch A</span>
+TmpX:       <span class="directive">!byte</span> 0   <span class="comment">; Scratch X</span>
+TmpY:       <span class="directive">!byte</span> 0   <span class="comment">; Scratch Y</span>
+
+<span class="comment">; --- Sprite-Daten ---</span>
+SprX:       <span class="directive">!fill</span> 8, 0 <span class="comment">; X-Pos für 8 Sprites</span>
+SprY:       <span class="directive">!fill</span> 8, 0 <span class="comment">; Y-Pos für 8 Sprites</span>
+SprFrame:   <span class="directive">!fill</span> 8, 0 <span class="comment">; Animations-Frame</span>
+
+<span class="comment">; Verwendung: STA SrcPtr    ; Schreibt in ZP → 4 Zyklen</span>
+<span class="comment">;             LDA (SrcPtr),Y; Indirekter ZP-Zugriff → 5+1 Zyklen</span></pre>
+
+    <h3>2.3 Geschwindigkeitsvergleich</h3>
+
+    <pre><span class="comment">; Variable in absolutem RAM: $1000</span>
+          LDA $1000     <span class="comment">; 4 Zyklen, 3 Bytes</span>
+          STA $1001     <span class="comment">; 4 Zyklen, 3 Bytes</span>
+<span class="comment">; Summe: 8 Zyklen, 6 Bytes</span>
+
+<span class="comment">; Gleiche Variable in Zero Page: $02</span>
+          LDA $02       <span class="comment">; 3 Zyklen, 2 Bytes</span>
+          STA $03       <span class="comment">; 3 Zyklen, 2 Bytes</span>
+<span class="comment">; Summe: 6 Zyklen, 4 Bytes → 25% schneller, 33% kleiner!</span>
+
+<span class="comment">; Bei 1000 Zugriffen pro Frame:</span>
+<span class="comment">; Absolut: 8000 Zyklen</span>
+<span class="comment">; Zero Page: 6000 Zyklen → 2000 Zyklen gespart = ~32 Rasterzeilen!</span></pre>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="loops">
+    <h2>3. Loop Unrolling — Schleifen auffalten</h2>
+
+    <p>Eine Schleife hat Overhead: <code>INX</code> (2), <code>BNE</code> (3 genommen / 2 nicht genommen), zusammen 4–5 Zyklen Overhead <em>pro Iteration</em>. Bei engen Schleifen kann das 30–50 % des Gesamtaufwands ausmachen. Loop Unrolling eliminiert diesen Overhead durch manuelles Wiederholen des Schleifenkörpers.</p>
+
+    <h3>3.1 Einfaches Unrolling</h3>
+
+    <pre><span class="comment">; Original: 256 Bytes kopieren</span>
+<span class="comment">; Zyklen pro Iteration: LDA(4) + STA(5) + INX(2) + BNE(3) = 14</span>
+<span class="comment">; Gesamt: 14 × 256 = 3584 Zyklen</span>
+
+CopyNaive:
+          LDX #$00
+.loop:    LDA $C000,X
+          STA $D000,X
+          INX
+          BNE .loop
+          RTS
+
+<span class="comment">; Unrolled: ×8 — 8 Kopieroperationen ohne Schleifentest</span>
+<span class="comment">; Overhead: nur noch DEX + BNE alle 8 Bytes = 5/32 Iterations</span>
+<span class="comment">; Zyklen pro Gruppe: (4+5)×8 + 2 + 3 = 77 statt 14×8=112</span>
+<span class="comment">; Gesamt: 77 × 32 = 2464 Zyklen → 31% schneller!</span>
+
+CopyUnrolled:
+          LDX #32      <span class="comment">; 32 Gruppen à 8 Bytes</span>
+          DEX          <span class="comment">; X = 31 (letzter Index für 0-basiert)</span>
+.loop:
+          LDA $C000+(7*1),X <span class="comment">; Trick: Wir kopieren rückwärts</span>
+<span class="comment">; Einfacher: Vorwärts mit Offset-Tabelle</span>
+
+<span class="comment">; Praktischste Form: Vollständig unrolled für kleine Größen</span>
+Copy32:
+<span class="directive">!for</span> i, 0, 31 {
+          LDA $C000 + i
+          STA $D000 + i
+}
+          RTS
+<span class="comment">; 32 × (4+4) = 256 Zyklen für 32 Bytes! (ohne STA absolut,X)</span>
+<span class="comment">; Aber: 32 × 6 Bytes = 192 Bytes Code-Größe</span></pre>
+
+    <div class="box box-info">
+      <div class="box-title">Kompromiss: Speed vs. Größe</div>
+      Vollständiges Unrolling ist das Schnellste, aber kostet viel Speicher. Für den C64 mit 64 KB RAM ist das ein echter Kompromiss. Unrolling ×4 oder ×8 ist oft ein guter Mittelweg: deutlicher Speed-Gewinn bei moderaten Kosten.
+    </div>
+
+    <h3>3.2 Duff's Device für 6510</h3>
+
+    <p>Duff's Device (bekannt aus C) kombiniert einen <code>switch</code>-Jump mit einem unrolled Loop. In 6510 Assembly setzen wir das mit einem Dispatch-Sprung auf die richtige Position im unrolled Code um:</p>
+
+    <pre><span class="comment">; Kopiere N Bytes ($FB = Zähler), Quelle $FC/$FD, Ziel $FE/$FF</span>
+<span class="comment">; Technik: Spring direkt in unrolled Loop basierend auf (N mod 8)</span>
+
+CopyN:
+          LDA ByteCount     <span class="comment">; Anzahl Bytes</span>
+          BEQ .done         <span class="comment">; 0 Bytes: fertig</span>
+
+          <span class="comment">; Berechne Start-Position im unrolled Loop</span>
+          SEC
+          SBC #1
+          LSR               <span class="comment">; /2</span>
+          LSR               <span class="comment">; /4</span>
+          LSR               <span class="comment">; /8 → Anzahl voller 8er-Gruppen</span>
+          STA GroupCount
+
+          LDA ByteCount
+          AND #$07          <span class="comment">; Reste 0-7</span>
+          ASL               <span class="comment">; × 2 (Bytes pro LDA+STA Paar = 6, aber vereinfacht)</span>
+          TAX
+          JMP (JumpTable,X) <span class="comment">; Spring zur richtigen Position</span>
+
+JumpTable:
+          !word Copy0, Copy1, Copy2, Copy3
+          !word Copy4, Copy5, Copy6, Copy7
+
+Copy7:    LDA (SrcPtr),Y : STA (DstPtr),Y : INY
+Copy6:    LDA (SrcPtr),Y : STA (DstPtr),Y : INY
+Copy5:    LDA (SrcPtr),Y : STA (DstPtr),Y : INY
+Copy4:    LDA (SrcPtr),Y : STA (DstPtr),Y : INY
+Copy3:    LDA (SrcPtr),Y : STA (DstPtr),Y : INY
+Copy2:    LDA (SrcPtr),Y : STA (DstPtr),Y : INY
+Copy1:    LDA (SrcPtr),Y : STA (DstPtr),Y : INY
+Copy0:    <span class="comment">; Hier landen wir für Rest=0 (nach vollem 8er-Block)</span>
+          <span class="comment">; GroupCount verbleibende volle 8er-Gruppen weiter kopieren...</span>
+.done:    RTS</pre>
+
+    <h3>3.3 Schleife mit DEX statt INX+CMP</h3>
+
+    <pre><span class="comment">; Falsch (ineffizient):</span>
+          LDX #0
+.loop:    LDA Data,X
+          <span class="comment">; ... verarbeiten ...</span>
+          INX
+          CPX #128   <span class="comment">; 2 Zyklen extra pro Iteration!</span>
+          BNE .loop
+
+<span class="comment">; Richtig — rückwärts zählen, BNE als Zero-Test:</span>
+          LDX #128
+.loop:    LDA Data-1,X   <span class="comment">; Offset -1 wegen DEX vorher</span>
+          <span class="comment">; ... verarbeiten ...</span>
+          DEX            <span class="comment">; 2 Zyklen</span>
+          BNE .loop      <span class="comment">; 3/2 Zyklen — setzt Z-Flag direkt!</span>
+<span class="comment">; Erspart CPX #N (2 Zyklen) pro Iteration → bei 128 Iterationen: 256 Zyklen gespart</span></pre>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="lut">
+    <h2>4. Lookup-Tabellen — Mathematik durch Nachschlagen</h2>
+
+    <p>Multiplikation, Sinus, Kosinus und Quadratwurzeln sind auf dem 6510 extrem teuer zu berechnen. Lookup-Tabellen (LUT) ersetzen Berechnungen durch einfache Array-Zugriffe und sind die wichtigste Optimierungstechnik für Grafikroutinen.</p>
+
+    <h3>4.1 Sinustabelle</h3>
+
+    <pre><span class="comment">; 256-Einträge Sinustabelle (0-255, skaliert auf 0-127)</span>
+<span class="comment">; Winkel: 0-255 = 0°-360° (1/256 Kreis Auflösung)</span>
+<span class="comment">; Werte: 0-255, wobei 128 = Mitte (sin≈0), 0 = min, 255 = max</span>
+
+SinTable:
+<span class="comment">; Berechnet: sin(i/256 × 2π) × 127 + 128</span>
+<span class="directive">!byte</span> 128,131,134,137,140,143,146,149,152,155,158,162,165,168,171,174
+<span class="directive">!byte</span> 176,179,182,185,188,190,193,196,198,201,203,206,208,210,213,215
+<span class="directive">!byte</span> 217,219,221,224,226,228,229,231,233,235,236,238,239,241,242,243
+<span class="directive">!byte</span> 245,246,247,248,249,250,251,251,252,253,253,254,254,254,255,255
+<span class="directive">!byte</span> 255,255,255,254,254,254,253,253,252,251,251,250,249,248,247,246
+<span class="directive">!byte</span> 245,243,242,241,239,238,236,235,233,231,229,228,226,224,221,219
+<span class="directive">!byte</span> 217,215,213,210,208,206,203,201,198,196,193,190,188,185,182,179
+<span class="directive">!byte</span> 176,174,171,168,165,162,158,155,152,149,146,143,140,137,134,131
+<span class="directive">!byte</span> 128,124,121,118,115,112,109,106,103,100, 97, 93, 90, 87, 84, 81
+<span class="directive">!byte</span>  79, 76, 73, 70, 67, 65, 62, 59, 57, 54, 52, 49, 47, 45, 42, 40
+<span class="directive">!byte</span>  38, 36, 34, 31, 29, 27, 26, 24, 22, 20, 19, 17, 16, 14, 13, 12
+<span class="directive">!byte</span>  10,  9,  8,  7,  6,  5,  4,  4,  3,  2,  2,  1,  1,  1,  0,  0
+<span class="directive">!byte</span>   0,  0,  0,  1,  1,  1,  2,  2,  3,  4,  4,  5,  6,  7,  8,  9
+<span class="directive">!byte</span>  10, 12, 13, 14, 16, 17, 19, 20, 22, 24, 26, 27, 29, 31, 34, 36
+<span class="directive">!byte</span>  38, 40, 42, 45, 47, 49, 52, 54, 57, 59, 62, 65, 67, 70, 73, 76
+<span class="directive">!byte</span>  79, 81, 84, 87, 90, 93, 97,100,103,106,109,112,115,118,121,124
+
+<span class="comment">; Kosinus = Sinus + 64 (Phasenverschiebung um 90°)</span>
+<span class="comment">; LDA SinTable,X  → sin(X)</span>
+<span class="comment">; TXA : CLC : ADC #64 : TAX</span>
+<span class="comment">; LDA SinTable,X  → cos(Ursprungs-X)</span></pre>
+
+    <h3>4.2 Multiplikations-LUT (a²/4 Methode)</h3>
+
+    <p>Der Trick: <code>a × b = ((a+b)² - (a-b)²) / 4</code>. Damit kann man jede Multiplikation auf Quadrat-Tabellen-Lookups reduzieren:</p>
+
+    <pre><span class="comment">; Quadrat/4 Tabelle: sq4[i] = (i*i)/4 für i = 0..511</span>
+<span class="comment">; Benötigt 512 Bytes, spart aber VIEL Rechenzeit</span>
+
+<span class="comment">; Multiplikation: A × B → Ergebnis in $10/$11 (16-Bit)</span>
+<span class="comment">; A in Akku, B in X-Register bei Aufruf</span>
+
+Multiply:
+          STX TmpX          <span class="comment">; B sichern</span>
+          STA TmpA          <span class="comment">; A sichern</span>
+
+          <span class="comment">; Berechne (A+B)/4 → Sq4Lo/Hi</span>
+          CLC
+          ADC TmpX          <span class="comment">; A+B</span>
+          TAX
+          LDA Sq4Lo,X
+          STA $10
+          LDA Sq4Hi,X
+          STA $11
+
+          <span class="comment">; Berechne (A-B)/4 → subtrahieren</span>
+          LDA TmpA
+          SEC
+          SBC TmpX          <span class="comment">; A-B (kann negativ sein → 256+Ergebnis nutzen)</span>
+          TAX
+          LDA $10
+          SEC
+          SBC Sq4Lo,X
+          STA $10
+          LDA $11
+          SBC Sq4Hi,X
+          STA $11
+          RTS
+
+<span class="comment">; sq4-Tabelle: 512 Einträge à 2 Bytes (Lo/Hi getrennt)</span>
+<span class="comment">; sq4[i] = (i*i)/4</span>
+Sq4Lo:
+<span class="directive">!for</span> i, 0, 255 { <span class="directive">!byte</span> &lt;((i*i)/4) }
+<span class="directive">!for</span> i, 256, 511 { <span class="directive">!byte</span> &lt;((i*i)/4) }
+
+Sq4Hi:
+<span class="directive">!for</span> i, 0, 255 { <span class="directive">!byte</span> &gt;((i*i)/4) }
+<span class="directive">!for</span> i, 256, 511 { <span class="directive">!byte</span> &gt;((i*i)/4) }</pre>
+
+    <h3>4.3 Row-Offset-Tabellen für Bitmap</h3>
+
+    <pre><span class="comment">; Für schnellen Bitmap-Zugriff: Zeilen-Offset vorberechnen</span>
+<span class="comment">; Y-Pos → Adresse in der Bitmap</span>
+<span class="comment">; Bitmap bei $2000, 320 Bytes pro 8-Pixel-Block-Zeile</span>
+<span class="comment">; Für Y: Zeilen-Block = Y/8, Offset = Block*320 + (Y AND 7)</span>
+
+RowLoTable: <span class="comment">; Low-Byte der Zeilen-Startadresse</span>
+<span class="directive">!for</span> row, 0, 199 {
+    <span class="directive">!byte</span> &lt;($2000 + (row/8)*320 + (row &amp; 7))
+}
+
+RowHiTable: <span class="comment">; High-Byte der Zeilen-Startadresse</span>
+<span class="directive">!for</span> row, 0, 199 {
+    <span class="directive">!byte</span> &gt;($2000 + (row/8)*320 + (row &amp; 7))
+}
+
+<span class="comment">; Verwendung: Pixel bei (X, Y) setzen</span>
+SetPixelFast:
+          LDY PixelY        <span class="comment">; Y-Koordinate</span>
+          LDA RowLoTable,Y
+          STA DstPtr
+          LDA RowHiTable,Y
+          STA DstPtr+1      <span class="comment">; Zeilen-Startadresse → DstPtr</span>
+
+          LDA PixelX
+          LSR               <span class="comment">; /8 → Byte-Spalte (Quotient)</span>
+          LSR
+          LSR
+          TAY               <span class="comment">; Y = Byte-Offset in der Zeile</span>
+
+          LDA PixelX
+          AND #$07          <span class="comment">; Bit-Position in Byte</span>
+          TAX
+          LDA BitMask,X     <span class="comment">; Vorberechnete Bitmasken</span>
+          ORA (DstPtr),Y
+          STA (DstPtr),Y
+          RTS
+
+BitMask: <span class="directive">!byte</span> $80,$40,$20,$10,$08,$04,$02,$01</pre>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="selfmod">
+    <h2>5. Selbstmodifizierender Code</h2>
+
+    <p>Selbstmodifizierender Code (Self-Modifying Code, SMC) ändert zur Laufzeit die eigenen Maschinenbefehle. Auf dem 6510 ist dies eine der mächtigsten Optimierungstechniken: Man schreibt direkt in den Operanden eines Befehls, um Adressberechnung zu eliminieren.</p>
+
+    <div class="box box-warning">
+      <div class="box-title">Nur im RAM!</div>
+      Selbstmodifizierender Code funktioniert nur, wenn der Code im RAM liegt — nicht im ROM. Der C64-Code muss also im Bereich $0800–$CFFF oder nach $D800 (nach dem I/O-Bereich) im RAM liegen.
+    </div>
+
+    <h3>5.1 Adress-Patching</h3>
+
+    <pre><span class="comment">; Statt Index-Register für Quelladresse zu verwenden:</span>
+<span class="comment">; Direkte Modifikation des LDA-Operanden</span>
+
+CopyWithSMC:
+          LDA #&lt;Source      <span class="comment">; Low-Byte der Quelladresse</span>
+          STA SMC_Src+1     <span class="comment">; Patch: Operand des LDA-Befehls unten</span>
+          LDA #&gt;Source
+          STA SMC_Src+2     <span class="comment">; High-Byte des LDA-Operanden</span>
+
+          LDA #&lt;Dest
+          STA SMC_Dst+1
+          LDA #&gt;Dest
+          STA SMC_Dst+2
+
+          LDX #$00
+.loop:
+SMC_Src:  LDA $0000,X       <span class="comment">; ← Operand wird zur Laufzeit gepatcht!</span>
+SMC_Dst:  STA $0000,X       <span class="comment">; ← Dieser auch</span>
+          INX
+          BNE .loop
+          RTS
+
+<span class="comment">; Vorteil: Keine Zero-Page-Pointer nötig → spart (zp),Y Overhead</span>
+<span class="comment">; LDA abs,X = 4+1 Zyklen (aber kein 2-Zyklus-Indirekt-Overhead)</span>
+<span class="comment">; LDA (zp),Y = 5+1 Zyklen</span></pre>
+
+    <h3>5.2 SMC für Konstanten-Substitution</h3>
+
+    <pre><span class="comment">; Anpassbare Zeichensatz-Ausgabe ohne Parameterübergabe</span>
+
+DrawChar:
+<span class="comment">; Patch: Zeichennummer direkt im LDA-Immediate eintragen</span>
+SMC_Char: LDA #$41           <span class="comment">; Byte 1 = LDA-Opcode ($A9), Byte 2 = Wert</span>
+          ASL                <span class="comment">; × 8 (8 Bytes pro Zeichen im Charset)</span>
+          ASL
+          ASL
+          <span class="comment">; ... Zeichendaten ausgeben</span>
+          RTS
+
+<span class="comment">; Aufrufer patcht die Zeichennummer:</span>
+          LDA CharCode
+          STA SMC_Char+1     <span class="comment">; Byte nach dem Opcode = Immediate-Wert</span>
+          JSR DrawChar</pre>
+
+    <h3>5.3 Unrolled SMC-Kopierer (Maximum Speed)</h3>
+
+    <pre><span class="comment">; Ultra-schneller Kopier-Block: komplett unrolled, SMC-Adressen</span>
+<span class="comment">; 256 Bytes in 512 Zyklen (2 Zyklen pro Byte → theoretisches Minimum)</span>
+
+FastCopy256:
+<span class="comment">; Patch Source und Dest Adressen</span>
+          LDA SrcAddrLo : STA FC_S0+1 : STA FC_S1+1 <span class="comment">; ... etc. für alle</span>
+          LDA SrcAddrHi : STA FC_S0+2 : STA FC_S1+2
+
+<span class="comment">; Unrolled: 256 LDA abs + STA abs Paare</span>
+FC_S0:    LDA $0000 : STA $0000   <span class="comment">; Beide Operanden werden gepatcht</span>
+FC_S1:    LDA $0001 : STA $0001   <span class="comment">; +1 addiert ACME im !for-Block</span>
+<span class="comment">; ... (255 weitere Paare — typisch via ACME !for-Makro)</span>
+<span class="directive">!for</span> i, 2, 255 {
+    LDA SrcBase + i
+    STA DstBase + i
+}
+          RTS
+<span class="comment">; Ergebnis: 256 × (4+4) = 2048 Zyklen</span>
+<span class="comment">; Verglichen mit Schleifen-Variante: 3584 → 43% schneller!</span></pre>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="undoc">
+    <h2>6. Undokumentierte 6510-Opcodes</h2>
+
+    <p>Der 6510 hat 256 mögliche Opcode-Werte, aber nur 151 sind offiziell dokumentiert. Die restlichen 105 Opcodes produzieren definiertes (wenn auch ungeplantes) Verhalten und können nützlich sein. Hier die wichtigsten:</p>
+
+    <table>
+      <thead>
+        <tr><th>Opcode</th><th>Mnemonik</th><th>Funktion</th><th>Zyklen</th><th>Stabil?</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>$A7</code></td><td><code>LAX zp</code></td><td>LDA + LDX gleichzeitig (A=X=M)</td><td>3</td><td>Ja</td></tr>
+        <tr><td><code>$AF</code></td><td><code>LAX abs</code></td><td>LDA + LDX aus Speicher</td><td>4</td><td>Ja</td></tr>
+        <tr><td><code>$B3</code></td><td><code>LAX (zp),Y</code></td><td>LDA + LDX indirekt</td><td>5+1</td><td>Ja</td></tr>
+        <tr><td><code>$87</code></td><td><code>SAX zp</code></td><td>Store A AND X → Speicher</td><td>3</td><td>Ja</td></tr>
+        <tr><td><code>$8F</code></td><td><code>SAX abs</code></td><td>Store A AND X absolut</td><td>4</td><td>Ja</td></tr>
+        <tr><td><code>$C7</code></td><td><code>DCP zp</code></td><td>DEC + CMP (Decrement, dann Compare)</td><td>5</td><td>Ja</td></tr>
+        <tr><td><code>$E7</code></td><td><code>ISC zp</code></td><td>INC + SBC (Increment, dann Subtract)</td><td>5</td><td>Ja</td></tr>
+        <tr><td><code>$07</code></td><td><code>SLO zp</code></td><td>ASL + ORA (Shift Left, dann OR)</td><td>5</td><td>Ja</td></tr>
+        <tr><td><code>$47</code></td><td><code>SRE zp</code></td><td>LSR + EOR (Shift Right, dann XOR)</td><td>5</td><td>Ja</td></tr>
+        <tr><td><code>$27</code></td><td><code>RLA zp</code></td><td>ROL + AND (Rotate Left, dann AND)</td><td>5</td><td>Ja</td></tr>
+        <tr><td><code>$67</code></td><td><code>RRA zp</code></td><td>ROR + ADC (Rotate Right, dann Add)</td><td>5</td><td>Ja</td></tr>
+        <tr><td><code>$0B</code></td><td><code>ANC #imm</code></td><td>AND immediate, Bit 7 → Carry</td><td>2</td><td>Ja</td></tr>
+        <tr><td><code>$4B</code></td><td><code>ALR #imm</code></td><td>AND immediate + LSR Akkumulator</td><td>2</td><td>Ja</td></tr>
+        <tr><td><code>$6B</code></td><td><code>ARR #imm</code></td><td>AND immediate + ROR Akkumulator</td><td>2</td><td>Ja</td></tr>
+        <tr><td><code>$CB</code></td><td><code>AXS #imm</code></td><td>(A AND X) - imm → X (kein Borrow)</td><td>2</td><td>Ja</td></tr>
+        <tr><td><code>$EB</code></td><td><code>USBC #imm</code></td><td>SBC immediate (wie $E9)</td><td>2</td><td>Ja</td></tr>
+        <tr><td><code>$EA…</code></td><td><code>NOP</code> (viele)</td><td>Verschiedene NOP-Varianten mit Zyklen</td><td>2–4</td><td>Ja</td></tr>
+        <tr><td><code>$02,$12…</code></td><td><code>JAM/KIL</code></td><td>CPU einfrieren (Absturz!)</td><td>∞</td><td>Nein!</td></tr>
+      </tbody>
+    </table>
+
+    <h3>6.1 LAX — Lade A und X gleichzeitig</h3>
+
+    <pre><span class="comment">; Ohne LAX: Pointer laden für (zp),Y Zugriff</span>
+          LDA PointerLo    <span class="comment">; 3 Zyklen</span>
+          STA $FB          <span class="comment">; 3 Zyklen</span>
+          LDA PointerHi    <span class="comment">; 3 Zyklen</span>
+          STA $FC          <span class="comment">; 3 Zyklen</span>
+          LDX PointerLo    <span class="comment">; 3 Zyklen → X für anderes</span>
+<span class="comment">; Total: 15 Zyklen</span>
+
+<span class="comment">; Mit LAX: A und X gleichzeitig laden</span>
+          LAX PointerLo    <span class="comment">; 3 Zyklen → A=X=PointerLo</span>
+          STA $FB          <span class="comment">; 3 Zyklen</span>
+          LDA PointerHi    <span class="comment">; 3 Zyklen</span>
+          STA $FC          <span class="comment">; 3 Zyklen</span>
+<span class="comment">; Total: 12 Zyklen → 20% schneller, X hat PointerLo als Bonus</span>
+
+<span class="comment">; Praktisches Beispiel: Sprite-Daten kopieren mit LAX</span>
+CopySpriteData:
+          LDY #62
+.loop:
+          LAX SpriteData,Y   <span class="comment">; A = X = SpriteData[Y]</span>
+          STA $0340,Y        <span class="comment">; In Sprite-Block schreiben (Absolut)</span>
+          <span class="comment">; X hat denselben Wert für anderweitige Nutzung</span>
+          DEY
+          BPL .loop
+          RTS</pre>
+
+    <h3>6.2 DCP — Decrement und Compare</h3>
+
+    <pre><span class="comment">; Standard: Zähler dekrementieren und prüfen</span>
+          DEC Counter      <span class="comment">; 5 Zyklen (Absolut)</span>
+          LDA Counter      <span class="comment">; 4 Zyklen</span>
+          CMP #5           <span class="comment">; 2 Zyklen</span>
+          BEQ Match        <span class="comment">; 3/2 Zyklen</span>
+<span class="comment">; Total: 14 Zyklen</span>
+
+<span class="comment">; Mit DCP (Zero Page!)</span>
+          DCP CounterZP    <span class="comment">; 5 Zyklen: DEC ZP + CMP A → Flags gesetzt!</span>
+          BEQ Match        <span class="comment">; 3/2 Zyklen</span>
+<span class="comment">; Total: 8 Zyklen → 43% schneller!</span>
+<span class="comment">; Achtung: DCP vergleicht mit dem Akkumulator-Wert VOR dem DEC</span></pre>
+
+    <h3>6.3 SLO — Shift Left und OR</h3>
+
+    <pre><span class="comment">; Bit-Manipulation: Byte shiften und in Akku mergen</span>
+<span class="comment">; Standard:</span>
+          ASL $FB          <span class="comment">; 5 Zyklen</span>
+          LDA Akku_save    <span class="comment">; 3 Zyklen</span>
+          ORA $FB          <span class="comment">; 3 Zyklen</span>
+<span class="comment">; Total: 11 Zyklen</span>
+
+<span class="comment">; Mit SLO:</span>
+          SLO $FB          <span class="comment">; 5 Zyklen: ASL $FB + ORA $FB → Akku</span>
+<span class="comment">; Total: 5 Zyklen → Hälfte! Useful für Pixel-Bit-Packing</span></pre>
+
+    <div class="box box-important">
+      <div class="box-title">Undokumentierte Opcodes und Emulator-Kompatibilität</div>
+      Auf echter Hardware (6510-Chips) sind die oben genannten stabilen Opcodes zuverlässig. Im VICE-Emulator werden sie unterstützt. Jedoch: Auf CMOS-Varianten (65C02, 65C816) und einigen späten NMOS-Chips können sie sich anders verhalten. Für maximale Kompatibilität sparsam einsetzen.
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="dma">
+    <h2>7. DMA-Delays, Bad Lines und Sprite-Fetch</h2>
+
+    <p>Der VIC-II „stiehlt" dem 6510 Taktzyklen, um Daten aus dem RAM zu lesen. Das passiert automatisch und muss im Cycle Counting berücksichtigt werden:</p>
+
+    <h3>7.1 Bad Lines — Die teuersten Zeilen</h3>
+
+    <p>Eine <strong>Bad Line</strong> tritt auf, wenn der VIC-II den Zeichensatz-Daten lesen muss. Das passiert auf jeder Rasterzeile, bei der <code>YSCROLL (Bit 0–2 von $D011) == (Rasterzeile AND 7)</code> gilt — also alle 8 Zeilen.</p>
+
+    <pre><span class="comment">; Auf Bad Lines stiehlt der VIC-II 40 zusätzliche Zyklen!</span>
+<span class="comment">; Normale Zeile:   63 Zyklen für CPU verfügbar</span>
+<span class="comment">; Bad Line:        63 - 40 = 23 Zyklen für CPU verfügbar</span>
+
+<span class="comment">; YSCROLL-Trick: Bad Lines verschieben</span>
+<span class="comment">; Normalerweise: YSCROLL=3 → Bad Lines auf Zeilen 3,11,19,27,35...</span>
+
+<span class="comment">; IRQ-Handler auf einer Bad Line ist deutlich eingeschränkt!</span>
+<span class="comment">; Lösung: IRQ auf Nicht-Bad-Lines legen</span>
+
+<span class="comment">; Prüfen ob aktuelle Zeile eine Bad Line ist:</span>
+          LDA $D011        <span class="comment">; YSCROLL</span>
+          AND #$07         <span class="comment">; Bits 0-2</span>
+          STA TmpA
+          LDA $D012        <span class="comment">; Aktuelle Rasterzeile</span>
+          AND #$07
+          CMP TmpA
+          BEQ IsBadLine    <span class="comment">; Gleich → Bad Line!</span></pre>
+
+    <h3>7.2 Sprite-DMA-Kosten</h3>
+
+    <p>Pro aktivem Sprite stiehlt der VIC-II <strong>2 Zyklen</strong> beim Sprite-Daten-Fetch (jeweils 3 Bytes = 3 Lesezugriffe à 2 Takte). Bei 8 aktiven Sprites:</p>
+
+    <pre><span class="comment">; Sprite-DMA Kosten pro Zeile im Sprite-Bereich:</span>
+<span class="comment">; 1 Sprite:  2 Zyklen Diebstahl pro Zeile</span>
+<span class="comment">; 4 Sprites: 8 Zyklen Diebstahl</span>
+<span class="comment">; 8 Sprites: 16 Zyklen Diebstahl</span>
+
+<span class="comment">; Aber: Sprite-Fetch geschieht NUR in den Zeilen wo das Sprite sichtbar ist!</span>
+<span class="comment">; Bei Sprite-Y-Pos = 100: Fetch von Zeile 100 bis 120 (21 Zeilen)</span>
+
+<span class="comment">; Optimierung: Sprites in vertikalen Clustern anordnen</span>
+<span class="comment">; Statt 8 Sprites gleichmäßig verteilt → 8 Sprites eng beieinander</span>
+<span class="comment">; Damit ist der DMA-Overhead auf wenige Zeilen konzentriert,</span>
+<span class="comment">; und der Rest des Bildschirms hat volle 63 Zyklen (minus Bad Lines)</span></pre>
+
+    <h3>7.3 Refresh-Zyklen</h3>
+
+    <pre><span class="comment">; Der VIC-II benötigt 5 DRAM-Refresh-Zyklen pro Zeile</span>
+<span class="comment">; Diese 5 Zyklen sind immer weg, auch ohne Sprites oder Bad Lines</span>
+<span class="comment">; Tatsächlich verfügbare Zyklen pro normaler Zeile:</span>
+<span class="comment">; 63 - 5 (Refresh) = 58 Zyklen maximal</span>
+<span class="comment">; Minus Bad Line: 58 - 40 = 18 Zyklen!</span>
+<span class="comment">; Minus 8 Sprites: 58 - 16 = 42 Zyklen (normale Zeile, kein Bad Line)</span>
+
+<span class="comment">; Rasterzeilen-Budget-Rechner:</span>
+<span class="comment">; Verfügbare Zyklen = 63 - 5 (Refresh)</span>
+<span class="comment">                         - (IsBadLine ? 40 : 0)</span>
+<span class="comment">                         - (NumActiveSprites * 2)</span></pre>
+
+    <div class="box box-tip">
+      <div class="box-title">Praktischer Tipp: VBlank nutzen</div>
+      Die meisten cycle-intensiven Routinen (Sprite-Multiplexer-Sortierung, Map-Update, KI) sollten im vertikalen Blanking-Interval laufen: Rasterzeilen 250–311 (PAL). Hier zeichnet der VIC-II nichts — keine Bad Lines, keine Sprite-Fetches in den oberen Randbereichen.
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="stack">
+    <h2>8. Stack-Tricks und weitere Techniken</h2>
+
+    <h3>8.1 Stack als schneller Puffer</h3>
+
+    <pre><span class="comment">; Der Stack ($0100–$01FF) ist eine Zero-Page-ähnliche Region</span>
+<span class="comment">; Direkter Zugriff über TSX + LDA $0100,X ist möglich!</span>
+
+<span class="comment">; Stack als temporären Datenpuffer nutzen</span>
+SaveRegisters:
+          PHA              <span class="comment">; A sichern: 3 Zyklen</span>
+          TXA : PHA        <span class="comment">; X: 2+3=5 Zyklen</span>
+          TYA : PHA        <span class="comment">; Y: 2+3=5 Zyklen</span>
+<span class="comment">; Total: 13 Zyklen für A,X,Y</span>
+
+<span class="comment">; Alternativ: Zero Page ist schneller wenn häufig genutzt</span>
+<span class="comment">; STA Save_A: 3, STX Save_X: 3, STY Save_Y: 3 → 9 Zyklen</span>
+
+<span class="comment">; Stack-Pointer-Trick: Direkter Datenpuffer</span>
+<span class="comment">; Setze SP auf $FF-N → nächste N PHA-Befehle landen im "Puffer"</span>
+          LDX #$C0         <span class="comment">; SP = $C0 (64 Bytes Puffer: $01C1-$01FF)</span>
+          TXS
+          <span class="comment">; Jetzt: PHA schreibt in $01FF, $01FE, ... rückwärts</span>
+          <span class="comment">; Lesen mit TSX / LDA $0101,X / INX...</span></pre>
+
+    <h3>8.2 Indirekte Dispatch-Tabellen</h3>
+
+    <pre><span class="comment">; Game-State-Machine: schneller Dispatch ohne if-else-Ketten</span>
+
+GameLoop:
+          LDA GameState     <span class="comment">; 0=Titel, 1=Spiel, 2=GameOver, 3=Pause</span>
+          ASL               <span class="comment">; × 2 für Word-Tabelle</span>
+          TAX
+          JMP (StateTable,X) <span class="comment">; 5 Zyklen — direkter Sprung!</span>
+
+StateTable:
+          !word DoTitleScreen
+          !word DoGameplay
+          !word DoGameOver
+          !word DoPause
+
+DoTitleScreen:
+          <span class="comment">; ... Titelbildschirm-Logik ...</span>
+          RTS <span class="comment">; (oder JMP GameLoop)</span>
+
+DoGameplay:
+          <span class="comment">; ... Spiel-Logik ...</span>
+          RTS</pre>
+
+    <h3>8.3 Inline-Subroutinen (JSR-Elimination)</h3>
+
+    <pre><span class="comment">; JSR + RTS kostet: 6 + 6 = 12 Zyklen Overhead!</span>
+<span class="comment">; Für kleine, oft aufgerufene Routinen: Inline-Code</span>
+
+<span class="comment">; Schlecht: Winzige Subroutine mit Overhead</span>
+DoubleA:  ASL  : RTS       <span class="comment">; 2+6=8 Zyklen für den Aufruf</span>
+          JSR DoubleA      <span class="comment">; 6 Zyklen → 14 total für 2 Zyklen Arbeit!</span>
+
+<span class="comment">; Gut: Direkt inline</span>
+          ASL              <span class="comment">; 2 Zyklen — nur die Arbeit selbst</span>
+
+<span class="comment">; ACME Makro für wiederverwendbaren Inline-Code:</span>
+<span class="directive">!macro</span> DoubleA {
+          ASL
+}
+          +DoubleA         <span class="comment">; Expandiert zu: ASL — kein Overhead!</span></pre>
+
+    <h3>8.4 16-Bit-Arithmetik optimieren</h3>
+
+    <pre><span class="comment">; 16-Bit Addition (häufige Operation):</span>
+<span class="comment">; Standard:</span>
+          LDA Val16Lo      <span class="comment">; 3</span>
+          CLC              <span class="comment">; 2</span>
+          ADC Add16Lo      <span class="comment">; 3</span>
+          STA Val16Lo      <span class="comment">; 3</span>
+          LDA Val16Hi      <span class="comment">; 3</span>
+          ADC Add16Hi      <span class="comment">; 3</span>
+          STA Val16Hi      <span class="comment">; 3</span>
+<span class="comment">; Total: 20 Zyklen</span>
+
+<span class="comment">; Wenn Add16 eine Konstante: Unmittelbar statt Laden</span>
+<span class="comment">; Z.B. +1 (INC-Methode):</span>
+          INC Val16Lo      <span class="comment">; 5 (ZP: 5 statt 6)</span>
+          BNE .done        <span class="comment">; 3/2 → meist 2 (kein Überlauf)</span>
+          INC Val16Hi      <span class="comment">; selten ausgeführt</span>
+.done:                     <span class="comment">; Total: 7 Zyklen im Normalfall!</span>
+
+<span class="comment">; Für häufige +256 Addition (High-Byte nur):</span>
+          INC Addr+1       <span class="comment">; 6 Zyklen: Nur High-Byte inkrementieren</span>
+<span class="comment">; Äquivalent zu: 16-Bit-Pointer um 256 vorwärts bewegen</span></pre>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="benchmark" id="benchmark">
+    <h2>Skill-Benchmark: Stufe 8</h2>
+    <p>Du hast diese Stufe gemeistert, wenn du folgende Aufgaben erfüllen kannst:</p>
+    <ul class="benchmark-list">
+      <li><span class="check">✓</span> Du kannst für eine beliebige kurze Routine die genaue Zyklenzahl bestimmen und Bad-Line-Kosten einrechnen</li>
+      <li><span class="check">✓</span> Du implementierst Sinustabellen, Multiplikations-LUT und Row-Offset-Tabellen für schnelle Grafik-Routinen</li>
+      <li><span class="check">✓</span> Du setzt selbstmodifizierenden Code ein um Adress-Patching ohne Zero-Page-Pointer zu realisieren</li>
+      <li><span class="check">✓</span> Du kennst die 10 wichtigsten undokumentierten Opcodes und weißt wann sie helfen</li>
+      <li><span class="check">✓</span> Du berechnest DMA-Overhead für eine gegebene Sprite-Konfiguration und Rasterzeile</li>
+      <li><span class="check">✓</span> Du kannst eine bestehende Routine analysieren, Bottlenecks identifizieren und um mindestens 25 % beschleunigen</li>
+      <li><span class="check">✓</span> Du hast ein vollständiges Zero-Page-Layout für ein Spielprojekt designed und in ACME implementiert</li>
+    </ul>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="exercises" id="exercises">
+    <h2>Übungen</h2>
+
+    <div class="exercise-item">
+      <h4>Übung 8.1 — Cycle-Counting-Protokoll</h4>
+      <p>Nimm die Clear-Screen-Routine aus Stufe 03 (256-Byte-Schleife mit LDA #$20 + STA $0400,X). Zähle die exakten Zyklen. Optimiere sie mit Loop Unrolling ×8 und miss den Unterschied in Rasterzeilen. Lege den Test in den VBlank und vergleiche.</p>
+    </div>
+
+    <div class="exercise-item">
+      <h4>Übung 8.2 — Sinustabellen-Bobber</h4>
+      <p>Erstelle eine Routine, die 8 Sprites in einem "Bob"-Muster auf einer Sinuskurve auf und ab bewegt. Sprite 0 liest aus SinTable[Frame], Sprite 1 aus SinTable[Frame+32], Sprite 2 aus SinTable[Frame+64], usw. Der Frame-Zähler wird jeden VBlank um 2 erhöht. Ziel: flüssige 50-Hz-Bewegung ohne Ruckeln.</p>
+    </div>
+
+    <div class="exercise-item">
+      <h4>Übung 8.3 — Selbstmodifizierender Scroller</h4>
+      <p>Implementiere einen Text-Scroller, der via SMC die Quell-Adresse im Kopierer patcht. Der Text ist 256 Zeichen lang und wird zyklisch auf die Bildschirmzeile 24 kopiert. Nutze keine Zero-Page-Pointer — nur direktes Adress-Patching im Kopierer-Code.</p>
+    </div>
+
+    <div class="exercise-item">
+      <h4>Übung 8.4 — LAX/DCP Umschreiben</h4>
+      <p>Schreibe eine Kollisions-Prüfung (Sprite vs. Sprite per Bounding Box) zunächst mit Standard-Opcodes, dann mit LAX, DCP und AXS. Dokumentiere den Zyklenspareffekt pro Vergleich und die Gesamtersparnis bei 8×8 Sprite-Paaren.</p>
+    </div>
+
+    <div class="exercise-item">
+      <h4>Übung 8.5 — Performance-Profiler</h4>
+      <p>Schreibe einen einfachen Profiler: Vor einer Routine schreibst du in eine ZP-Variable den aktuellen CIA1-Timer-Wert (Timer B, $DC06/$DC07 laufend). Nach der Routine berechnest du die Differenz. Messe damit 3 verschiedene Kopier-Implementierungen und erstelle eine Tabelle.</p>
+    </div>
+  </section>
+
+  <nav class="chapter-nav">
+    <a href="stufe_07_interrupts_timing.html">← Stufe 07: Interrupts &amp; Timing</a>
+    <a href="stufe_09_demo_effekte.html">Stufe 09: Demo-Effekte →</a>
+  </nav>
+</main>
+
+  <script src="assets/c64-interactive.js"></script>
+</body>
+</html>
