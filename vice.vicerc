@@ -1,0 +1,90 @@
+# ============================================================
+# VICE Konfigurationsdatei — C64 Mastery System
+# Empfohlene Einstellungen aus Stufe 00
+#
+# Verwendung:
+#   Linux/macOS:  cp vice.vicerc ~/.config/vice/vicerc
+#                 oder: x64sc -config vice.vicerc meinprogramm.prg
+#   Windows:      Datei nach %APPDATA%\vice\vicerc kopieren
+#
+# Getestet mit VICE 3.7 (x64sc = cycle-exact C64)
+# ============================================================
+
+# ── Emulationsgenauigkeit ────────────────────────────────────
+# x64sc = Super-CPU-genaue Emulation (empfohlen für Timing-Arbeit)
+# Wichtig: Immer PAL verwenden (europäische C64-Norm)
+MachineVideoStandard=1      # 1=PAL, 0=NTSC
+
+# ── Anzeige ──────────────────────────────────────────────────
+# Vollbild-Modus deaktiviert (für Entwicklungsarbeit)
+FullscreenEnabled=0
+# Fenstergröße: 2× Skalierung (800×600 sieht gut aus)
+VICIIDoubleSize=1
+VICIIDoubleScan=1
+# Aspect Ratio korrigieren (PAL C64 hatte keine quadratischen Pixel)
+VICIIAspectRatioMode=2
+# CRT-Emulation: leichter Scanline-Effekt (optional, sieht authentisch aus)
+VICIIFilter=1
+VICIIFilterOddLineOffset=1000
+VICIIFilterOddLinePhase=1000
+
+# ── SID ──────────────────────────────────────────────────────
+# SID-Chip-Modell: 6581 (original) oder 8580 (spätere Revisionen)
+SidModel=0                  # 0=6581, 1=8580
+# Software-SID-Emulation (reSID) — genaueste Simulation
+SidEngine=1                 # 1=reSID
+SidResidSampling=0          # 0=fast, 1=interpoliert (langsamer aber genauer)
+
+# ── Joystick ─────────────────────────────────────────────────
+# Port 2 = Standard für die meisten C64-Spiele
+JoyDevice2=2                # 2=Tastatur-Joystick (WASD + Leertaste)
+# Tastatur-Joystick-Belegung (Standard): W/A/S/D + Space
+KeySet1NorthWest=0
+KeySet1North=119            # w
+KeySet1NorthEast=0
+KeySet1East=100             # d
+KeySet1SouthEast=0
+KeySet1South=115            # s
+KeySet1SouthWest=0
+KeySet1West=97              # a
+KeySet1Fire=32              # Leertaste
+
+# ── Monitor / Debugger ───────────────────────────────────────
+# Monitor startet bei RESET automatisch (nützlich zum Debuggen)
+# MonitorOnReset=1          # Auskommentiert: aktivieren bei Bedarf
+# Monitor-Font (Monospace)
+MonitorFont=monospace 12
+
+# ── Autostart ────────────────────────────────────────────────
+# PRG-Dateien direkt starten (kein BASIC-Prompt)
+AutostartHandleTrueDriveEmulation=1
+AutostartDelayRandom=0
+# Tastatur-Buffer-Delay für zuverlässigen Autostart
+AutostartDelay=2
+
+# ── Diskettenlaufwerk ─────────────────────────────────────────
+# True Drive Emulation: exakt wie echter 1541 (wichtig für echte Disk-I/O)
+DriveTrueEmulation=1
+# Laufwerk 8 = Standard-Laufwerk
+Drive8Type=1542             # 1541-II Emulation
+
+# ── Speichern/Laden ──────────────────────────────────────────
+# Snapshot-Verzeichnis (relative Pfade werden vom CWD aus aufgelöst)
+# SaveResourcesOnExit=1     # Einstellungen beim Beenden speichern
+
+# ── Lautstärke ───────────────────────────────────────────────
+SoundVolume=100
+SoundSuspendTime=0
+
+# ── Performance ──────────────────────────────────────────────
+Speed=100                   # 100% = realtime; 0 = maximale Geschwindigkeit
+WarpMode=0                  # Warp-Modus deaktiviert (für korrekte Audio-Ausgabe)
+RefreshRate=0               # 0 = auto
+
+# ── Nützliche Tastenkürzel (VICE Standard) ───────────────────
+# Alt+M      → VICE Monitor öffnen
+# Alt+W      → Warp-Modus (temporär beschleunigen)
+# Alt+R      → Reset (Hard Reset)
+# Alt+F8     → Reset (Soft Reset)
+# Alt+Enter  → Vollbild umschalten
+# F9         → Monitor öffnen (wenn im Programm)
