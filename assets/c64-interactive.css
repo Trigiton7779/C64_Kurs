@@ -7,7 +7,7 @@ body.dark-mode {
   --text:        #d0d0e0;
   --text-light:  #9090b0;
   --border:      #2a2a4a;
-  --c64-blue:    #3355cc;
+  --c64-blue:    #2244aa;
   --heading:     #aaccff;
 }
 
@@ -186,7 +186,7 @@ body.dark-mode tbody tr:hover td { background: #22223a !important; }
   top: 16px;
   right: 16px;
   z-index: 1000;
-  background: rgba(0, 51, 170, 0.85);
+  background: rgba(26, 63, 128, 0.85);
   color: #fff;
   border: none;
   border-radius: 20px;
@@ -201,7 +201,7 @@ body.dark-mode tbody tr:hover td { background: #22223a !important; }
 
 #c64-dark-toggle:hover {
   opacity: 1;
-  background: rgba(0, 51, 170, 1);
+  background: rgba(26, 63, 128, 1);
 }
 
 body.dark-mode #c64-dark-toggle {
@@ -226,7 +226,7 @@ body.dark-mode #c64-dark-toggle:hover {
   position: absolute;
   top: 8px;
   right: 8px;
-  background: rgba(0, 51, 170, 0.75);
+  background: rgba(26, 63, 128, 0.75);
   color: #fff;
   border: none;
   border-radius: 4px;
@@ -262,9 +262,9 @@ body.dark-mode #c64-dark-toggle:hover {
 .collapse-btn {
   display: block;
   width: 100%;
-  background: rgba(0, 51, 170, 0.12);
-  color: #0033aa;
-  border: 1px solid rgba(0, 51, 170, 0.3);
+  background: rgba(26, 63, 128, 0.12);
+  color: #1a3f80;
+  border: 1px solid rgba(26, 63, 128, 0.3);
   border-top: none;
   padding: 5px;
   font-size: 12px;
@@ -276,7 +276,7 @@ body.dark-mode #c64-dark-toggle:hover {
 }
 
 .collapse-btn:hover {
-  background: rgba(0, 51, 170, 0.22);
+  background: rgba(26, 63, 128, 0.22);
 }
 
 body.dark-mode .collapse-btn {
@@ -324,7 +324,7 @@ body.dark-mode .collapse-btn {
 
 .spb-fill {
   height: 100%;
-  background: linear-gradient(to right, #00aa66, #00ff88);
+  background: linear-gradient(to right, #009955, #00cc66);
   border-radius: 3px;
   transition: width 0.4s ease;
   min-width: 0;
@@ -425,7 +425,7 @@ body.dark-mode mark.c64-highlight {
   top: 12px;
   right: 14px;
   z-index: 600;
-  background: rgba(0, 51, 170, 0.9);
+  background: rgba(26, 63, 128, 0.9);
   color: #fff;
   border: none;
   border-radius: 6px;

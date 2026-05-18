@@ -6,27 +6,23 @@
   <title>C64 Mastery — Stufe 12: Demo-Entwicklung Workflow</title>
   <link rel="stylesheet" href="assets/c64-base.css">
   <style>
-    :root { --theme-color: #6633aa; --theme-dark: #1a0033; --theme-light: #cc99ff; }
-    .sidebar { scrollbar-color: var(--theme-color) var(--c64-darker); }
-    .sidebar::-webkit-scrollbar-thumb { background: var(--theme-color); }
-    .sidebar-header { background: var(--theme-color); }
-    .part-diagram { background: var(--c64-dark); color: var(--theme-light); font-family: 'Courier New', monospace; font-size: 13px; padding: 20px 24px; border-radius: 6px; margin: 20px 0; border-left: 4px solid var(--theme-color); }
+    .part-diagram { background: var(--c64-dark); color: var(--c64-green); font-family: 'Courier New', monospace; font-size: 13px; padding: 20px 24px; border-radius: 6px; margin: 20px 0; border-left: 4px solid var(--theme-color); }
     .sync-table { margin: 20px 0; }
     .sync-table table thead { background: var(--theme-dark); }
-    .sync-beat { background: rgba(200,100,255,0.15) !important; font-weight: bold; }
+    .sync-beat { background: rgba(26,63,128,0.15) !important; font-weight: bold; }
     .nfo-block { background: #1e1e1e; color: #cccccc; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.5; padding: 16px 20px; border-radius: 4px; margin: 20px 0; border: 1px solid #444; overflow-x: auto; white-space: pre; }
     .pal-ntsc-compare { margin: 20px 0; }
-    .pal-ntsc-compare table thead { background: #333366; }
-    .walkthrough-banner { background: linear-gradient(135deg, #1a0033 0%, var(--theme-color) 100%); border-radius: 8px; padding: 24px 28px; color: white; margin: 36px 0 24px; }
+    .pal-ntsc-compare table thead { background: var(--theme-color); }
+    .walkthrough-banner { background: linear-gradient(135deg, var(--theme-dark) 0%, var(--theme-color) 100%); border-radius: 8px; padding: 24px 28px; color: white; margin: 36px 0 24px; }
     .walkthrough-banner h2 { color: var(--theme-light); border: none; margin-top: 0; font-size: 20px; letter-spacing: 1px; }
-    .walkthrough-banner p { color: #bb99ee; margin: 0; }
+    .walkthrough-banner p { color: #aaccee; margin: 0; }
     .phase-list { list-style: none; padding: 0; margin: 16px 0; }
     .phase-list li { display: flex; gap: 14px; padding: 10px 0; border-bottom: 1px solid #e0dbd0; }
     .phase-list li:last-child { border-bottom: none; }
     .phase-num { flex-shrink: 0; width: 28px; height: 28px; background: var(--theme-color); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Courier New', monospace; font-size: 12px; font-weight: bold; margin-top: 2px; }
-    .scene-banner { background: linear-gradient(135deg, #001144 0%, #0033aa 100%); border: 1px solid var(--theme-color); border-radius: 8px; padding: 20px 24px; color: white; margin: 24px 0; }
+    .scene-banner { background: linear-gradient(135deg, var(--theme-dark) 0%, var(--theme-color) 100%); border: 1px solid var(--c64-light-blue); border-radius: 8px; padding: 20px 24px; color: white; margin: 24px 0; }
     .scene-banner h4 { color: var(--theme-light); font-style: normal; font-family: 'Courier New', monospace; margin: 0 0 8px; }
-    .scene-banner p { color: #aabb99; margin: 0; font-size: 14px; }
+    .scene-banner p { color: #aaccee; margin: 0; font-size: 14px; }
   </style>
   <link rel="stylesheet" href="assets/c64-interactive.css">
   <link rel="stylesheet" href="assets/c64-print.css" media="print">

@@ -4,275 +4,49 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>C64 Mastery — Stufe 14: Moderner Workflow</title>
+  <link rel="stylesheet" href="assets/c64-base.css">
   <style>
-    :root {
-      --c64-blue: #0033aa;
-      --c64-light-blue: #4477dd;
-      --c64-green: #00ff88;
-      --c64-dark: #1a1a2e;
-      --c64-darker: #0d0d1a;
-      --paper: #f8f6f0;
-      --paper-dark: #ede9df;
-      --text: #1a1a2e;
-      --text-light: #444466;
-      --accent: #cc3300;
-      --gold: #cc8800;
-      --modern: #006644;
-      --modern-light: #00aa66;
-      --warning-bg: #fff3cd;
-      --warning-border: #ffc107;
-      --tip-bg: #d4edda;
-      --tip-border: #28a745;
-      --info-bg: #cce5ff;
-      --info-border: #0066cc;
-      --important-bg: #f8d7da;
-      --important-border: #dc3545;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Georgia', 'Times New Roman', serif;
-      font-size: 16px;
-      line-height: 1.75;
-      color: var(--text);
-      background: var(--paper);
-      display: grid;
-      grid-template-columns: 270px 1fr;
-      min-height: 100vh;
-    }
-    .sidebar {
-      background: var(--c64-dark);
-      color: #ccc;
-      padding: 0;
-      position: sticky;
-      top: 0;
-      height: 100vh;
-      overflow-y: auto;
-      scrollbar-width: thin;
-      scrollbar-color: var(--modern) var(--c64-darker);
-    }
-    .sidebar::-webkit-scrollbar { width: 6px; }
-    .sidebar::-webkit-scrollbar-track { background: var(--c64-darker); }
-    .sidebar::-webkit-scrollbar-thumb { background: var(--modern); }
-    .sidebar-header {
-      background: var(--modern);
-      padding: 18px 20px;
-      font-family: 'Courier New', monospace;
-      font-size: 13px;
-      font-weight: bold;
-      color: white;
-      letter-spacing: 0.5px;
-    }
-    .sidebar-header .logo { font-size: 22px; margin-bottom: 4px; color: #88ffcc; }
-    .sidebar nav { padding: 12px 0; }
-    .sidebar nav a {
-      display: block;
-      padding: 7px 20px;
-      color: #aab;
-      text-decoration: none;
-      font-family: 'Courier New', monospace;
-      font-size: 12.5px;
-      border-left: 3px solid transparent;
-      transition: all 0.2s;
-    }
-    .sidebar nav a:hover { color: white; background: rgba(255,255,255,0.05); border-left-color: #88ffcc; }
-    .sidebar nav a.active { color: #88ffcc; border-left-color: #88ffcc; background: rgba(0,255,136,0.07); font-weight: bold; }
-    .sidebar nav .section-label {
-      padding: 12px 20px 4px;
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      color: #556;
-      font-family: 'Courier New', monospace;
-    }
-    .sidebar nav .toc-link { padding: 5px 20px 5px 32px; font-size: 11.5px; color: #778; }
-    main { max-width: 860px; padding: 48px 56px; }
-    .chapter-header {
-      border-bottom: 3px solid var(--modern);
-      padding-bottom: 28px;
-      margin-bottom: 40px;
-    }
-    .chapter-number {
-      font-family: 'Courier New', monospace;
-      font-size: 13px;
-      color: var(--modern);
-      font-weight: bold;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      margin-bottom: 10px;
-    }
-    h1 { font-size: 32px; color: var(--c64-dark); line-height: 1.2; margin-bottom: 14px; }
-    .chapter-meta { display: flex; gap: 24px; font-size: 14px; color: var(--text-light); flex-wrap: wrap; }
-    .chapter-meta span { font-family: 'Courier New', monospace; }
-    h2 {
-      font-size: 22px;
-      color: var(--modern);
-      margin: 48px 0 20px;
-      padding-bottom: 8px;
-      border-bottom: 2px solid var(--modern);
-    }
-    h3 { font-size: 17px; color: var(--c64-dark); margin: 28px 0 12px; }
-    h4 { font-size: 15px; color: var(--text-light); margin: 20px 0 8px; }
-    p { margin-bottom: 16px; }
-    ul, ol { margin: 0 0 16px 24px; }
-    li { margin-bottom: 6px; }
-    code {
-      font-family: 'Courier New', monospace;
-      font-size: 14px;
-      background: var(--paper-dark);
-      padding: 1px 5px;
-      border-radius: 3px;
-      color: var(--modern);
-    }
-    pre {
-      background: var(--c64-dark);
-      color: #e8e8d0;
-      font-family: 'Courier New', monospace;
-      font-size: 13.5px;
-      line-height: 1.55;
-      padding: 20px 24px;
-      border-radius: 6px;
-      border-left: 4px solid var(--modern);
-      overflow-x: auto;
-      margin: 20px 0;
-      max-height: 420px;
-      overflow-y: auto;
-    }
-    pre .comment { color: #7799aa; }
-    pre .label { color: #ffcc44; font-weight: bold; }
-    pre .directive { color: #ff99cc; }
-    pre .number { color: #aaddff; }
-    pre .instr { color: #88ffcc; }
-    pre .key { color: #aaffbb; }
-    pre .string { color: #ffcc88; }
+    pre .instr      { color: #88ffcc; }
+    pre .key        { color: #aaffbb; }
+    pre .string     { color: #ffcc88; }
     pre .sh-comment { color: #668866; }
     .vscode-block {
-      background: #1e1e1e;
-      color: #d4d4d4;
-      font-family: 'Courier New', monospace;
-      font-size: 13px;
-      line-height: 1.55;
-      padding: 20px 24px;
-      border-radius: 6px;
-      border-left: 4px solid var(--modern-light);
-      margin: 20px 0;
-      overflow-x: auto;
+      background: #1e1e1e; color: #d4d4d4;
+      font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.55;
+      padding: 20px 24px; border-radius: 6px;
+      border-left: 4px solid var(--c64-light-blue); margin: 20px 0; overflow-x: auto;
     }
-    .vscode-block .js-key { color: #9cdcfe; }
-    .vscode-block .js-str { color: #ce9178; }
-    .vscode-block .js-num { color: #b5cea8; }
-    .vscode-block .js-bool { color: #569cd6; }
+    .vscode-block .js-key     { color: #9cdcfe; }
+    .vscode-block .js-str     { color: #ce9178; }
+    .vscode-block .js-num     { color: #b5cea8; }
+    .vscode-block .js-bool    { color: #569cd6; }
     .vscode-block .js-comment { color: #6a9955; }
     .makefile-block {
-      background: #0d1117;
-      color: #c9d1d9;
-      font-family: 'Courier New', monospace;
-      font-size: 13px;
-      line-height: 1.6;
-      padding: 20px 24px;
-      border-radius: 6px;
-      border-left: 4px solid #00aa66;
-      margin: 20px 0;
-      overflow-x: auto;
+      background: #0d1117; color: #c9d1d9;
+      font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.6;
+      padding: 20px 24px; border-radius: 6px;
+      border-left: 4px solid var(--theme-color); margin: 20px 0; overflow-x: auto;
     }
-    .makefile-block .mk-target { color: #79c0ff; font-weight: bold; }
-    .makefile-block .mk-var { color: #ffa657; }
+    .makefile-block .mk-target  { color: #79c0ff; font-weight: bold; }
+    .makefile-block .mk-var     { color: #ffa657; }
     .makefile-block .mk-comment { color: #8b949e; }
     .file-tree {
-      background: #0d1117;
-      color: #8b949e;
-      font-family: 'Courier New', monospace;
-      font-size: 13px;
-      line-height: 1.7;
-      padding: 16px 20px;
-      border-radius: 6px;
-      border-left: 4px solid var(--modern);
-      margin: 16px 0;
+      background: #0d1117; color: #8b949e;
+      font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.7;
+      padding: 16px 20px; border-radius: 6px;
+      border-left: 4px solid var(--theme-color); margin: 16px 0;
     }
-    .file-tree .ft-dir { color: #79c0ff; font-weight: bold; }
-    .file-tree .ft-file { color: #c9d1d9; }
+    .file-tree .ft-dir     { color: #79c0ff; font-weight: bold; }
+    .file-tree .ft-file    { color: #c9d1d9; }
     .file-tree .ft-comment { color: #555f6d; }
     .pipeline-flow {
-      display: flex;
-      align-items: center;
-      gap: 0;
-      font-family: 'Courier New', monospace;
-      font-size: 13px;
-      background: var(--c64-dark);
-      padding: 16px 20px;
-      border-radius: 6px;
-      margin: 16px 0;
+      display: flex; align-items: center; flex-wrap: wrap; gap: 4px;
+      font-family: 'Courier New', monospace; font-size: 13px;
+      background: var(--c64-dark); padding: 16px 20px; border-radius: 6px; margin: 16px 0;
       overflow-x: auto;
-      flex-wrap: wrap;
-      gap: 4px;
     }
-    .pipeline-step {
-      background: var(--modern);
-      color: white;
-      padding: 6px 12px;
-      border-radius: 4px;
-      white-space: nowrap;
-      font-size: 12px;
-    }
-    .pipeline-arrow { color: #88ffcc; font-size: 18px; padding: 0 4px; }
-    table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
-    thead th { background: var(--modern); color: white; padding: 10px 12px; text-align: left; font-family: 'Courier New', monospace; font-size: 13px; }
-    tbody td { padding: 8px 12px; border-bottom: 1px solid #ddd; vertical-align: top; }
-    tbody tr:nth-child(even) { background: var(--paper-dark); }
-    tbody td:first-child { font-family: 'Courier New', monospace; color: var(--modern); font-size: 13px; }
-    .learning-objectives {
-      background: linear-gradient(135deg, #f0fff8, #e0fff0);
-      border: 1px solid var(--modern-light);
-      border-left: 5px solid var(--modern);
-      border-radius: 6px;
-      padding: 24px 28px;
-      margin-bottom: 40px;
-    }
-    .learning-objectives h3 { color: var(--modern); margin: 0 0 14px; font-size: 15px; text-transform: uppercase; letter-spacing: 1px; }
-    .learning-objectives ul { margin-left: 20px; }
-    .learning-objectives li { margin-bottom: 7px; font-size: 15px; }
-    .box-tip { background: var(--tip-bg); border-left: 4px solid var(--tip-border); border-radius: 4px; padding: 14px 18px; margin: 20px 0; }
-    .box-tip::before { content: "💡 Tipp: "; font-weight: bold; color: #155724; }
-    .box-warning { background: var(--warning-bg); border-left: 4px solid var(--warning-border); border-radius: 4px; padding: 14px 18px; margin: 20px 0; }
-    .box-warning::before { content: "⚠ Achtung: "; font-weight: bold; color: #856404; }
-    .box-info { background: var(--info-bg); border-left: 4px solid var(--info-border); border-radius: 4px; padding: 14px 18px; margin: 20px 0; }
-    .box-info::before { content: "ℹ Info: "; font-weight: bold; color: #004085; }
-    .box-important { background: var(--important-bg); border-left: 4px solid var(--important-border); border-radius: 4px; padding: 14px 18px; margin: 20px 0; }
-    .box-important::before { content: "🔴 Wichtig: "; font-weight: bold; color: #721c24; }
-    .modern-banner {
-      background: linear-gradient(135deg, #001a0d 0%, #006644 100%);
-      border: 1px solid var(--modern-light);
-      border-radius: 8px;
-      padding: 24px 28px;
-      margin: 32px 0 24px;
-    }
-    .modern-banner h2 { color: #88ffcc; border: none; margin-top: 0; font-size: 20px; letter-spacing: 1px; }
-    .modern-banner p { color: #66ddaa; margin: 0; }
-    .benchmark {
-      background: linear-gradient(135deg, #001a0d 0%, #004422 100%);
-      border: 1px solid var(--modern-light);
-      border-radius: 8px;
-      padding: 28px 32px;
-      margin: 48px 0 32px;
-      color: #aaffcc;
-    }
-    .benchmark h2 { color: #88ffcc; border-bottom: 1px solid #006644; padding-bottom: 10px; margin-top: 0; font-size: 20px; }
-    .benchmark-list { list-style: none; margin: 0; padding: 0; }
-    .benchmark-list li { padding: 10px 0; border-bottom: 1px solid rgba(0,200,100,0.15); font-size: 15px; display: flex; align-items: flex-start; gap: 10px; }
-    .benchmark-list li::before { content: "□"; font-family: monospace; color: #00aa66; font-size: 18px; flex-shrink: 0; }
-    .exercises {
-      background: var(--paper-dark);
-      border: 1px solid #b8d4c0;
-      border-radius: 8px;
-      padding: 28px 32px;
-      margin: 32px 0;
-    }
-    .exercises h2 { color: var(--modern); border-bottom: 2px solid var(--modern); padding-bottom: 8px; margin-top: 0; }
-    .exercise-item { border-left: 4px solid var(--modern); padding: 14px 18px; margin: 18px 0; background: white; border-radius: 0 6px 6px 0; }
-    .exercise-item h4 { color: var(--modern); margin: 0 0 8px; font-family: 'Courier New', monospace; }
-    .chapter-nav { display: flex; justify-content: space-between; margin-top: 56px; padding-top: 24px; border-top: 2px solid var(--modern); }
-    .chapter-nav a { display: inline-flex; align-items: center; gap: 8px; color: var(--modern); text-decoration: none; font-family: 'Courier New', monospace; font-size: 14px; padding: 10px 18px; border: 2px solid var(--modern); border-radius: 4px; transition: all 0.2s; }
-    .chapter-nav a:hover { background: var(--modern); color: white; }
-    @media print { .sidebar { display: none; } body { grid-template-columns: 1fr; } main { max-width: 100%; padding: 20px; } }
+    .pipeline-step  { background: var(--theme-color); color: white; padding: 6px 12px; border-radius: 4px; white-space: nowrap; font-size: 12px; }
+    .pipeline-arrow { color: var(--c64-green); font-size: 18px; padding: 0 4px; }
   </style>
   <link rel="stylesheet" href="assets/c64-interactive.css">
   <link rel="stylesheet" href="assets/c64-print.css" media="print">

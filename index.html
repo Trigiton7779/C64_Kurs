@@ -6,9 +6,9 @@
 <title>C64 Mastery System — Übersicht &amp; Curriculum</title>
 <style>
 :root {
-    --c64-blue: #0033aa;
+    --c64-blue: #1a3f80;
     --c64-light-blue: #4466cc;
-    --c64-green: #00ff88;
+    --c64-green: #00cc66;
     --c64-dark: #1a1a2e;
     --paper: #f8f6f0;
     --paper-dark: #ede9e0;
@@ -37,7 +37,7 @@ body {
     border-left: 3px solid transparent; transition: all 0.2s; font-size: 12.5px;
 }
 .sidebar nav ul li a:hover, .sidebar nav ul li a.active {
-    background: rgba(0,51,170,0.3); color: var(--c64-green); border-left-color: var(--c64-green);
+    background: rgba(26,63,128,0.3); color: var(--c64-green); border-left-color: var(--c64-green);
 }
 .sidebar nav ul li.section-label {
     padding: 8px 16px 2px; font-size: 10px; color: #445;
@@ -99,7 +99,7 @@ tbody tr:hover { background: #dde8ff; }
 .box.important { background: #fce4ec; border-color: #c62828; }
 .box.important .box-title { color: #b71c1c; }
 .benchmark {
-    background: linear-gradient(135deg, #001166 0%, #0033aa 100%);
+    background: linear-gradient(135deg, #001166 0%, #1a3f80 100%);
     color: white; padding: 30px; border-radius: 12px; margin: 44px 0;
 }
 .benchmark h2 { color: var(--c64-green); border-color: rgba(0,255,136,0.3); margin-top: 0; font-size: 22px; }
@@ -129,12 +129,12 @@ tbody tr:hover { background: #dde8ff; }
 /* Index-spezifische Styles */
 .stufen-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin: 30px 0; }
 .stufe-card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 24px; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.08); text-decoration: none; color: inherit; display: block; }
-.stufe-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,51,170,0.15); border-color: var(--c64-blue); }
+.stufe-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(26,63,128,0.15); border-color: var(--c64-blue); }
 .stufe-card .stufe-num { font-family: 'Courier New', monospace; font-size: 11px; color: var(--c64-blue); font-weight: bold; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
 .stufe-card h3 { font-size: 18px; margin: 0 0 10px; color: var(--c64-dark); }
 .stufe-card p { font-size: 14px; color: var(--text-light); margin: 0 0 12px; line-height: 1.5; }
 .stufe-card .meta { font-family: 'Courier New', monospace; font-size: 12px; color: #889; }
-.hero { background: linear-gradient(135deg, var(--c64-dark) 0%, #0033aa 100%); color: white; padding: 60px 56px; margin: 0 -56px 48px; }
+.hero { background: linear-gradient(135deg, var(--c64-dark) 0%, #1a3f80 100%); color: white; padding: 60px 56px; margin: 0 -56px 48px; }
 .hero h1 { font-size: 44px; color: var(--c64-green); margin-bottom: 16px; line-height: 1.1; }
 .hero .subtitle { font-size: 20px; color: #aac; margin-bottom: 24px; }
 .hero p { font-size: 16px; color: #cce; max-width: 680px; line-height: 1.7; }
@@ -402,52 +402,52 @@ tbody tr:hover { background: #dde8ff; }
       </div>
     </a>
 
-    <a class="stufe-card" href="stufe_11_spielentwicklung_workflow.html" style="border-color: #005588; background: linear-gradient(135deg, #f0f8ff, white);">
+    <a class="stufe-card" href="stufe_11_spielentwicklung_workflow.html" style="border-color: var(--c64-blue); background: linear-gradient(135deg, #f0f4ff, white);">
       <div class="stufe-num">Stufe 11 &mdash; Workflow</div>
       <h3>Spielentwicklung von A bis Z</h3>
       <p>Vollständiger Prozess: GDD, Memory-Map-Planung, Asset-Pipeline, Entwicklungsphasen, Testing im VICE-Monitor, D64-Packaging und CSDb-Release.</p>
       <div class="meta">
-        <span class="badge red" style="font-size:11px; background:#005588;">Workflow</span>
+        <span class="badge red" style="font-size:11px; background:var(--c64-blue);">Workflow</span>
         &nbsp; ~15 Stunden
       </div>
     </a>
 
-    <a class="stufe-card" href="stufe_12_demo_entwicklung_workflow.html" style="border-color: #6633aa; background: linear-gradient(135deg, #f5f0ff, white);">
+    <a class="stufe-card" href="stufe_12_demo_entwicklung_workflow.html" style="border-color: var(--c64-blue); background: linear-gradient(135deg, #f0f4ff, white);">
       <div class="stufe-num">Stufe 12 &mdash; Workflow</div>
       <h3>Demo-Entwicklung von A bis Z</h3>
       <p>Demo-Workflow: Musik-Synchronisation, Part-Struktur, PAL/NTSC-Kompatibilität, Loader, Timing-Feinschliff, Release-NFO und vollständiger BITWAVE-Walkthrough.</p>
       <div class="meta">
-        <span class="badge red" style="font-size:11px; background:#6633aa;">Demo-Szene</span>
+        <span class="badge red" style="font-size:11px; background:var(--c64-blue);">Demo-Szene</span>
         &nbsp; ~15 Stunden
       </div>
     </a>
 
-    <a class="stufe-card" href="stufe_13_hardware_erweiterungen.html" style="border-color: #884400; background: linear-gradient(135deg, #fff8f0, white);">
+    <a class="stufe-card" href="stufe_13_hardware_erweiterungen.html" style="border-color: var(--c64-blue); background: linear-gradient(135deg, #f0f4ff, white);">
       <div class="stufe-num">Stufe 13 &mdash; Erweitert</div>
       <h3>Hardware-Erweiterungen</h3>
       <p>REU 1750 DMA-Transfers, EasyFlash Cartridge (64 Bänke), Userport I/O via CIA2, VIC-II Banking für 64-KB-Vollnutzung — mit vollständigem Slideshow-Walkthrough.</p>
       <div class="meta">
-        <span class="badge red" style="font-size:11px; background:#884400;">Hardware</span>
+        <span class="badge red" style="font-size:11px; background:var(--c64-blue);">Hardware</span>
         &nbsp; ~12 Stunden
       </div>
     </a>
 
-    <a class="stufe-card" href="stufe_14_modern_workflow.html" style="border-color: #006644; background: linear-gradient(135deg, #f0fff8, white);">
+    <a class="stufe-card" href="stufe_14_modern_workflow.html" style="border-color: var(--c64-blue); background: linear-gradient(135deg, #f0f4ff, white);">
       <div class="stufe-num">Stufe 14 &mdash; Erweitert</div>
       <h3>Moderner Cross-Development-Workflow</h3>
       <p>VS Code mit ACME-Extension, Makefile, Exomizer-Packer, GitHub Actions CI/CD, headless VICE-Testing, Multi-File-Projekte und vollständige Release-Pipeline.</p>
       <div class="meta">
-        <span class="badge red" style="font-size:11px; background:#006644;">DevOps</span>
+        <span class="badge red" style="font-size:11px; background:var(--c64-blue);">DevOps</span>
         &nbsp; ~10 Stunden
       </div>
     </a>
 
-    <a class="stufe-card" href="stufe_15_debugging_deep_dive.html" style="border-color: #880022; background: linear-gradient(135deg, #fff0f2, white);">
+    <a class="stufe-card" href="stufe_15_debugging_deep_dive.html" style="border-color: var(--c64-blue); background: linear-gradient(135deg, #f0f4ff, white);">
       <div class="stufe-num">Stufe 15 &mdash; Erweitert</div>
       <h3>Deep Debugging</h3>
       <p>VICE Monitor-Kommandos, bedingte Breakpoints, CPU-Profiling, Badline-Analyse, Page-Cross-Bugs, Sprite-DMA-Timing, Stack-Guard — mit Buggy-Platformer-Walkthrough.</p>
       <div class="meta">
-        <span class="badge red" style="font-size:11px; background:#880022;">Debugging</span>
+        <span class="badge red" style="font-size:11px; background:var(--c64-blue);">Debugging</span>
         &nbsp; ~12 Stunden
       </div>
     </a>
