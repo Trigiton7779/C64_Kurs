@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>C64 Mastery — Stufe 9: Demo-Effekte</title>
+  <style>
+    :root {
+      --c64-blue: #0033aa;
+      --c64-light-blue: #4477dd;
+      --c64-green: #00ff88;
+      --c64-dark: #1a1a2e;
+      --c64-darker: #0d0d1a;
+      --paper: #f8f6f0;
+      --paper-dark: #ede9df;
+      --text: #1a1a2e;
+      --text-light: #444466;
+      --accent: #cc3300;
+      --warning-bg: #fff3cd;
+      --warning-border: #ffc107;
+      --tip-bg: #d4edda;
+      --tip-border: #28a745;
+      --info-bg: #cce5ff;
+      --info-border: #0066cc;
+      --important-bg: #f8d7da;
+      --important-border: #dc3545;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Georgia', 'Times New Roman', serif;
+      font-size: 16px;
+      line-height: 1.75;
+      color: var(--text);
+      background: var(--paper);
+      display: grid;
+      grid-template-columns: 270px 1fr;
+      min-height: 100vh;
+    }
+    .sidebar {
+      background: var(--c64-dark);
+      color: #ccc;
+      padding: 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--c64-blue) var(--c64-darker);
+    }
+    .sidebar::-webkit-scrollbar { width: 6px; }
+    .sidebar::-webkit-scrollbar-track { background: var(--c64-darker); }
+    .sidebar::-webkit-scrollbar-thumb { background: var(--c64-blue); }
+    .sidebar-header {
+      background: var(--c64-blue);
+      padding: 18px 20px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      font-weight: bold;
+      color: white;
+      letter-spacing: 0.5px;
+    }
+    .sidebar-header .logo { font-size: 22px; margin-bottom: 4px; color: var(--c64-green); }
+    .sidebar nav { padding: 12px 0; }
+    .sidebar nav a {
+      display: block;
+      padding: 7px 20px;
+      color: #aab;
+      text-decoration: none;
+      font-family: 'Courier New', monospace;
+      font-size: 12.5px;
+      border-left: 3px solid transparent;
+      transition: all 0.2s;
+    }
+    .sidebar nav a:hover { color: white; background: rgba(255,255,255,0.05); border-left-color: var(--c64-green); }
+    .sidebar nav a.active { color: var(--c64-green); border-left-color: var(--c64-green); background: rgba(0,255,136,0.07); font-weight: bold; }
+    .sidebar nav .section-label {
+      padding: 12px 20px 4px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #556;
+      font-family: 'Courier New', monospace;
+    }
+    .sidebar nav .toc-link {
+      padding: 5px 20px 5px 32px;
+      font-size: 11.5px;
+      color: #778;
+    }
+    main {
+      max-width: 860px;
+      padding: 48px 56px;
+    }
+    .chapter-header {
+      border-bottom: 3px solid var(--c64-blue);
+      padding-bottom: 28px;
+      margin-bottom: 40px;
+    }
+    .chapter-number {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      color: var(--c64-blue);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+    }
+    .chapter-header h1 {
+      font-size: 36px;
+      color: var(--c64-dark);
+      font-weight: bold;
+      line-height: 1.2;
+      margin-bottom: 16px;
+    }
+    .chapter-meta {
+      display: flex;
+      gap: 20px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: var(--text-light);
+    }
+    .chapter-meta span { background: var(--paper-dark); padding: 4px 10px; border-radius: 3px; }
+    h2 { font-size: 26px; color: var(--c64-blue); margin: 40px 0 16px; padding-bottom: 8px; border-bottom: 1px solid #d0ccc0; }
+    h3 { font-size: 19px; color: var(--c64-dark); margin: 28px 0 12px; }
+    h4 { font-size: 16px; color: var(--text-light); margin: 20px 0 8px; font-style: italic; }
+    p { margin-bottom: 16px; }
+    ul, ol { margin: 12px 0 16px 24px; }
+    li { margin-bottom: 6px; }
+    strong { color: var(--c64-dark); }
+    code {
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      background: #e8e4da;
+      padding: 2px 6px;
+      border-radius: 3px;
+      color: var(--accent);
+    }
+    pre {
+      background: var(--c64-dark);
+      color: var(--c64-green);
+      font-family: 'Courier New', monospace;
+      font-size: 13.5px;
+      line-height: 1.6;
+      padding: 24px 28px;
+      border-radius: 6px;
+      overflow-x: auto;
+      margin: 20px 0;
+      border-left: 4px solid var(--c64-blue);
+      white-space: pre;
+    }
+    pre .comment { color: #6688aa; }
+    pre .label { color: #ffcc44; }
+    pre .directive { color: #ff88aa; }
+    pre .number { color: #aaddff; }
+    .box {
+      border-radius: 6px;
+      padding: 16px 20px;
+      margin: 20px 0;
+      border-left: 5px solid;
+    }
+    .box-tip { background: var(--tip-bg); border-color: var(--tip-border); }
+    .box-warning { background: var(--warning-bg); border-color: var(--warning-border); }
+    .box-info { background: var(--info-bg); border-color: var(--info-border); }
+    .box-important { background: var(--important-bg); border-color: var(--important-border); }
+    .box-title { font-weight: bold; font-family: 'Courier New', monospace; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .box-tip .box-title { color: #155724; }
+    .box-warning .box-title { color: #856404; }
+    .box-info .box-title { color: #004085; }
+    .box-important .box-title { color: #721c24; }
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
+    thead { background: var(--c64-blue); color: white; }
+    thead th { padding: 10px 12px; text-align: left; font-family: 'Courier New', monospace; font-size: 13px; }
+    tbody tr:nth-child(even) { background: var(--paper-dark); }
+    tbody tr:hover { background: #e0dbd0; }
+    tbody td { padding: 8px 12px; border-bottom: 1px solid #d0ccc0; vertical-align: top; }
+    td code { font-size: 13px; }
+    .benchmark {
+      background: linear-gradient(135deg, #001166 0%, #0033aa 100%);
+      color: white;
+      border-radius: 8px;
+      padding: 28px 32px;
+      margin: 40px 0;
+    }
+    .benchmark h2 { color: var(--c64-green); border: none; margin-top: 0; font-size: 22px; }
+    .benchmark-list { list-style: none; margin: 0; padding: 0; }
+    .benchmark-list li { padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: flex-start; gap: 12px; }
+    .benchmark-list li:last-child { border-bottom: none; }
+    .benchmark-list .check { color: var(--c64-green); font-size: 18px; flex-shrink: 0; }
+    .exercises { background: var(--paper-dark); border-radius: 8px; padding: 28px 32px; margin: 40px 0; border: 1px solid #c8c4b8; }
+    .exercises h2 { color: var(--c64-dark); border: none; margin-top: 0; }
+    .exercise-item { background: white; border-radius: 6px; padding: 16px 20px; margin: 14px 0; border-left: 4px solid var(--c64-blue); }
+    .exercise-item h4 { color: var(--c64-blue); margin: 0 0 8px 0; font-style: normal; font-family: 'Courier New', monospace; font-size: 14px; }
+    .chapter-nav { display: flex; justify-content: space-between; margin-top: 56px; padding-top: 24px; border-top: 2px solid var(--c64-blue); }
+    .chapter-nav a { display: inline-flex; align-items: center; gap: 8px; color: var(--c64-blue); text-decoration: none; font-family: 'Courier New', monospace; font-size: 14px; padding: 10px 18px; border: 2px solid var(--c64-blue); border-radius: 4px; transition: all 0.2s; }
+    .chapter-nav a:hover { background: var(--c64-blue); color: white; }
+    .learning-objectives { background: linear-gradient(to right, #f0f4ff, #f8f6f0); border: 1px solid #c0cce8; border-radius: 6px; padding: 20px 24px; margin-bottom: 36px; }
+    .learning-objectives h3 { color: var(--c64-blue); margin: 0 0 12px 0; font-size: 16px; font-family: 'Courier New', monospace; text-transform: uppercase; letter-spacing: 1px; }
+    .learning-objectives ul { margin: 0; padding-left: 20px; }
+    .demo-history { background: linear-gradient(135deg, #0d0d1a, #1a1a3e); color: #cce; border-radius: 8px; padding: 20px 24px; margin: 20px 0; font-family: 'Courier New', monospace; font-size: 13px; }
+    .demo-history .era { color: var(--c64-green); font-weight: bold; }
+    @media print { .sidebar { display: none; } body { grid-template-columns: 1fr; } main { max-width: 100%; padding: 20px; } pre { border: 1px solid #999; } }
+  </style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">■ C64 MASTERY</div>
+    Professioneller Lehrgang
+  </div>
+  <nav>
+    <div class="section-label">Curriculum</div>
+    <a href="index.html">◈ Übersicht &amp; Lernpfad</a>
+    <a href="stufe_00_fundament.html">00 · Fundament</a>
+    <a href="stufe_01_6510_assembler.html">01 · 6510 &amp; Assembler</a>
+    <a href="stufe_02_adressierung_speicher.html">02 · Adressierung &amp; Speicher</a>
+    <a href="stufe_03_bildschirm_zeichen.html">03 · Bildschirm &amp; Zeichen</a>
+    <a href="stufe_04_sprites_animation.html">04 · Sprites &amp; Animation</a>
+    <a href="stufe_05_bitmap_grafik.html">05 · Bitmap-Grafik</a>
+    <a href="stufe_06_sid_sound.html">06 · SID-Sound</a>
+    <a href="stufe_07_interrupts_timing.html">07 · Interrupts &amp; Timing</a>
+    <a href="stufe_08_optimierung.html">08 · Optimierung</a>
+    <a href="stufe_09_demo_effekte.html" class="active">09 · Demo-Effekte</a>
+    <a href="stufe_10_meisterschaft.html">10 · Meisterschaft</a>
+
+    <div class="section-label">Diese Seite</div>
+    <a href="#demo-intro" class="toc-link">1. Demo-Struktur</a>
+    <a href="#rasterbars" class="toc-link">2. Rasterbars</a>
+    <a href="#scrolling" class="toc-link">3. Scrolling</a>
+    <a href="#sprite-mux" class="toc-link">4. Sprite-Multiplexer</a>
+    <a href="#fld" class="toc-link">5. FLD-Trick</a>
+    <a href="#plasma" class="toc-link">6. Plasma-Effekt</a>
+    <a href="#dysp" class="toc-link">7. DYSP &amp; Tricks</a>
+    <a href="#charset-anim" class="toc-link">8. Charset-Animation</a>
+    <a href="#benchmark" class="toc-link">Skill-Benchmark</a>
+    <a href="#exercises" class="toc-link">Übungen</a>
+  </nav>
+</aside>
+
+<main>
+  <header class="chapter-header">
+    <div class="chapter-number">Stufe 9</div>
+    <h1>Demo-Programmierung &amp; Effekte</h1>
+    <div class="chapter-meta">
+      <span>🎨 Fortgeschritten</span>
+      <span>⏱ ca. 12 Stunden</span>
+      <span>📋 Voraussetzung: Stufen 01–08</span>
+    </div>
+  </header>
+
+  <section class="learning-objectives">
+    <h3>Lernziele dieser Stufe</h3>
+    <ul>
+      <li>Demo-Struktur und -Organisation professionell aufbauen</li>
+      <li>Rasterbars (einfach und Copper-Stil) implementieren</li>
+      <li>Hardware-Scrolling mit $D016/$D011 und Screen-RAM-Shifting</li>
+      <li>Sprite-Multiplexer: 24+ Sprites mit 8 Hardware-Sprites realisieren</li>
+      <li>FLD (Flexible Line Distance) und seine Effekte verstehen</li>
+      <li>Plasma-Effekt mit Sinustabellen-Addition programmieren</li>
+      <li>DYSP (Dynamic Sprite) und weitere klassische Demo-Tricks</li>
+    </ul>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="demo-intro">
+    <h2>1. Demo-Struktur und -Philosophie</h2>
+
+    <p>Eine C64-Demo ist ein Non-Game-Programm, das ausschließlich dem Zweck dient, die Grenzen der Hardware in Echtzeit zu demonstrieren — Grafik, Sound und Code in perfekter Synchronisation. Die Demoscene entstand um 1985, als Crackergruppen ihre Intro-Bildschirme immer aufwändiger gestalteten.</p>
+
+    <div class="demo-history">
+      <span class="era">1983–1985:</span> Erste Crack-Intros — einfache Scrolltexte, Farbwechsel<br>
+      <span class="era">1986–1988:</span> Rastereffekte, Sprite-Tricks, SID-Musik — die goldene Ära<br>
+      <span class="era">1989–1991:</span> FLD, FLI, Sprite-Multiplexer, Rasterbars mit 16 Farben pro Zeile<br>
+      <span class="era">1992–1994:</span> Technische Perfektion: DYSP, 3D-Effekte, Echtzeit-Rendering<br>
+      <span class="era">1995–heute:</span> Demoscene lebt weiter — neue Rekorde werden noch gebrochen
+    </div>
+
+    <h3>1.1 Demo-Architektur</h3>
+
+    <pre><span class="comment">; Typische Demo-Struktur</span>
+<span class="directive">*= $0801</span>
+<span class="comment">; BASIC-Stub: SYS 2080</span>
+<span class="directive">!byte</span> $0b,$08,$e2,$07,$9e,$20,$32,$30,$38,$30,$00,$00,$00
+
+<span class="directive">*= $0820</span>
+Init:
+          SEI                  <span class="comment">; Interrupts sperren während Setup</span>
+          LDA #$35
+          STA $01              <span class="comment">; BASIC aus, KERNAL aus, I/O an</span>
+
+          JSR InitSID          <span class="comment">; SID initialisieren</span>
+          JSR LoadMusicData    <span class="comment">; Musik-Daten laden</span>
+          JSR InitPart1        <span class="comment">; Ersten Teil vorbereiten</span>
+          JSR SetupIRQ         <span class="comment">; Raster-IRQ installieren</span>
+          CLI                  <span class="comment">; Interrupts freigeben</span>
+
+MainLoop:
+          JMP MainLoop         <span class="comment">; Endlosschleife — IRQs machen alles</span>
+
+<span class="comment">; --- Globale Variablen ---</span>
+DemoState:   <span class="directive">!byte</span> 0    <span class="comment">; 0=Part1, 1=Part2, 2=Part3</span>
+PartTimer:   <span class="directive">!word</span> 0    <span class="comment">; Frames in diesem Part</span>
+SyncFlag:    <span class="directive">!byte</span> 0    <span class="comment">; Gesetzt vom IRQ, gelesen im Mainloop</span></pre>
+
+    <h3>1.2 Part-Wechsel-Mechanismus</h3>
+
+    <pre><span class="comment">; Part-Wechsel: jeder Part läuft N Frames, dann weiter</span>
+
+CheckPartChange:
+          INC PartTimer
+          BNE .noHi
+          INC PartTimer+1
+.noHi:
+          LDA PartTimer+1      <span class="comment">; High-Byte</span>
+          CMP #1               <span class="comment">; 256 Frames = ca. 5 Sekunden</span>
+          BNE .done
+
+          <span class="comment">; Part-Wechsel!</span>
+          LDA #0
+          STA PartTimer
+          STA PartTimer+1
+
+          INC DemoState
+          LDA DemoState
+          CMP #3               <span class="comment">; 3 Parts? Von vorn</span>
+          BNE .switch
+          LDA #0
+          STA DemoState
+
+.switch:  JSR SwitchPart       <span class="comment">; IRQ umhängen, neue Daten</span>
+.done:    RTS</pre>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="rasterbars">
+    <h2>2. Rasterbars — Farbige Streifen mit IRQ</h2>
+
+    <p>Rasterbars sind das Wahrzeichen der C64-Demoscene. Durch Änderung der Hintergrundfarbe (<code>$D021</code>) zur exakt richtigen Rasterzeile entstehen bunte horizontale Streifen. Der Trick: Ein Raster-IRQ wird für jede Farb-Grenze gesetzt.</p>
+
+    <h3>2.1 Einfache Rasterbars</h3>
+
+    <pre><span class="comment">; Setup: Raster-IRQ für erste Bar</span>
+SetupRasterBar:
+          SEI
+          LDA #$7F : STA $DC0D  <span class="comment">; CIA IRQs aus</span>
+          LDA #$7F : STA $DD0D
+
+          LDA #$01 : STA $D01A  <span class="comment">; VIC Raster-IRQ ein</span>
+
+          LDA #BarStart         <span class="comment">; Erste Zeile der ersten Bar</span>
+          STA $D012
+          LDA $D011
+          AND #$7F : STA $D011  <span class="comment">; Raster MSB = 0</span>
+
+          LDA #&lt;RasterBarIRQ
+          STA $0314
+          LDA #&gt;RasterBarIRQ
+          STA $0315
+          CLI
+          RTS
+
+<span class="comment">; Farbtabelle: 16 Einträge für eine vollständige Bar</span>
+BarColors:
+          <span class="directive">!byte</span> 0, 6, 6, 14, 14, 3, 3, 1  <span class="comment">; Schwarz→Blau→Cyan→Weiß</span>
+          <span class="directive">!byte</span> 1, 3, 3, 14, 14, 6, 6, 0  <span class="comment">; ...zurück</span>
+BarColorsEnd:
+
+BarStart = 50                    <span class="comment">; Erste Zeile der Bar</span>
+BarHeight = 16                   <span class="comment">; Zeilen pro Bar</span>
+
+<span class="comment">; IRQ-Handler: Ändert Farbe für jede Zeile der Bar</span>
+RasterBarIRQ:
+          PHA : TXA : PHA : TYA : PHA
+
+          LDA #$01 : STA $D019  <span class="comment">; Raster-IRQ quittieren</span>
+
+          <span class="comment">; Für jede der 16 Bar-Zeilen: Farbe setzen + auf nächste Zeile warten</span>
+          LDX #0
+.barloop:
+          LDA BarColors,X       <span class="comment">; Nächste Farbe</span>
+          STA $D021             <span class="comment">; Hintergrundfarbe setzen</span>
+
+          <span class="comment">; Warte auf nächste Rasterzeile (Busy-Wait Methode)</span>
+          LDA $D012             <span class="comment">; Aktuelle Zeile lesen</span>
+.wait:    CMP $D012
+          BEQ .wait             <span class="comment">; Warten bis Zeile weitergeht</span>
+
+          INX
+          CPX #BarHeight
+          BNE .barloop
+
+          <span class="comment">; Bar fertig, Hintergrund zurücksetzen</span>
+          LDA #0 : STA $D021
+
+          <span class="comment">; Nächsten IRQ für nächsten Frame setzen</span>
+          LDA #BarStart : STA $D012
+
+          PLA : TAY : PLA : TAX : PLA
+          RTI
+
+<span class="comment">; HINWEIS: Der Busy-Wait-Ansatz ist einfach aber ungenau.</span>
+<span class="comment">; Professionelle Rasterbars nutzen den Double-IRQ-Trick (Stufe 07)</span>
+<span class="comment">; für pixel-genaues Timing ohne Jitter.</span></pre>
+
+    <h3>2.2 Copper-Bars — Mehrere Balken gleichzeitig</h3>
+
+    <pre><span class="comment">; Copper-Bars: Liste von (Zeile, Farbe) Paaren</span>
+<span class="comment">; Abarbeitung wie der Amiga-Copper, aber alles in Software</span>
+
+<span class="comment">; Copper-Liste Format:</span>
+<span class="comment">; !byte Zeile, Farbe (oder $FF,$FF für Ende)</span>
+CopperList:
+          <span class="directive">!byte</span>  40, 0   <span class="comment">; Zeile 40: Schwarz</span>
+          <span class="directive">!byte</span>  50, 2   <span class="comment">; Zeile 50: Rot</span>
+          <span class="directive">!byte</span>  60, 8   <span class="comment">; Zeile 60: Orange</span>
+          <span class="directive">!byte</span>  70, 7   <span class="comment">; Zeile 70: Gelb</span>
+          <span class="directive">!byte</span>  80, 5   <span class="comment">; Zeile 80: Grün</span>
+          <span class="directive">!byte</span>  90, 3   <span class="comment">; Zeile 90: Cyan</span>
+          <span class="directive">!byte</span> 100, 6   <span class="comment">; Zeile 100: Blau</span>
+          <span class="directive">!byte</span> 110, 4   <span class="comment">; Zeile 110: Lila</span>
+          <span class="directive">!byte</span> 120, 0   <span class="comment">; Zeile 120: Schwarz (Ende der Bar)</span>
+          <span class="directive">!byte</span> $FF, $FF <span class="comment">; Ende der Liste</span>
+
+CopperIndex: <span class="directive">!byte</span> 0  <span class="comment">; Aktueller Index in CopperList</span>
+
+SetupCopperIRQ:
+          SEI
+          LDA #$7F : STA $DC0D
+          LDA #$01 : STA $D01A
+          LDA CopperList       <span class="comment">; Erste Zeile</span>
+          STA $D012
+          LDA #0 : STA CopperIndex
+          LDA #&lt;CopperIRQ : STA $0314
+          LDA #&gt;CopperIRQ : STA $0315
+          CLI
+          RTS
+
+CopperIRQ:
+          PHA : TXA : PHA
+          LDA #$01 : STA $D019   <span class="comment">; IRQ quittieren</span>
+
+          LDX CopperIndex
+          LDA CopperList+1,X     <span class="comment">; Farbe für diese Zeile</span>
+          BMI .reset             <span class="comment">; $FF → Ende erreicht</span>
+          STA $D021              <span class="comment">; Farbe setzen</span>
+
+          INX : INX              <span class="comment">; Nächsten Eintrag</span>
+          STX CopperIndex
+          LDA CopperList,X       <span class="comment">; Nächste Zeile</span>
+          BMI .reset
+          STA $D012              <span class="comment">; IRQ für nächste Zeile</span>
+          PLA : TAX : PLA
+          RTI
+
+.reset:   LDA #0 : STA CopperIndex
+          LDA CopperList         <span class="comment">; Zur ersten Zeile zurück</span>
+          STA $D012
+          LDA #0 : STA $D021     <span class="comment">; Hintergrund zurück</span>
+          PLA : TAX : PLA
+          RTI</pre>
+
+    <h3>2.3 Sinusbewegung der Rasterbars</h3>
+
+    <pre><span class="comment">; Rasterbars auf Sinuskurve auf und ab bewegen</span>
+<span class="comment">; RasterAngle: 0-255 Schrittzähler, wird jeden Frame erhöht</span>
+
+RasterAngle: <span class="directive">!byte</span> 0
+
+UpdateRasterPos:
+          LDX RasterAngle
+          LDA SinTable,X         <span class="comment">; 0-255</span>
+          LSR : LSR              <span class="comment">; /4 → 0-63</span>
+          CLC
+          ADC #40                <span class="comment">; Basis-Y = 40</span>
+          STA CopperList         <span class="comment">; Ersten Copper-Eintrag updaten</span>
+
+          INC RasterAngle
+          RTS</pre>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="scrolling">
+    <h2>3. Hardware-Scrolling</h2>
+
+    <p>Der VIC-II bietet Hardware-Scroll-Register für pixelgenaues Scrollen: <code>$D016</code> Bits 0–2 (horizontaler Soft-Scroll) und <code>$D011</code> Bits 0–2 (vertikaler Soft-Scroll). Diese verschieben das gesamte Bild um bis zu 7 Pixel ohne RAM-Bewegung.</p>
+
+    <h3>3.1 Horizontaler Hardware-Scroller</h3>
+
+    <pre><span class="comment">; $D016 Bits 0-2: XSCROLL (0-7)</span>
+<span class="comment">; Bild scrollt nach links wenn XSCROLL abnimmt</span>
+<span class="comment">; Bei XSCROLL=0 → nächste Spalte via Screen-RAM-Shift einfahren</span>
+
+ScrollX:    <span class="directive">!byte</span> 7      <span class="comment">; Start bei Maximum (kein Scroll)</span>
+ScrollText: <span class="directive">!text</span> "HALLO WELT   "  <span class="comment">; Scrolltext</span>
+ScrollPos:  <span class="directive">!byte</span> 0      <span class="comment">; Position im ScrollText</span>
+
+UpdateScroll:
+          DEC ScrollX
+          LDA ScrollX
+          AND #$07           <span class="comment">; Sicher im 0-7 Bereich</span>
+          STA ScrollX
+
+          TAX
+          LDA $D016
+          AND #$F8           <span class="comment">; Scroll-Bits löschen</span>
+          ORA ScrollX
+          STA $D016          <span class="comment">; Neuen Scroll-Wert setzen</span>
+
+          CPX #7             <span class="comment">; Haben wir voll durchgescrollt?</span>
+          BNE .done          <span class="comment">; Nein: fertig</span>
+
+          <span class="comment">; Ja: Screen-RAM eine Spalte nach links verschieben</span>
+          JSR ShiftScreenLeft
+          <span class="comment">; Rechte Spalte mit nächstem Zeichen füllen</span>
+          LDX ScrollPos
+          LDA ScrollText,X
+          JSR WriteRightColumn
+          INC ScrollPos
+          LDA ScrollPos
+          CMP #(ScrollTextEnd - ScrollText)
+          BNE .done
+          LDA #0 : STA ScrollPos  <span class="comment">; Wrap around</span>
+.done:    RTS
+
+<span class="comment">; Screen-RAM ($0400) eine Spalte nach links schieben</span>
+<span class="comment">; 25 Zeilen × 40 Zeichen = 1000 Bytes</span>
+ShiftScreenLeft:
+          LDX #0
+.row:     TXA
+          ASL : ASL : ASL : ASL : ASL  <span class="comment">; × 32... besser: LUT nutzen</span>
+          <span class="comment">; Einfacher: Direkte Adressberechnung per Zeile</span>
+          <span class="comment">; Wir nutzen hier eine einfache, lesbare Variante:</span>
+
+          LDY #0
+.nextrow: LDA #0             <span class="comment">; Zeilen-Offset (vereinfacht)</span>
+
+          <span class="comment">; Zeile Y shiften: Bytes 1-39 → 0-38</span>
+          LDX #0
+.shift:   LDA $0401,X        <span class="comment">; Byte 1-39 holen</span>
+          STA $0400,X        <span class="comment">; → Byte 0-38</span>
+          INX
+          CPX #39
+          BNE .shift
+          <span class="comment">; [Hier würde man jede der 25 Zeilen separat shiften]</span>
+          <span class="comment">; Für echten Code: Row-Offset-LUT + unrolled</span>
+          RTS
+
+<span class="comment">; Rechte Spalte (Spalte 39) mit einem Zeichen füllen</span>
+WriteRightColumn:
+          LDY #0
+.loop:    STA RowStart39,Y   <span class="comment">; Vorberechnete Adress-LUT</span>
+          INY
+          CPY #25
+          BNE .loop
+          RTS
+
+<span class="comment">; Optionale Farb-RAM Synchronisation (für farbige Scroller)</span>
+          <span class="comment">; Gleiche Logik für $D800–$DBE7</span></pre>
+
+    <div class="box box-tip">
+      <div class="box-title">Profi-Tipp: Screen-Shift mit Pagetrick</div>
+      Statt das gesamte Screen-RAM zu verschieben, kann man zwei Screen-RAM-Puffer nutzen und abwechselnd auf einen zeigen (via <code>$D018</code>). Dann muss nur in den <em>inaktiven</em> Puffer geschrieben werden — kein aufwändiges Shiften!
+    </div>
+
+    <h3>3.2 Vertikaler Soft-Scroll</h3>
+
+    <pre><span class="comment">; $D011 Bits 0-2: YSCROLL (0-7)</span>
+<span class="comment">; Bild scrollt nach oben wenn YSCROLL abnimmt</span>
+
+ScrollY: <span class="directive">!byte</span> 3      <span class="comment">; Standardwert (Mitte)</span>
+
+UpdateVScroll:
+          DEC ScrollY
+          LDA ScrollY
+          AND #$07
+          STA ScrollY
+
+          TAX
+          LDA $D011
+          AND #$F8
+          ORA ScrollY
+          STA $D011
+
+          CPX #3             <span class="comment">; Zurück am Anfang? → Zeile shiften</span>
+          BNE .done
+          JSR ShiftScreenUp  <span class="comment">; Zeilen nach oben verschieben</span>
+          JSR FillBottomRow  <span class="comment">; Neue Zeile unten einfügen</span>
+.done:    RTS</pre>
+
+    <h3>3.3 FLD-Scroller (Flexible Line Distance)</h3>
+
+    <pre><span class="comment">; FLD: In jedem Raster-IRQ YSCROLL ändern → Zeilen "auseinander ziehen"</span>
+<span class="comment">; Effekt: Wellenförmig verzerrtes Bild (Sinus-Warp)</span>
+
+FLDAngle: <span class="directive">!byte</span> 0
+
+FLD_IRQ:
+          PHA
+          LDA #$01 : STA $D019
+
+          <span class="comment">; Pro Rasterzeile neuen YSCROLL setzen</span>
+          LDA $D012          <span class="comment">; Aktuelle Zeile</span>
+          SEC : SBC #50      <span class="comment">; Offset zum Bildanfang</span>
+          CLC
+          ADC FLDAngle       <span class="comment">; Sinus-Phase</span>
+          TAX
+          LDA SinTable,X     <span class="comment">; Sinuswert 0-255</span>
+          LSR : LSR : LSR : LSR : LSR  <span class="comment">; /32 → 0-7</span>
+          STA $FB
+
+          LDA $D011
+          AND #$F8
+          ORA $FB
+          STA $D011          <span class="comment">; YSCROLL setzen</span>
+
+          <span class="comment">; Nächsten IRQ für die nächste Zeile setzen</span>
+          LDA $D012
+          CLC : ADC #1
+          CMP #251           <span class="comment">; Ende des sichtbaren Bereichs?</span>
+          BNE .setnext
+          LDA #50            <span class="comment">; Zurück zum Anfang</span>
+          INC FLDAngle       <span class="comment">; Wellen-Phase vorwärts</span>
+.setnext: STA $D012
+
+          PLA : RTI</pre>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="sprite-mux">
+    <h2>4. Sprite-Multiplexer</h2>
+
+    <p>Der C64 hat nur 8 Hardware-Sprites. Ein <strong>Sprite-Multiplexer</strong> ermöglicht durch Raster-IRQs das Wiederverwenden dieser 8 Slots — sobald ein Sprite aus dem Bild läuft, wird dessen Hardware-Slot einem neuen Sprite zugewiesen. So sind 24, 32 oder sogar 40+ logische Sprites möglich.</p>
+
+    <h3>4.1 Datenstrukturen</h3>
+
+    <pre><span class="comment">; Logische Sprites: bis zu 24 Sprites</span>
+MAX_SPRITES = 24
+
+<span class="comment">; Arrays für alle logischen Sprites (in Zero Page oder nahe ZP)</span>
+SprLogX:    <span class="directive">!fill</span> MAX_SPRITES, 0   <span class="comment">; X-Position (0-255, +$D010 für >255)</span>
+SprLogY:    <span class="directive">!fill</span> MAX_SPRITES, 0   <span class="comment">; Y-Position (50-250 sinnvoll)</span>
+SprLogFrame:<span class="directive">!fill</span> MAX_SPRITES, 0   <span class="comment">; Grafikzeiger ($07F8-Format)</span>
+SprLogColor:<span class="directive">!fill</span> MAX_SPRITES, 0   <span class="comment">; Farbe</span>
+SprLogActive:<span class="directive">!fill</span> MAX_SPRITES, 0  <span class="comment">; 0=inaktiv, 1=aktiv</span>
+
+<span class="comment">; Sortiertabelle: Indizes in aufsteigender Y-Reihenfolge</span>
+SortedIdx:  <span class="directive">!fill</span> MAX_SPRITES, 0
+
+<span class="comment">; IRQ-Slots: 8 Einträge für die 8 Hardware-Sprites im nächsten IRQ</span>
+IRQSlotY:   <span class="directive">!fill</span> 8, $FF   <span class="comment">; Y-Position für jeden Slot</span>
+IRQSlotIdx: <span class="directive">!fill</span> 8, $FF   <span class="comment">; Logischer Sprite-Index</span>
+NumIRQSlots: <span class="directive">!byte</span> 0</pre>
+
+    <h3>4.2 Y-Sortierung</h3>
+
+    <pre><span class="comment">; Insertion Sort für Sprite-Y-Positionen</span>
+<span class="comment">; Muss jeden Frame im VBlank ausgeführt werden</span>
+<span class="comment">; Eingabe: SprLogY[], SprLogActive[]</span>
+<span class="comment">; Ausgabe: SortedIdx[] in aufsteigender Y-Reihenfolge</span>
+
+SortSprites:
+          <span class="comment">; Phase 1: SortedIdx mit aktiven Sprite-Indizes füllen</span>
+          LDX #0
+          LDY #0
+.fill:    LDA SprLogActive,Y    <span class="comment">; Aktiv?</span>
+          BEQ .skip
+          TY : STA SortedIdx,X
+          INX
+.skip:    INY
+          CPY #MAX_SPRITES
+          BNE .fill
+          STX NumActive         <span class="comment">; Anzahl aktiver Sprites</span>
+
+          <span class="comment">; Phase 2: Insertion Sort auf SortedIdx nach SprLogY</span>
+          LDX #1
+.outer:   CPX NumActive : BEQ .done
+          LDA SortedIdx,X       <span class="comment">; Aktueller Index</span>
+          STA TmpIdx
+          LDA SprLogY,X         <span class="comment">; Aktueller Y-Wert</span>
+          STA TmpY
+          TXA : TAY             <span class="comment">; Y = aktuell</span>
+.inner:   CPY #0 : BEQ .insert
+          DEY
+          LDA SortedIdx,Y
+          TAX
+          LDA SprLogY,X         <span class="comment">; Vorheriger Y-Wert</span>
+          CMP TmpY
+          BEQ .insert : BCC .insert  <span class="comment">; Vorheriger ≤ aktueller: einfügen</span>
+          <span class="comment">; Vorheriger > aktueller: nach rechts schieben</span>
+          LDA SortedIdx,Y
+          STA SortedIdx+1,Y
+          JMP .inner
+.insert:  LDA TmpIdx
+          STA SortedIdx+1,Y
+          INX
+          JMP .outer
+.done:    RTS</pre>
+
+    <h3>4.3 IRQ-gestützter Sprite-Multiplexer</h3>
+
+    <pre><span class="comment">; MuxIRQ: Wird aufgerufen wenn der VIC-II die Y-Position des nächsten</span>
+<span class="comment">; Sprite-Batches erreicht. Konfiguriert 8 Hardware-Sprites neu.</span>
+
+MuxIRQBase = 50   <span class="comment">; Oberster Bereich des sichtbaren Bildschirms</span>
+MuxPtr:   <span class="directive">!byte</span> 0    <span class="comment">; Index in SortedIdx</span>
+
+InitMux:
+          LDA #0 : STA MuxPtr
+          <span class="comment">; Ersten Batch verarbeiten (ab Zeile 50)</span>
+          JSR LoadNextBatch
+          LDA #&lt;MuxIRQ : STA $0314
+          LDA #&gt;MuxIRQ : STA $0315
+          RTS
+
+MuxIRQ:
+          PHA : TXA : PHA : TYA : PHA
+
+          LDA #$01 : STA $D019   <span class="comment">; IRQ quittieren</span>
+
+          JSR WriteSpriteHW      <span class="comment">; Aktuellen Batch in HW schreiben</span>
+          JSR LoadNextBatch      <span class="comment">; Nächsten Batch vorbereiten</span>
+
+          PLA : TAY : PLA : TAX : PLA
+          RTI
+
+<span class="comment">; Hardware-Sprites mit dem aktuellen Batch beschreiben</span>
+WriteSpriteHW:
+          LDX #0
+.loop:    LDA IRQSlotIdx,X
+          CMP #$FF : BEQ .disable
+
+          TAY
+          LDA SprLogX,Y
+          STA $D000,X            <span class="comment">; X-Position (Low Byte)</span>
+          LDA SprLogY,Y
+          STA $D001,X            <span class="comment">; Y-Position</span>
+          LDA SprLogFrame,Y
+          STA $07F8,X            <span class="comment">; Sprite-Pointer</span>
+          LDA SprLogColor,Y
+          STA $D027,X            <span class="comment">; Farbe</span>
+          JMP .next
+
+.disable: <span class="comment">; Sprite ausblenden: Y-Position unter Bildschirm</span>
+          LDA #$FF : STA $D001,X
+
+.next:    INX : INX              <span class="comment">; Nächster Sprite (X,Y-Paare = 2 Bytes)</span>
+          CPX #16 : BNE .loop
+          <span class="comment">; Sprites aktivieren</span>
+          LDA #$FF : STA $D015   <span class="comment">; Alle 8 an</span>
+          RTS
+
+<span class="comment">; Nächsten 8er-Batch aus SortedIdx laden und IRQ-Zeit setzen</span>
+LoadNextBatch:
+          LDX MuxPtr
+          LDY #0
+.load:    CPY #8 : BEQ .done
+          LDA SortedIdx,X
+          CMP #$FF : BEQ .fill_rest
+          STA IRQSlotIdx,Y
+          INX : INY
+          JMP .load
+
+.fill_rest:
+          LDA #$FF : STA IRQSlotIdx,Y
+          INY : JMP .fill_rest
+
+.done:    STX MuxPtr
+          <span class="comment">; IRQ auf Y-Position des ersten Sprites im Batch setzen</span>
+          LDA IRQSlotIdx
+          CMP #$FF : BEQ .no_more
+          TAX
+          LDA SprLogY,X
+          STA $D012              <span class="comment">; Nächster IRQ bei dieser Y-Zeile</span>
+          RTS
+
+.no_more: <span class="comment">; Keine Sprites mehr → IRQ für nächsten Frame setzen</span>
+          LDA #0 : STA MuxPtr
+          LDA #MuxIRQBase : STA $D012
+          RTS</pre>
+
+    <div class="box box-info">
+      <div class="box-title">Sprites pro Frame und Mindestabstand</div>
+      Zwischen zwei IRQ-Batches muss genug Zeit für den Handler vergehen. Jeder Batch-Wechsel braucht ca. 100–150 Zyklen. Bei ~63 Zyklen/Zeile bedeutet das mindestens <strong>2–3 Zeilen Abstand</strong> zwischen zwei Sprite-Gruppen. Sprites auf der gleichen Y-Position können nicht in verschiedene Batches — sie müssen wirklich versetzt sein.
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="fld">
+    <h2>5. FLD — Flexible Line Distance</h2>
+
+    <p>FLD (Flexible Line Distance) ist eine Technik, bei der YSCROLL so manipuliert wird, dass der VIC-II „glaubt", mehr Zeilen zwischen zwei Zeichensatz-Zeilen zu sein als normal. Das Ergebnis: der Bildschirm „öffnet" sich vertikal, Lücken entstehen zwischen den Textzeilen.</p>
+
+    <pre><span class="comment">; FLD-Grundprinzip:</span>
+<span class="comment">; Normalerweise: YSCROLL = konstant (z.B. 3)</span>
+<span class="comment">; → Bad Lines alle 8 Rasterzeilen</span>
+<span class="comment">;</span>
+<span class="comment">; Mit FLD: YSCROLL ändert sich mit jedem Raster-IRQ</span>
+<span class="comment">; → VIC-II erkennt keine Bad Line → keine Zeichensatz-Daten</span>
+<span class="comment">; → Zeile wird mit Hintergrundfarbe gefüllt ("Open Border")</span>
+
+<span class="comment">; FLD nutzen um eine "wellige Linie" zwischen Textbereichen zu erzeugen</span>
+
+FLD_YScroll: <span class="directive">!byte</span> 3    <span class="comment">; Basis-YSCROLL</span>
+FLD_Phase:   <span class="directive">!byte</span> 0    <span class="comment">; Sinus-Phase</span>
+
+<span class="comment">; Raster-IRQ der jede Zeile aufgerufen wird (zwischen Zeile 100-150)</span>
+FLD_LinIRQ:
+          PHA
+          LDA #$01 : STA $D019
+
+          LDA $D012             <span class="comment">; Aktuelle Rasterzeile</span>
+          SEC : SBC #100        <span class="comment">; Offset</span>
+          CLC : ADC FLD_Phase   <span class="comment">; Phase addieren</span>
+          TAX
+          LDA SinTable,X        <span class="comment">; Sinuswert</span>
+          LSR : LSR : LSR : LSR : LSR  <span class="comment">; /32 → 0-7</span>
+          PHA
+
+          LDA $D011
+          AND #$F8
+          PLA : ORA
+          STA $D011             <span class="comment">; YSCROLL setzen</span>
+
+          <span class="comment">; Nächste Zeile</span>
+          LDA $D012
+          CLC : ADC #1
+          CMP #150 : BNE .cont
+          LDA $D011             <span class="comment">; YSCROLL zurücksetzen</span>
+          AND #$F8
+          ORA #3
+          STA $D011
+          LDA #100
+          INC FLD_Phase
+.cont:    STA $D012
+          PLA : RTI</pre>
+
+    <h3>5.1 Open Border Trick</h3>
+
+    <pre><span class="comment">; Der berühmte "Open Border" Effekt: oberen/unteren Rand öffnen</span>
+<span class="comment">; Trick: Raster-Register für den oberen Rand manipulation</span>
+<span class="comment">;</span>
+<span class="comment">; Unterer Rand öffnen:</span>
+<span class="comment">; Kurz vor Zeile 300 (Ende des sichtbaren Bereichs):</span>
+<span class="comment">; 1. Auf 24-Zeilen-Modus wechseln (Bit 3 von $D011 löschen)</span>
+<span class="comment">; 2. Sofort zurück auf 25-Zeilen-Modus</span>
+<span class="comment">; Das "verwirrt" den VIC-II Border-Detektor</span>
+
+OpenBorderIRQ:
+          PHA
+          LDA #$01 : STA $D019
+
+          LDA $D012
+          CMP #300-8 : BNE .check
+          <span class="comment">; Zeile ~292: kurz auf 24-Zeilen-Modus</span>
+          LDA $D011
+          AND #$F7              <span class="comment">; Bit 3 löschen (24-Zeilen)</span>
+          STA $D011
+
+.check:   CMP #300-4 : BNE .done
+          <span class="comment">; Zeile ~296: zurück auf 25-Zeilen</span>
+          LDA $D011
+          ORA #$08              <span class="comment">; Bit 3 setzen</span>
+          STA $D011
+
+.done:    <span class="comment">; Nächsten IRQ setzen</span>
+          LDA $D012
+          CLC : ADC #1
+          STA $D012
+          PLA : RTI</pre>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="plasma">
+    <h2>6. Plasma-Effekt</h2>
+
+    <p>Der Plasma-Effekt ist ein klassischer Demo-Effekt: jede Position <code>(x,y)</code> erhält eine Farbe basierend auf der Summe zweier Sinuswellen. Das Ergebnis ist ein organisch-wellenartiges Farbmuster. Im Charakter-Modus nutzt man das Color-RAM (<code>$D800</code>) für schnelle Plasma-Darstellung.</p>
+
+    <pre><span class="comment">; Plasma-Effekt über Color-RAM</span>
+<span class="comment">; 40×25 = 1000 Pixel, jede Iteration: 2 Sinus-Lookups + Addition</span>
+
+PlasmaT1: <span class="directive">!byte</span> 0    <span class="comment">; Zeit-Variable 1 (globale Phase)</span>
+PlasmaT2: <span class="directive">!byte</span> 0    <span class="comment">; Zeit-Variable 2</span>
+
+UpdatePlasma:
+          LDA #$20 : JSR FillScreen  <span class="comment">; Bildschirm mit Space füllen</span>
+
+          LDY #0               <span class="comment">; Y = Zeile × Spalte (linearer Index)</span>
+          LDA #0 : STA RowPhase
+          LDA PlasmaT1 : STA RowSin
+
+.nextrow: LDA #0 : STA ColPhase
+          LDA PlasmaT2 : STA ColSin
+
+.nextcol: <span class="comment">; Farbe = (sin(col+t1) + sin(row+t2)) / 2 → Nibble 0-15</span>
+          LDX RowSin
+          LDA SinTable,X       <span class="comment">; Sin(row+t1) → 0-255</span>
+          LSR : LSR : LSR      <span class="comment">; /8 → 0-31</span>
+          STA Tmp1
+
+          LDX ColSin
+          LDA SinTable,X       <span class="comment">; Sin(col+t2)</span>
+          LSR : LSR : LSR
+          CLC : ADC Tmp1
+          LSR                  <span class="comment">; /2 → 0-15 (genau 16 Farben!)</span>
+          AND #$0F
+          STA $D800,Y          <span class="comment">; Farbe ins Color-RAM</span>
+
+          INC ColSin           <span class="comment">; Nächste Spalte</span>
+          INY
+          CPY #40 : BNE .nextcol
+
+          INC RowSin
+          LDA RowPhase
+          CLC : ADC #40
+          STA RowPhase
+          TAY
+          CMP #250             <span class="comment">; 25 Zeilen × 40?</span>
+          BNE .nextrow
+
+          <span class="comment">; Zeitvariablen für nächsten Frame</span>
+          INC PlasmaT1
+          LDA PlasmaT1
+          CLC : ADC #3
+          STA PlasmaT2         <span class="comment">; T2 läuft schneller → komplexeres Muster</span>
+          RTS
+
+<span class="comment">; Optimierung: Plasma zu langsam? → Nur jeden 2. Frame aktualisieren</span>
+<span class="comment">; Oder: Nur die sichtbaren Änderungen schreiben (Dirty-Flagging)</span></pre>
+
+    <h3>6.1 Plasma mit $D800 Page-Trick</h3>
+
+    <pre><span class="comment">; Schnellerer Plasma: Color-RAM direkt beschreiben via ZP-Pointer</span>
+<span class="comment">; Nutze (ZP),Y Adressierung für indirekten Zugriff</span>
+
+FastPlasma:
+          LDA #&lt;$D800 : STA PlasPtr
+          LDA #&gt;$D800 : STA PlasPtr+1
+
+          LDX #0               <span class="comment">; Zeilen-Zähler</span>
+          LDA PlasmaT1 : STA RowAng
+
+.row:     LDA PlasmaT2 : STA ColAng
+          LDY #0               <span class="comment">; Spalten-Index</span>
+
+.col:     LDA RowAng : TAX
+          LDA SinTable,X       <span class="comment">; Row-Sinus</span>
+          STA Tmp1
+          LDA ColAng : TAX
+          LDA SinTable,X       <span class="comment">; Col-Sinus</span>
+          CLC : ADC Tmp1
+          LSR : LSR : LSR : LSR  <span class="comment">; /16 → 0-15</span>
+          AND #$0F
+          STA (PlasPtr),Y      <span class="comment">; Color-RAM schreiben</span>
+          INC ColAng
+          INY
+          CPY #40 : BNE .col
+
+          <span class="comment">; Pointer um 40 vorwärts (nächste Zeile im Color-RAM)</span>
+          LDA PlasPtr : CLC : ADC #40 : STA PlasPtr
+          LDA PlasPtr+1 : ADC #0 : STA PlasPtr+1
+
+          INC RowAng
+          INX
+          CPX #25 : BNE .row
+
+          INC PlasmaT1
+          INC PlasmaT1         <span class="comment">; 2× pro Frame = schnellere Animation</span>
+          LDA PlasmaT1
+          CLC : ADC #5
+          STA PlasmaT2
+          RTS</pre>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="dysp">
+    <h2>7. DYSP — Dynamic Sprite Positioning</h2>
+
+    <p>DYSP steht für "Dynamic Sprite" — eine Technik, bei der Sprites in einem Raster-IRQ sehr schnell neu positioniert werden, noch bevor der VIC-II die neue Zeile zeichnet. Damit erscheint ein Sprite gleichzeitig an mehreren Positionen auf dem Bildschirm.</p>
+
+    <h3>7.1 Einfaches DYSP (Sprite-Welleneffekt)</h3>
+
+    <pre><span class="comment">; 1 Sprite physisch, erscheint aber 24× in einer Welle</span>
+<span class="comment">; Raster-IRQ für jede "Instanz"</span>
+
+DYSP_Y:    <span class="directive">!fill</span> 24, 0   <span class="comment">; Y-Position jeder Instanz</span>
+DYSP_X:    <span class="directive">!fill</span> 24, 0   <span class="comment">; X-Position</span>
+DYSP_Ptr:  <span class="directive">!byte</span> 0       <span class="comment">; Aktuell angezeigte Instanz</span>
+
+<span class="comment">; Berechne Sinus-Wellen-Positionen im VBlank</span>
+UpdateDYSP:
+          LDA DYSPPhase
+          LDX #0
+.loop:    TXA
+          CLC : ADC DYSPPhase
+          TAY
+          LDA SinTable,Y       <span class="comment">; Sinus-Wert für diese Position</span>
+          LSR : LSR            <span class="comment">; /4 → 0-63</span>
+          CLC : ADC #100       <span class="comment">; Y-Basis = 100</span>
+          STA DYSP_Y,X         <span class="comment">; Y-Position dieser Instanz</span>
+
+          TXA
+          ASL : ASL : ASL      <span class="comment">; × 8 → X-Abstand</span>
+          CLC : ADC #20        <span class="comment">; X-Basis</span>
+          STA DYSP_X,X
+
+          INX
+          CPX #24 : BNE .loop
+          INC DYSPPhase
+          RTS
+
+<span class="comment">; DYSP-IRQ: Für jede Instanz aufgerufen</span>
+DYSP_IRQ:
+          PHA : TXA : PHA
+
+          LDA #$01 : STA $D019  <span class="comment">; Quittieren</span>
+
+          LDX DYSP_Ptr
+          LDA DYSP_X,X : STA $D000  <span class="comment">; X setzen</span>
+          LDA DYSP_Y,X : STA $D001  <span class="comment">; Y setzen</span>
+
+          INX
+          CPX #24 : BNE .setnext
+          LDA #0 : STX DYSP_Ptr
+          LDA DYSP_Y         <span class="comment">; Y-Pos der ersten Instanz für nächsten Frame</span>
+          STA $D012
+          PLA : TAX : PLA
+          RTI
+
+.setnext: STX DYSP_Ptr
+          LDA DYSP_Y,X : STA $D012  <span class="comment">; Nächster IRQ bei Y dieser Instanz</span>
+          PLA : TAX : PLA
+          RTI</pre>
+
+    <h3>7.2 Sprite-Stretching (Horizontale Vergrößerung)</h3>
+
+    <pre><span class="comment">; Sprite horizontal strecken durch schnelles X-Positions-Update</span>
+<span class="comment">; Trick: Pro Rasterzeile des Sprites wird $D000 verschoben</span>
+<span class="comment">; → Sprite "bricht" horizontal auseinander</span>
+
+StretchIRQ:
+          PHA : TXA : PHA
+
+          LDA #$01 : STA $D019
+
+          LDA $D012            <span class="comment">; Aktuelle Zeile</span>
+          SEC : SBC SpriteTop  <span class="comment">; Zeile relativ zum Sprite-Anfang</span>
+          TAX
+          LDA StretchX,X       <span class="comment">; Vorberechnete X-Verschiebung</span>
+          CLC : ADC BaseSprX
+          STA $D000            <span class="comment">; Sprite 0 X-Position</span>
+
+          LDA $D012
+          CLC : ADC #1
+          CMP StretchEnd : BNE .next
+          LDA SpriteTop        <span class="comment">; Zurück zum Anfang</span>
+.next:    STA $D012
+          PLA : TAX : PLA
+          RTI
+
+<span class="comment">; Stretch-Tabelle: Sinus-Kurve für Stretch-X pro Zeile</span>
+StretchX:
+<span class="directive">!for</span> i, 0, 20 {
+    <span class="directive">!byte</span> &lt;(sin(i / 21.0 * 3.14159) * 30)
+}</pre>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="charset-anim">
+    <h2>8. Charset-Animation und Waving Text</h2>
+
+    <p>Durch Veränderung des Zeichensatzes in Echtzeit (oder durch Raster-IRQ-Umschaltung) kann Text „animiert" werden — klassisch: Wellen-Effekt, bei dem jede Zeile des Zeichensatzes mit einer anderen Phase verwendet wird.</p>
+
+    <h3>8.1 Rotierende Zeichen</h3>
+
+    <pre><span class="comment">; Zeichen animieren: ROL/ROR auf die Zeichendaten jeden Frame</span>
+<span class="comment">; Effekt: Zeichen "rotiert" sich Pixel für Pixel</span>
+
+AnimateChar:
+          LDA CharAddr+1   <span class="comment">; High-Byte der Zeichen-Adresse (SMC)</span>
+          LDX #7           <span class="comment">; 8 Bytes pro Zeichen</span>
+          CLC
+.loop:    LDA CustomChar,X
+          ROL              <span class="comment">; Rotiere links (Bit 7 → Carry → Bit 0)</span>
+          STA CustomChar,X
+          DEX
+          BPL .loop
+          RTS
+
+<span class="comment">; Waving-Text: Jede Zeile des Zeichens aus versetzter Sinus-Phase</span>
+
+WavePhase: <span class="directive">!byte</span> 0
+
+AnimateWave:
+          LDX #0
+.charloop:<span class="comment">; Für jedes animierte Zeichen</span>
+          LDA WavePhase
+          CLC : ADC CharOffsets,X  <span class="comment">; Zeichen-eigene Phase</span>
+          TAY
+          LDA SinTable,Y   <span class="comment">; Sinus-Wert</span>
+          LSR : LSR : LSR  <span class="comment">; /8 → 0-31</span>
+          STA WaveRow      <span class="comment">; Welche Zeile soll "hell" sein</span>
+
+          <span class="comment">; Zeichendaten schreiben: nur WaveRow ist "breit"</span>
+          LDY #0
+.rowloop: CPY WaveRow
+          BNE .normal
+          LDA #$FF         <span class="comment">; Volle Zeile</span>
+          JMP .write
+.normal:  LDA NormalChar,Y <span class="comment">; Normale Zeichen-Daten</span>
+.write:   STA (CharPtr),Y
+          INY : CPY #8 : BNE .rowloop
+
+          INX
+          CPX NumAnimChars : BNE .charloop
+
+          INC WavePhase
+          RTS</pre>
+
+    <h3>8.2 Zwei-Screen-Puffer für flimmerfreie Charset-Updates</h3>
+
+    <pre><span class="comment">; Problem: Zeichensatz während des Bildaufbaus ändern → sichtbares Flimmern</span>
+<span class="comment">; Lösung: Zwei Zeichensatz-Puffer, zwischen Frames umschalten</span>
+
+<span class="comment">; Puffer 1: $2000-$27FF (2 KB Zeichensatz)</span>
+<span class="comment">; Puffer 2: $2800-$2FFF</span>
+<span class="comment">; $D018 Bits 1-3: Zeichensatz-Startadresse (in 2KB-Schritten im VIC-Bank)</span>
+
+ActiveCharset: <span class="directive">!byte</span> 0   <span class="comment">; 0 = Puffer 1, 1 = Puffer 2</span>
+
+SwapCharset:
+          LDA ActiveCharset
+          EOR #1
+          STA ActiveCharset
+          BEQ .puffer1
+          <span class="comment">; Puffer 2 aktiv machen</span>
+          LDA $D018
+          AND #$F1           <span class="comment">; Bits 1-3 löschen</span>
+          ORA #$0A           <span class="comment">; Puffer 2 = Offset 5 × 2KB = $2800</span>
+          STA $D018          <span class="comment">; Erst VBlank abwarten für flimmerfrei!</span>
+          RTS
+.puffer1: LDA $D018
+          AND #$F1
+          ORA #$08           <span class="comment">; Puffer 1 = $2000</span>
+          STA $D018
+          RTS
+
+<span class="comment">; Schreibe in INAKTIVEN Puffer (während VIC den aktiven zeigt)</span>
+GetInactiveBase:
+          LDA ActiveCharset  <span class="comment">; 0=aktiv1, schreib in 2; 1=aktiv2, schreib in 1</span>
+          BEQ .return2
+          LDA #$20 : RTS     <span class="comment">; High-Byte von $2000</span>
+.return2: LDA #$28 : RTS     <span class="comment">; High-Byte von $2800</span></pre>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="benchmark" id="benchmark">
+    <h2>Skill-Benchmark: Stufe 9</h2>
+    <p>Du hast diese Stufe gemeistert, wenn du folgende Aufgaben erfüllen kannst:</p>
+    <ul class="benchmark-list">
+      <li><span class="check">✓</span> Du implementierst Copper-Bars mit einer Farbliste aus 8+ Einträgen und synchronisierst sie mit der SID-Musik</li>
+      <li><span class="check">✓</span> Dein Hardware-Scroller läuft mit 50 Hz ohne Tearing — Text einfahren und Wraparound funktionieren</li>
+      <li><span class="check">✓</span> Dein Sprite-Multiplexer stellt 16+ logische Sprites dar und sortiert sie per Insertion Sort</li>
+      <li><span class="check">✓</span> Du verstehst FLD und kannst einen Wellen-Effekt erzeugen, der Textzeilen "verbiegt"</li>
+      <li><span class="check">✓</span> Dein Plasma-Effekt läuft mit 25 FPS oder besser über das volle Color-RAM (40×25)</li>
+      <li><span class="check">✓</span> Du hast eine vollständige Demo-Sequenz aus drei Parts mit Übergängen und passender Musik</li>
+    </ul>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="exercises" id="exercises">
+    <h2>Übungen</h2>
+
+    <div class="exercise-item">
+      <h4>Übung 9.1 — Copper-Bar Rainbow</h4>
+      <p>Implementiere 5 Rasterbars, die gemeinsam alle 16 C64-Farben in einem Regenbogen zeigen. Die Bars sollen auf einer Sinuskurve auf und ab gleiten (jede Bar mit einem anderen Phasen-Offset). Synchronisiere den Effekt mit der VBlank — kein Tearing erlaubt.</p>
+    </div>
+
+    <div class="exercise-item">
+      <h4>Übung 9.2 — Bidirektionaler Scroller</h4>
+      <p>Erstelle einen horizontalen Scroller, der den Text in beide Richtungen scrollen kann (Joystick Links/Rechts). Der Scrolltext soll 512 Zeichen lang sein und nahtlos wraparound. Setze einen farbigen Hintergrund-Rasterbar hinter den Scroller.</p>
+    </div>
+
+    <div class="exercise-item">
+      <h4>Übung 9.3 — Sprite-Multiplexer "Starfield"</h4>
+      <p>Erstelle ein Sternenfeld mit 24 Sternen (weiße Punkte = 1-Pixel-Sprites), die sich von rechts nach links bewegen, mit unterschiedlichen Geschwindigkeiten (Tiefeneffekt). Nutze den vollständigen Sprite-Multiplexer aus dieser Stufe. Schnellere Sterne sind größer (Double-Size) und heller.</p>
+    </div>
+
+    <div class="exercise-item">
+      <h4>Übung 9.4 — Plasma + Musik</h4>
+      <p>Kombiniere den Plasma-Effekt mit einem einfachen SID-Music-Player (aus Stufe 06). Die Plasma-Geschwindigkeit (PlasmaT1-Inkrement) soll sich nach dem Takt der Musik ändern: bei jedem Bass-Drum-Hit (Voice 3 Percussion) kurz beschleunigen, dann langsam abbremsen.</p>
+    </div>
+
+    <div class="exercise-item">
+      <h4>Übung 9.5 — Vollständige Demo (Abschlussprojekt)</h4>
+      <p>Erstelle eine 3-Part-Demo: Part 1 = Intro mit Rasterbar-Logo + Scroller, Part 2 = Plasma-Effekt mit Musik, Part 3 = DYSP-Sprite-Welle als Outro. Jeder Part dauert 10 Sekunden, dann Überblende. Die Demo lädt automatisch ab $0801 und kehrt zum BASIC zurück wenn alle Parts durchgelaufen sind.</p>
+    </div>
+  </section>
+
+  <nav class="chapter-nav">
+    <a href="stufe_08_optimierung.html">← Stufe 08: Optimierung</a>
+    <a href="stufe_10_meisterschaft.html">Stufe 10: Meisterschaft →</a>
+  </nav>
+</main>
+
+</body>
+</html>

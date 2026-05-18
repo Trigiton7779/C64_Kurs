@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C64 Mastery — Stufe 3: VIC-II &amp; Zeichenmodus</title>
+<style>
+:root{--c64-blue:#0033aa;--c64-green:#00ff88;--c64-dark:#1a1a2e;--paper:#f8f6f0;--paper-dark:#ede9e0;--text:#1a1a2e;--text-light:#444466;--border:#c0b8a8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Georgia','Times New Roman',serif;font-size:17px;line-height:1.75;color:var(--text);background:var(--paper);display:grid;grid-template-columns:270px 1fr;min-height:100vh}
+.sidebar{background:var(--c64-dark);color:#ccc;position:sticky;top:0;height:100vh;overflow-y:auto;font-family:'Courier New',monospace;font-size:13px}
+.sidebar-header{background:var(--c64-blue);color:white;padding:20px 16px;text-align:center}
+.sidebar-header .logo{font-size:26px;font-weight:bold;color:var(--c64-green);letter-spacing:2px}
+.sidebar-header .sub{font-size:11px;color:#aac;margin-top:4px}
+.sidebar nav ul{list-style:none;padding:8px 0}
+.sidebar nav ul li a{display:block;padding:7px 16px;color:#99b;text-decoration:none;border-left:3px solid transparent;transition:all .2s;font-size:12.5px}
+.sidebar nav ul li a:hover,.sidebar nav ul li a.active{background:rgba(0,51,170,.3);color:var(--c64-green);border-left-color:var(--c64-green)}
+.sidebar nav ul li.section-label{padding:8px 16px 2px;font-size:10px;color:#445;text-transform:uppercase;letter-spacing:1px;margin-top:8px}
+main{max-width:860px;padding:0 56px 80px}
+.chapter-header{border-bottom:3px solid var(--c64-blue);padding:48px 0 28px;margin-bottom:40px}
+.chapter-number{font-family:'Courier New',monospace;font-size:12px;color:var(--c64-blue);text-transform:uppercase;letter-spacing:3px;font-weight:bold;margin-bottom:10px}
+.chapter-header h1{font-size:40px;font-weight:bold;color:var(--c64-dark);line-height:1.2;margin-bottom:18px}
+.chapter-meta{display:flex;gap:20px;font-family:'Courier New',monospace;font-size:13px;color:var(--text-light);flex-wrap:wrap;align-items:center}
+.badge{background:var(--c64-blue);color:white;padding:3px 10px;border-radius:12px;font-size:12px}
+.badge.green{background:#2e7d32}.badge.orange{background:#e65100}
+.objectives{background:#e3f2fd;border-left:4px solid #1565c0;border-radius:0 8px 8px 0;padding:22px 26px;margin-bottom:40px}
+.objectives h3{color:#1565c0;font-size:13px;text-transform:uppercase;letter-spacing:2px;margin-bottom:10px;font-family:'Courier New',monospace}
+.objectives ul{padding-left:20px}.objectives ul li{margin-bottom:5px}
+h2{font-size:26px;color:var(--c64-dark);border-bottom:2px solid var(--c64-blue);padding-bottom:8px;margin:44px 0 20px}
+h3{font-size:19px;color:var(--c64-blue);margin:28px 0 14px}
+h4{font-size:15px;color:var(--text);margin:20px 0 10px;font-family:'Courier New',monospace;text-transform:uppercase;letter-spacing:1px}
+p{margin-bottom:15px}ul,ol{padding-left:24px;margin-bottom:15px}li{margin-bottom:5px}
+pre{background:var(--c64-dark);color:var(--c64-green);font-family:'Courier New',monospace;font-size:13px;line-height:1.65;padding:22px;border-radius:8px;overflow-x:auto;margin:18px 0;border:1px solid #2a2a4a}
+code{font-family:'Courier New',monospace;background:#e5e0d4;padding:2px 6px;border-radius:3px;font-size:.88em;color:#8b0000}
+pre code{background:none;padding:0;color:inherit}
+table{width:100%;border-collapse:collapse;margin:18px 0;font-size:14.5px}
+thead{background:var(--c64-blue);color:white}
+thead th{padding:11px 14px;text-align:left;font-family:'Courier New',monospace;font-size:12px}
+tbody tr:nth-child(even){background:var(--paper-dark)}
+tbody td{padding:9px 14px;border-bottom:1px solid var(--border);vertical-align:top}
+tbody tr:hover{background:#dde8ff}
+.mono{font-family:'Courier New',monospace;color:#8b0000;font-weight:bold}
+.box{border-radius:0 8px 8px 0;padding:18px 22px;margin:22px 0;border-left:4px solid}
+.box .box-title{font-family:'Courier New',monospace;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px}
+.box.warning{background:#fff8e1;border-color:#f0a000}.box.warning .box-title{color:#e65100}
+.box.tip{background:#e8f5e9;border-color:#2e7d32}.box.tip .box-title{color:#1b5e20}
+.box.note{background:#e3f2fd;border-color:#1565c0}.box.note .box-title{color:#0d47a1}
+.box.important{background:#fce4ec;border-color:#c62828}.box.important .box-title{color:#b71c1c}
+.benchmark{background:linear-gradient(135deg,#001166 0%,#0033aa 100%);color:white;padding:30px;border-radius:12px;margin:44px 0}
+.benchmark h2{color:var(--c64-green);border-color:rgba(0,255,136,.3);margin-top:0;font-size:22px}
+.benchmark ul{list-style:none;padding:0}
+.benchmark ul li{padding:7px 0 7px 28px;position:relative;border-bottom:1px solid rgba(255,255,255,.1)}
+.benchmark ul li:before{content:'☐';position:absolute;left:0;color:var(--c64-green)}
+.exercises-section{border:2px solid var(--c64-blue);border-radius:12px;padding:28px;margin:44px 0}
+.exercises-section h2{color:var(--c64-blue);margin-top:0;border:none;padding:0}
+.exercise{background:var(--paper-dark);border-radius:8px;padding:18px;margin:14px 0}
+.exercise-num{font-family:'Courier New',monospace;font-size:11px;color:var(--c64-blue);font-weight:bold;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px}
+.chapter-nav{display:flex;justify-content:space-between;margin-top:56px;padding-top:28px;border-top:2px solid var(--border);gap:16px}
+.chapter-nav a{display:flex;flex-direction:column;padding:14px 22px;background:var(--c64-dark);color:white;text-decoration:none;border-radius:8px;min-width:180px;transition:background .2s}
+.chapter-nav a:hover{background:var(--c64-blue)}
+.nav-label{font-size:10px;color:#889;font-family:'Courier New',monospace;text-transform:uppercase;letter-spacing:2px;margin-bottom:4px}
+.nav-title{font-size:15px;font-weight:bold}
+.reg-table td.addr{font-family:'Courier New',monospace;color:#8b0000;font-weight:bold}
+.color-swatch{display:inline-block;width:18px;height:18px;border-radius:3px;vertical-align:middle;margin-right:6px;border:1px solid #999}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-header"><div class="logo">C64</div><div class="sub">MASTERY SYSTEM</div></div>
+  <nav><ul>
+    <li><a href="index.html">&#9632; Übersicht &amp; Curriculum</a></li>
+    <li class="section-label">Grundlagen</li>
+    <li><a href="stufe_00_fundament.html">Stufe 0 — Fundament</a></li>
+    <li><a href="stufe_01_6510_assembler.html">Stufe 1 — 6510 Assembler</a></li>
+    <li><a href="stufe_02_adressierung_speicher.html">Stufe 2 — Adressierung &amp; Speicher</a></li>
+    <li class="section-label">Grafik &amp; Sound</li>
+    <li><a href="stufe_03_bildschirm_zeichen.html" class="active">Stufe 3 — VIC-II &amp; Zeichen</a></li>
+    <li><a href="stufe_04_sprites_animation.html">Stufe 4 — Sprites &amp; Animation</a></li>
+    <li><a href="stufe_05_bitmap_grafik.html">Stufe 5 — Bitmap-Grafik</a></li>
+    <li><a href="stufe_06_sid_sound.html">Stufe 6 — SID &amp; Sound</a></li>
+    <li class="section-label">Fortgeschritten</li>
+    <li><a href="stufe_07_interrupts_timing.html">Stufe 7 — Interrupts &amp; Timing</a></li>
+    <li><a href="stufe_08_optimierung.html">Stufe 8 — Optimierung</a></li>
+    <li><a href="stufe_09_demo_effekte.html">Stufe 9 — Demo-Effekte</a></li>
+    <li><a href="stufe_10_meisterschaft.html">Stufe 10 — Meisterschaft</a></li>
+  </ul></nav>
+</nav>
+
+<main>
+<div class="chapter-header">
+  <div class="chapter-number">Stufe 3 — Grafik &amp; Sound</div>
+  <h1>VIC-II &amp; Zeichenmodus</h1>
+  <div class="chapter-meta">
+    <span><span class="badge orange">Mittelstufe</span></span>
+    <span>&#128337; ca. 8 Stunden</span>
+    <span>Voraussetzungen: Stufen 0–2</span>
+  </div>
+</div>
+
+<div class="objectives">
+  <h3>&#127919; Lernziele dieser Stufe</h3>
+  <ul>
+    <li>Den VIC-II Chip architektonisch verstehen und alle wichtigen Register kennen</li>
+    <li>Den Standard-Zeichenmodus vollständig konfigurieren und nutzen</li>
+    <li>Eigene Zeichensätze aus dem ROM kopieren, modifizieren und aktivieren</li>
+    <li>Den Multicolor-Zeichenmodus für bunte Grafiken einsetzen</li>
+    <li>Bildschirmausgabe ohne KERNAL direkt über Screen-RAM programmieren</li>
+    <li>Die 16 C64-Farben gezielt für Farbgestaltung einsetzen</li>
+  </ul>
+</div>
+
+<h2>1. Der VIC-II — Herz der C64-Grafik</h2>
+
+<p>Der MOS Technology 6569 (PAL) bzw. 6567 (NTSC) Video Interface Controller II ist zweifellos einer der bemerkenswertesten Chips der 8-Bit-Ära. Entworfen von Al Charpentier und Charles Winterble, bietet er Fähigkeiten, die damalige Konkurrenten wie den Texas Instruments TMS9918 oder den Motorola MC6845 weit hinter sich lassen. Was den VIC-II so besonders macht, ist nicht nur die schiere Anzahl seiner Funktionen, sondern vor allem die Art und Weise, wie er Speicher nutzt und mit der CPU interagiert — eine Meisterleistung des Hardware-Designs unter extremen Kostenrestriktionen.</p>
+
+<p>Der VIC-II ist ein eigenständiger Prozessor mit seinem eigenen Adressraum. Er sieht nur 16 Kilobyte Videoram gleichzeitig — das sogenannte VIC-Bank-System teilt den gesamten 64-KB-Adressraum in vier solcher Bänke auf. Diese Einschränkung hat weitreichende Konsequenzen für die Speicherverwaltung: Screen-RAM, Zeichensatzdaten und Sprite-Daten müssen alle innerhalb derselben 16-KB-Bank liegen. Für den Demo-Coder und Spieleprogrammierer ist das Bank-Management daher eine der wichtigsten strategischen Entscheidungen.</p>
+
+<p>Ein weiteres Kernmerkmal des VIC-II ist der Raster-Interrupt. Der Chip erzeugt während der Bilddarstellung einen Interrupt, wenn er eine bestimmte horizontale Bildlinie (Rasterzeile) erreicht. Diese Fähigkeit ist die Grundlage für nahezu alle fortgeschrittenen Grafikeffekte auf dem C64: Farbsplits, Rasterbars, scrollende Ebenen, Sprite-Multiplexer — all das beruht auf dem präzisen Timing des Raster-IRQ.</p>
+
+<h3>1.1 PAL vs. NTSC</h3>
+
+<p>Der C64 wurde sowohl für den europäischen PAL- als auch den nordamerikanischen NTSC-Videostandard produziert. Die Unterschiede sind für den Programmierer erheblich:</p>
+
+<table>
+  <thead><tr><th>Parameter</th><th>PAL (6569)</th><th>NTSC (6567R8)</th></tr></thead>
+  <tbody>
+    <tr><td>Bildwiederholrate</td><td>50,125 Hz</td><td>59,826 Hz</td></tr>
+    <tr><td>Gesamtzeilen/Bild</td><td>312</td><td>263</td></tr>
+    <tr><td>Sichtbare Zeilen</td><td>284</td><td>235</td></tr>
+    <tr><td>Zyklen/Rasterzeile</td><td>63</td><td>65</td></tr>
+    <tr><td>CPU-Taktfrequenz</td><td>985.248 Hz</td><td>1.022.727 Hz</td></tr>
+    <tr><td>Erste sichtbare Zeile</td><td>~51</td><td>~14</td></tr>
+    <tr><td>Zeichenbereich (oben)</td><td>Zeile 51</td><td>Zeile 28</td></tr>
+  </tbody>
+</table>
+
+<div class="box note">
+  <div class="box-title">&#128221; Hinweis für Einsteiger</div>
+  <p>Dieser Kurs verwendet durchgehend PAL-Werte, da der Großteil der europäischen C64-Hardware PAL verwendet. NTSC-Systeme haben etwas weniger sichtbare Bildzeilen, was bei Raster-IRQ-Techniken beachtet werden muss.</p>
+</div>
+
+<h3>1.2 VIC-II Register-Übersicht ($D000–$D02E)</h3>
+
+<p>Der VIC-II verfügt über 47 lesbare/schreibbare Register, die im Adressbereich <code>$D000</code> bis <code>$D02E</code> liegen. Der Bereich ist auf <code>$D3FF</code> gespiegelt (alle 64 Bytes). Im Folgenden eine vollständige Übersicht:</p>
+
+<table class="reg-table">
+  <thead><tr><th>Adresse</th><th>Name</th><th>Bits</th><th>Funktion</th></tr></thead>
+  <tbody>
+    <tr><td class="addr">$D000/$D001</td><td>SP0X / SP0Y</td><td>8 / 8</td><td>Sprite 0: X-Position (Bit 0–7), Y-Position</td></tr>
+    <tr><td class="addr">$D002–$D00F</td><td>SP1–SP7 XY</td><td>8 je</td><td>Sprites 1–7: X- und Y-Positionen</td></tr>
+    <tr><td class="addr">$D010</td><td>MSIGX</td><td>8</td><td>Bit 8 der X-Position für alle 8 Sprites (je 1 Bit)</td></tr>
+    <tr><td class="addr">$D011</td><td>SCROLY</td><td>8</td><td>Bits 0–2: Vertikal-Scroll; Bit 3: 25/24-Zeilen; Bit 4: Blank; Bit 5: BMM; Bit 6: ECM; Bit 7: Rasterzeile Bit 8</td></tr>
+    <tr><td class="addr">$D012</td><td>RASTER</td><td>8</td><td>Lesen: aktuelle Rasterzeile (Bits 0–7); Schreiben: IRQ-Rasterzeile</td></tr>
+    <tr><td class="addr">$D013/$D014</td><td>LPENX/Y</td><td>8</td><td>Lichtgriffel X- und Y-Position</td></tr>
+    <tr><td class="addr">$D015</td><td>SPENA</td><td>8</td><td>Sprite Enable: 1 Bit pro Sprite (Bit 0 = Sprite 0)</td></tr>
+    <tr><td class="addr">$D016</td><td>SCROLX</td><td>8</td><td>Bits 0–2: Horizontal-Scroll; Bit 3: 40/38-Spalten; Bit 4: MCM</td></tr>
+    <tr><td class="addr">$D017</td><td>YXPAND</td><td>8</td><td>Sprite Y-Verdopplung (1 Bit pro Sprite)</td></tr>
+    <tr><td class="addr">$D018</td><td>VMCSB</td><td>8</td><td>Bits 4–7: Screen-RAM-Offset; Bits 1–3: Zeichensatz/Bitmap-Offset</td></tr>
+    <tr><td class="addr">$D019</td><td>VICIRQ</td><td>4</td><td>IRQ-Status: Bit 0=Raster, 1=Sprite-BG, 2=Sprite-Sprite, 3=LP</td></tr>
+    <tr><td class="addr">$D01A</td><td>IRQMSK</td><td>4</td><td>IRQ-Freigabe (gleiche Bits wie $D019)</td></tr>
+    <tr><td class="addr">$D01B</td><td>SPBGPR</td><td>8</td><td>Sprite-Hintergrund-Priorität (1 = Sprite hinter Vordergrund)</td></tr>
+    <tr><td class="addr">$D01C</td><td>SPMC</td><td>8</td><td>Sprite Multicolor-Enable (1 Bit pro Sprite)</td></tr>
+    <tr><td class="addr">$D01D</td><td>XXPAND</td><td>8</td><td>Sprite X-Verdopplung (1 Bit pro Sprite)</td></tr>
+    <tr><td class="addr">$D01E</td><td>SPSPCL</td><td>8</td><td>Sprite-Sprite-Kollision (Lesen löscht Register!)</td></tr>
+    <tr><td class="addr">$D01F</td><td>SPBGCL</td><td>8</td><td>Sprite-Hintergrund-Kollision (Lesen löscht Register!)</td></tr>
+    <tr><td class="addr">$D020</td><td>EXTCOL</td><td>4</td><td>Rahmenfarbe (Border)</td></tr>
+    <tr><td class="addr">$D021</td><td>BGCOL0</td><td>4</td><td>Hintergrundfarbe 0 (Standard)</td></tr>
+    <tr><td class="addr">$D022</td><td>BGCOL1</td><td>4</td><td>Hintergrundfarbe 1 (Multicolor-Modus)</td></tr>
+    <tr><td class="addr">$D023</td><td>BGCOL2</td><td>4</td><td>Hintergrundfarbe 2 (Multicolor-Modus)</td></tr>
+    <tr><td class="addr">$D024</td><td>BGCOL3</td><td>4</td><td>Hintergrundfarbe 3 (Extended Background Color Mode)</td></tr>
+    <tr><td class="addr">$D025/$D026</td><td>SPMC0/1</td><td>4 je</td><td>Sprite Multicolor-Farben (geteilt für alle Sprites)</td></tr>
+    <tr><td class="addr">$D027–$D02E</td><td>SP0–SP7 COL</td><td>4 je</td><td>Individuelle Farbe für Sprites 0–7</td></tr>
+  </tbody>
+</table>
+
+<h2>2. Bildschirmgeometrie und Koordinatensystem</h2>
+
+<p>Ein PAL-C64-Bild besteht aus insgesamt 312 Rasterzeilen. Davon sind nur etwa 284 tatsächlich auf dem Monitor sichtbar. Der Zeichenbereich — die 25×40 Zeichen-Fläche — liegt in der Mitte des sichtbaren Bereichs. Die genauen Koordinaten hängen von den Scroll-Registern ab, können aber für den Standardfall als fest betrachtet werden.</p>
+
+<pre>
+PAL-Rasterzeilen (0–311):
+  0–49:    Oberer vertikaler Rand (nicht sichtbar + Top-Border)
+  50–249:  Zeichenbereich (200 Zeilen = 25 Textzeilen × 8 Pixel)
+  250–311: Unterer Rand (Bottom-Border + Retrace)
+
+Horizontale Aufteilung pro Rasterzeile (63 Zyklen = 504 Taktperioden):
+  Zyklen  1–14: Hx-Rücklauf (nicht sichtbar)
+  Zyklen 15–54: Linker Rand + 40 Zeichenspalten + Rechter Rand
+  Zyklen 55–63: Rechter Rand + Start Hx-Rücklauf
+</pre>
+
+<h3>2.1 Das Zeiger-Register $D018</h3>
+
+<p>Register <code>$D018</code> ist eines der wichtigsten VIC-II-Register, da es bestimmt, <em>wo</em> der VIC-II seine Daten holt. Bits 4–7 geben den Offset des Screen-RAM (dividiert durch 1024), Bits 1–3 geben den Zeichensatz- oder Bitmap-Offset (dividiert durch 2048) an.</p>
+
+<table>
+  <thead><tr><th>Bits 7–4 (Screen-Offset / 1024)</th><th>Screen-RAM bei (Bank 0)</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">%0000 = 0</td><td>$0000</td></tr>
+    <tr><td class="mono">%0001 = 1</td><td>$0400 (Standard!)</td></tr>
+    <tr><td class="mono">%0010 = 2</td><td>$0800</td></tr>
+    <tr><td class="mono">%1000 = 8</td><td>$2000</td></tr>
+    <tr><td class="mono">%1111 = 15</td><td>$3C00</td></tr>
+  </tbody>
+</table>
+
+<table>
+  <thead><tr><th>Bits 3–1 (Zeichensatz-Offset / 2048)</th><th>Zeichensatz bei (Bank 0)</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">%001 = 1</td><td>$0800</td></tr>
+    <tr><td class="mono">%010 = 2</td><td>$1000 (Standard-ROM-Spiegelung!)</td></tr>
+    <tr><td class="mono">%011 = 3</td><td>$1800 (Kleinbuchstaben-ROM-Spiegelung)</td></tr>
+    <tr><td class="mono">%100 = 4</td><td>$2000</td></tr>
+    <tr><td class="mono">%110 = 6</td><td>$3000</td></tr>
+  </tbody>
+</table>
+
+<div class="box important">
+  <div class="box-title">&#9888; Wichtig: ROM-Spiegel in Bank 0</div>
+  <p>In VIC-Bank 0 (Standard) und Bank 2 spiegelt der VIC-II automatisch das Zeichensatz-ROM in die Adressen $1000–$1FFF (Bank 0) bzw. $9000–$9FFF (Bank 2). Das bedeutet: Auch wenn dort RAM liegt, sieht der <em>VIC-II</em> das Zeichensatz-ROM. Die CPU hingegen sieht, was in <code>$0001</code> konfiguriert ist. Um einen eigenen Zeichensatz zu nutzen, muss er deshalb an eine andere Adresse als $1000/$1800 gelegt werden.</p>
+</div>
+
+<p>Standardwert nach Reset: <code>$D018 = $14</code> = <code>%00010100</code>: Screen bei Offset 1 = $0400, Zeichensatz bei Offset 2 = $1000 (ROM-Spiegel).</p>
+
+<h2>3. Standard-Zeichenmodus: Das Grundprinzip</h2>
+
+<p>Im Standard-Zeichenmodus (auch <em>Hires Text Mode</em> oder <em>Standard Character Mode</em> genannt) rendert der VIC-II jeden Bildschirmbereich als 8×8-Pixel-Zeichen. Der Ablauf für jeden der 1000 Zeichenpositionen auf dem 40×25-Bildschirm ist folgender:</p>
+
+<ol>
+  <li>VIC-II liest Zeichencode (0–255) aus dem Screen-RAM</li>
+  <li>VIC-II multipliziert den Zeichencode mit 8 und addiert die Basisadresse des Zeichensatzes → ergibt Adresse der 8-Byte-Zeichendefinition</li>
+  <li>VIC-II liest die 8 Bytes der Zeichendefinition (eine pro Pixelzeile)</li>
+  <li>Für jedes gesetzte Bit wird die Vordergrundfarbe aus dem Color-RAM gezeichnet, für jedes gelöschte Bit die Hintergrundfarbe aus <code>$D021</code></li>
+</ol>
+
+<h3>3.1 Screen-RAM und Color-RAM</h3>
+
+<p>Screen-RAM (Standard: $0400–$07FF, 1000 Bytes aktiv): Enthält einen Byte-Code pro Zeichenposition. Die Adresse für die Zeichen-Position (Spalte, Zeile) berechnet sich als:</p>
+
+<pre>Adresse = $0400 + (Zeile × 40) + Spalte
+Spalte: 0–39, Zeile: 0–24</pre>
+
+<p>Color-RAM ($D800–$DBFF, 1000 Bytes, parallel zu Screen-RAM): Enthält die Vordergrundfarbe für jede Position. Das Color-RAM ist stets sichtbar — kein Banking kann es ausblenden. Wichtig: Color-RAM ist nur 4 Bit breit. Die oberen 4 Bits eines gelesenen Bytes sind undefiniert (enthält "Müll" vom Adressbus).</p>
+
+<h3>3.2 Vollständiges Beispiel: Text ohne KERNAL ausgeben</h3>
+
+<p>Das folgende Programm schreibt direkt ins Screen-RAM und Color-RAM, ohne KERNAL-Routinen zu verwenden. Dies ist für Spiele und Demos die bevorzugte Methode, da sie deutlich schneller ist und keine KERNAL-Seiteneffekte hat:</p>
+
+<pre>
+; =====================================================
+; Direkte Bildschirmausgabe ohne KERNAL
+; Assembliert mit ACME
+; =====================================================
+
+!to "direkt.prg", cbm
+
+* = $0801
+!byte $0b,$08,$01,$00,$9e,$32,$30,$36,$31,$00,$00,$00
+
+* = $080d
+
+main:
+        ; Hintergrund schwarz, Border dunkelblau
+        lda #0
+        sta $d021       ; Hintergrundfarbe = Schwarz
+        lda #6
+        sta $d020       ; Border = Blau
+
+        ; Bildschirm löschen (Leerzeichen = Screen-Code $20)
+        lda #$20
+        ldx #0
+@clr:   sta $0400,x
+        sta $0500,x
+        sta $0600,x
+        inx
+        bne @clr
+        ; Letzte 1000-(3*256)=232 Zeichen
+        ldx #0
+@clr2:  sta $06e8,x
+        inx
+        cpx #232
+        bne @clr2
+
+        ; Farbe für alle Zeichen auf Weiß (1) setzen
+        lda #1
+        ldx #0
+@col:   sta $d800,x
+        sta $d900,x
+        sta $da00,x
+        inx
+        bne @col
+        ldx #0
+@col2:  sta $dae8,x
+        inx
+        cpx #232
+        bne @col2
+
+        ; Text schreiben: "HALLO C64!" ab Position (5,12)
+        ; Zeile 12, Spalte 5 -> Adresse $0400 + 12*40 + 5 = $0400 + 485 = $05E5
+        ldx #0
+@txt:   lda MsgScreenCodes,x
+        beq @done_txt
+        sta $05e5,x
+        ; Gelbe Farbe (7) für diesen Text
+        lda #7
+        sta $dde5,x     ; $D800 + $05E5 - $0400 = $D9E5...
+        ; Korrekt: Color-RAM Offset = Screen-RAM Offset
+        ; Screen bei $0400, Color bei $D800 -> Offset identisch
+        ; $05E5 - $0400 = $01E5 -> Color-RAM: $D800 + $01E5 = $D9E5
+        lda #7          ; Gelb
+        sta $d9e5,x
+        lda MsgScreenCodes,x
+        sta $05e5,x
+        inx
+        jmp @txt
+@done_txt:
+        rts
+
+; PETSCII zu Screen-Code Konvertierung:
+; Großbuchstaben A-Z: PETSCII $41-$5A -> Screen-Code $01-$1A
+; Leerzeichen: PETSCII $20 -> Screen-Code $20
+; Ziffern 0-9: PETSCII $30-$39 -> Screen-Code $30-$39
+MsgScreenCodes:
+        !byte $08,$01,$0c,$0c,$0f,$20,$03,$36,$34,$21,$00
+        ; H    A    L    L    O   SPC C    6    4    !   Ende
+</pre>
+
+<h3>3.3 Die 16 C64-Farben</h3>
+
+<table>
+  <thead><tr><th>#</th><th>Name</th><th>Hex (RGB-Näherung)</th><th>Verwendung</th></tr></thead>
+  <tbody>
+    <tr><td>0</td><td><span class="color-swatch" style="background:#000"></span>Schwarz</td><td>#000000</td><td>Hintergrund, Schatten</td></tr>
+    <tr><td>1</td><td><span class="color-swatch" style="background:#fff;border:1px solid #ccc"></span>Weiß</td><td>#FFFFFF</td><td>Text, Highlights</td></tr>
+    <tr><td>2</td><td><span class="color-swatch" style="background:#883932"></span>Rot</td><td>#883932</td><td>Feuer, Gefahren</td></tr>
+    <tr><td>3</td><td><span class="color-swatch" style="background:#67b6bd"></span>Cyan</td><td>#67B6BD</td><td>Wasser, Himmel</td></tr>
+    <tr><td>4</td><td><span class="color-swatch" style="background:#8b3f96"></span>Violett</td><td>#8B3F96</td><td>Magie, Kontrast</td></tr>
+    <tr><td>5</td><td><span class="color-swatch" style="background:#55a049"></span>Grün</td><td>#55A049</td><td>Gras, Natur</td></tr>
+    <tr><td>6</td><td><span class="color-swatch" style="background:#40318d"></span>Blau</td><td>#40318D</td><td>Himmel, Wasser</td></tr>
+    <tr><td>7</td><td><span class="color-swatch" style="background:#bfce72"></span>Gelb</td><td>#BFCE72</td><td>Gold, Münzen</td></tr>
+    <tr><td>8</td><td><span class="color-swatch" style="background:#8b5429"></span>Orange</td><td>#8B5429</td><td>Erde, Holz</td></tr>
+    <tr><td>9</td><td><span class="color-swatch" style="background:#574200"></span>Braun</td><td>#574200</td><td>Erde, Dunkel</td></tr>
+    <tr><td>10</td><td><span class="color-swatch" style="background:#b86962"></span>Hellrot</td><td>#B86962</td><td>Haut, Helleffekte</td></tr>
+    <tr><td>11</td><td><span class="color-swatch" style="background:#505050"></span>Dunkelgrau</td><td>#505050</td><td>Schatten, UI</td></tr>
+    <tr><td>12</td><td><span class="color-swatch" style="background:#787878"></span>Mittelgrau</td><td>#787878</td><td>Neutrale Flächen</td></tr>
+    <tr><td>13</td><td><span class="color-swatch" style="background:#94e089"></span>Hellgrün</td><td>#94E089</td><td>Highlights, HUD</td></tr>
+    <tr><td>14</td><td><span class="color-swatch" style="background:#7869c4"></span>Hellblau</td><td>#7869C4</td><td>Wasser, Effekte</td></tr>
+    <tr><td>15</td><td><span class="color-swatch" style="background:#9f9f9f"></span>Hellgrau</td><td>#9F9F9F</td><td>Highlights, Text</td></tr>
+  </tbody>
+</table>
+
+<h2>4. PETSCII und Screen-Codes — ein wichtiger Unterschied</h2>
+
+<p>Viele Einsteiger stolpern über einen fundamentalen Unterschied im C64-System: Den Unterschied zwischen PETSCII-Codes (Commodore's Zeichencodierung, verwendet von BASIC und KERNAL) und Screen-Codes (was tatsächlich ins Screen-RAM geschrieben wird und dort als Zeichenindex dient).</p>
+
+<p>PETSCII ist nicht identisch mit ASCII. Es hat eine komplett andere Anordnung. Screen-Codes hingegen sind direkte Indizes in den Zeichensatz. Die Konvertierungsregeln:</p>
+
+<table>
+  <thead><tr><th>Zeichen</th><th>PETSCII</th><th>Screen-Code</th><th>Formel</th></tr></thead>
+  <tbody>
+    <tr><td>A–Z (Großbuchstaben)</td><td>$41–$5A</td><td>$01–$1A</td><td>PETSCII - $40</td></tr>
+    <tr><td>a–z (BASIC: Reversvideo)</td><td>$61–$7A</td><td>$41–$5A</td><td>PETSCII - $20</td></tr>
+    <tr><td>0–9 (Ziffern)</td><td>$30–$39</td><td>$30–$39</td><td>identisch</td></tr>
+    <tr><td>Leerzeichen</td><td>$20</td><td>$20</td><td>identisch</td></tr>
+    <tr><td>@</td><td>$40</td><td>$00</td><td>PETSCII - $40</td></tr>
+    <tr><td>grafische Zeichen</td><td>$A0–$BF</td><td>$60–$7F</td><td>PETSCII - $40</td></tr>
+  </tbody>
+</table>
+
+<div class="box tip">
+  <div class="box-title">&#128161; Profi-Tipp</div>
+  <p>Verwende im Assembler <code>!pet "Text"</code> für PETSCII-Strings und <code>!scr "Text"</code> für Screen-Codes (ACME-Syntax). Damit erspart man sich die manuelle Konvertierung.</p>
+</div>
+
+<h2>5. Eigene Zeichensätze erstellen</h2>
+
+<p>Das Erstellen eigener Zeichensätze ist eine der kreativsten Aufgaben in der C64-Programmierung. Ein Zeichensatz besteht aus 256 Zeichen à 8 Bytes = 2048 Bytes. Jedes Byte repräsentiert eine Pixelzeile des 8×8-Rasters: Bit 7 ist der linkeste Pixel, Bit 0 der rechteste.</p>
+
+<h3>5.1 Zeichensatz-ROM in RAM kopieren</h3>
+
+<p>Das Zeichensatz-ROM liegt bei $D000–$DFFF, ist aber normalerweise durch den I/O-Bereich verdeckt. Durch Ändern von Bit 2 in Register <code>$0001</code> kann das Zeichensatz-ROM sichtbar gemacht werden, um es ins RAM zu kopieren:</p>
+
+<pre>
+; =====================================================
+; ROM-Zeichensatz nach $3800 kopieren und modifizieren
+; Ziel: $3800-$3FFF (2 KB für 256 Zeichen)
+; VIC-II wird dann auf diesen Bereich gelenkt
+; =====================================================
+
+CopyAndModifyCharset:
+        ; Schritt 1: I/O ausblenden, Zeichensatz-ROM sichtbar
+        lda $01
+        and #%11111011  ; Bit 2 (CHAREN) = 0 → Charset ROM erscheint bei $D000
+        sta $01
+
+        ; Schritt 2: 2048 Bytes von $D000 nach $3800 kopieren
+        ldx #0
+@copy:
+        lda $d000,x     ; Aus Charset-ROM (Großbuchstaben/Zeichen Set 1)
+        sta $3800,x
+        lda $d100,x
+        sta $3900,x
+        lda $d200,x
+        sta $3a00,x
+        lda $d300,x
+        sta $3b00,x
+        lda $d400,x
+        sta $3c00,x
+        lda $d500,x
+        sta $3d00,x
+        lda $d600,x
+        sta $3e00,x
+        lda $d700,x
+        sta $3f00,x
+        inx
+        bne @copy
+
+        ; Schritt 3: I/O wieder einblenden
+        lda $01
+        ora #%00000100
+        sta $01
+
+        ; Schritt 4: Zeichen 'A' (Screen-Code $01) modifizieren
+        ; Neues 'A' als Herz-Symbol
+        ldx #0
+@mod:   lda HeartChar,x
+        sta $3808,x     ; Zeichensatz-Basis $3800 + Code 1 * 8 Bytes = $3808
+        inx
+        cpx #8
+        bne @mod
+
+        ; Schritt 5: VIC-II auf neuen Zeichensatz zeigen
+        ; Screen-RAM bei $0400: $D018 Bits 7-4 = %0001
+        ; Charset bei $3800: Offset in Bank 0 = $3800 / $800 = 7 → Bits 3-1 = %111
+        ; $D018 = 0001 111 0 = $1E
+        lda #$1e
+        sta $d018
+        rts
+
+HeartChar:
+        !byte %00000000  ; ........
+        !byte %01100110  ; .##..##.
+        !byte %11111111  ; ########
+        !byte %11111111  ; ########
+        !byte %01111110  ; .######.
+        !byte %00111100  ; ..####..
+        !byte %00011000  ; ...##...
+        !byte %00000000  ; ........
+</pre>
+
+<h3>5.2 Zeichen von Grund auf gestalten</h3>
+
+<p>Bei Charakterdesign von Null ist es hilfreich, zunächst auf Millimeterpapier zu zeichnen und dann die Bytes zu berechnen. Jedes Byte entspricht einer horizontalen Pixelreihe des 8×8-Rasters:</p>
+
+<pre>
+; Beispiel: Raumschiff-Zeichen (Draufsicht, 8×8)
+; Visualisierung:
+;  Zeile 0:  ........ = 00000000 = $00
+;  Zeile 1:  ...##... = 00011000 = $18
+;  Zeile 2:  .######. = 01111110 = $7E
+;  Zeile 3:  ###..### = 11000011 = $C3 -- Fehler, besser:
+;  Zeile 3:  ###.#### = 11101111 = $EF -- Triebwerke
+;  Zeile 4:  #.####.# = 10111101 = $BD
+;  Zeile 5:  .######. = 01111110 = $7E
+;  Zeile 6:  ..#..#.. = 00100100 = $24
+;  Zeile 7:  ........ = 00000000 = $00
+
+ShipChar:
+        !byte $00,$18,$7e,$ef,$bd,$7e,$24,$00
+</pre>
+
+<h2>6. Multicolor-Zeichenmodus</h2>
+
+<p>Der Multicolor-Zeichenmodus ermöglicht je Zeichenposition bis zu 4 Farben, allerdings auf Kosten der horizontalen Auflösung: Statt 8×8 Pixel im Single-Color-Modus stehen nur 4×8 effektive Pixel zur Verfügung (je zwei Bits = ein Pixel).</p>
+
+<h3>6.1 Aktivierung</h3>
+
+<pre>
+; Multicolor-Zeichenmodus aktivieren:
+lda $d016
+ora #%00010000  ; Bit 4 (MCM) setzen
+sta $d016
+</pre>
+
+<h3>6.2 Farb-Mapping der 4 Farben</h3>
+
+<table>
+  <thead><tr><th>Bit-Paar</th><th>Farbquelle</th><th>Register</th><th>Pro Zeichen?</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">%00</td><td>Hintergrund 0</td><td>$D021</td><td>Nein (global)</td></tr>
+    <tr><td class="mono">%01</td><td>Hintergrund 1</td><td>$D022</td><td>Nein (global)</td></tr>
+    <tr><td class="mono">%10</td><td>Hintergrund 2</td><td>$D023</td><td>Nein (global)</td></tr>
+    <tr><td class="mono">%11</td><td>Color-RAM</td><td>$D800+Offset</td><td>Ja (individuell)</td></tr>
+  </tbody>
+</table>
+
+<div class="box warning">
+  <div class="box-title">&#9888; Achtung: Gemischter Modus</div>
+  <p>Im Multicolor-Modus entscheidet Bit 3 des Color-RAM-Wertes, ob ein Zeichen im Multicolor- oder Single-Color-Modus gerendert wird. Ist der Color-RAM-Wert <code>$00–$07</code> (Bit 3 = 0), wird das Zeichen im Hires-Modus mit dieser Farbe gezeichnet. Ist der Wert <code>$08–$0F</code> (Bit 3 = 1), greift der Multicolor-Modus. Das ermöglicht auf der gleichen Bildschirmzeile einen Mix aus beidem.</p>
+</div>
+
+<h3>6.3 Multicolor-Zeichendefinition</h3>
+
+<pre>
+; Multicolor-Zeichendefinition: jede Zeile = 4 Pixel-Paare
+; %11 = Color-RAM-Farbe, %10 = $D023, %01 = $D022, %00 = $D021
+
+; Beispiel: Kleiner Pilz (Mario-Style)
+MushroomMC:
+        !byte %00111100   ; ..##..  (00 = BG, 11 = Color-RAM)
+        !byte %11111111   ; ########
+        !byte %11001100   ; ##..##..
+        !byte %11111111   ; ########
+        !byte %00111100   ; ..####..
+        !byte %00001100   ; ....##..
+        !byte %00111100   ; ..####..
+        !byte %00000000   ; ........
+</pre>
+
+<h2>7. Animierte Zeichensätze</h2>
+
+<p>Eine elegante Technik für billige Animationen: Statt Sprites zu bewegen, werden die Zeichensatz-Daten im RAM geändert. Da der VIC-II die Zeichensatz-Daten bei jedem Frame neu liest, sind Änderungen sofort sichtbar — ohne irgendeinen Sprite-Aufwand.</p>
+
+<pre>
+; Flammen-Animation durch Zeichensatz-Modifikation
+; Zeichencode 1 ($01) wird als Flamme animiert
+; 4 Frames, jeder Frame ist 8 Bytes
+
+FlameFrames:
+        ; Frame 0: kleine Flamme
+        !byte $00,$18,$3c,$3c,$18,$18,$00,$00
+        ; Frame 1: mittlere Flamme
+        !byte $18,$3c,$7e,$7e,$3c,$18,$18,$00
+        ; Frame 2: große Flamme
+        !byte $3c,$7e,$ff,$ff,$7e,$3c,$3c,$18
+        ; Frame 3: sehr große Flamme
+        !byte $7e,$ff,$ff,$ff,$ff,$7e,$3c,$18
+
+flame_frame: !byte 0
+flame_timer: !byte 0
+
+UpdateFlame:
+        dec flame_timer
+        bne @done
+        lda #8          ; Alle 8 Frames wechseln
+        sta flame_timer
+
+        inc flame_frame
+        lda flame_frame
+        cmp #4
+        bne @update
+        lda #0
+        sta flame_frame
+
+@update:
+        ; Frame-Daten kopieren: flame_frame * 8 + Basis
+        lda flame_frame
+        asl             ; * 2
+        asl             ; * 4
+        asl             ; * 8
+        tax
+        ldy #0
+@copy:  lda FlameFrames,x
+        ; Zeichensatz liegt bei $3800, Zeichen 1 = Offset $08
+        sta $3808,y
+        inx
+        iny
+        cpy #8
+        bne @copy
+@done:
+        rts
+</pre>
+
+<div class="benchmark">
+  <h2>&#127942; Skill-Benchmark: Stufe 3</h2>
+  <ul>
+    <li>Alle VIC-II Register von $D000–$D02E benennen und ihre Funktion erklären</li>
+    <li>Wert für $D018 berechnen: Screen bei $0400, eigener Zeichensatz bei $3800</li>
+    <li>Screen-RAM-Adresse für Position (Spalte 15, Zeile 7) berechnen</li>
+    <li>Zeichensatz-ROM per Code ins RAM kopieren und VIC-II umlenken</li>
+    <li>Ein eigenes 8×8-Zeichen als Byte-Array kodieren</li>
+    <li>Den Unterschied zwischen PETSCII und Screen-Codes erklären</li>
+    <li>Multicolor-Modus aktivieren und einen Beispiel-Screen aufbauen</li>
+  </ul>
+</div>
+
+<div class="exercises-section">
+  <h2>&#9997; Übungen</h2>
+
+  <div class="exercise">
+    <div class="exercise-num">Übung 3.1 — Direktes Screen-Clearing</div>
+    <p>Schreibe eine Routine <code>ClearScreen</code>, die den gesamten Bildschirm (1000 Zeichen) mit einem vorgegebenen Zeichen-Code (in Register A übergeben) füllt und dabei die Farbe aus Register X übernimmt. Die Routine soll kein KERNAL verwenden und maximal 100 CPU-Zyklen pro 8 Zeichen benötigen.</p>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-num">Übung 3.2 — Zeichensatz-Designer</div>
+    <p>Erstelle einen vollständigen 8-Zeichen-Mini-Font (nur 0–7) als Byte-Array. Kopiere den Standard-Zeichensatz ins RAM, ersetze die entsprechenden Zeichenpositionen durch deinen Font und zeige alle 8 Ziffern auf dem Bildschirm an. Verwende eine gelbe Farbe auf schwarzem Hintergrund.</p>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-num">Übung 3.3 — Farbspiel</div>
+    <p>Schreibe ein Programm, das das Color-RAM mit einem Farbverlauf füllt: Die linke Bildschirmhälfte (Spalten 0–19) soll Farbe 7 (Gelb) erhalten, die rechte Hälfte (Spalten 20–39) Farbe 5 (Grün). Der gesamte Bildschirm soll mit dem '@'-Zeichen (Screen-Code $00) gefüllt werden.</p>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-num">Übung 3.4 — Animiertes Logo</div>
+    <p>Erstelle ein 5×3-Zeichen-Logo deiner Wahl (z.B. "C64") mit einem eigenen Custom-Zeichensatz. Animiere das Logo durch 4 Frames, indem du die Zeichensatz-Daten pro Frame leicht veränderst (z.B. Blink-Effekt oder Rollbalken innerhalb der Zeichen). Der Wechsel soll durch einen einfachen Warte-Loop (nicht IRQ) erfolgen.</p>
+  </div>
+</div>
+
+<nav class="chapter-nav">
+  <a href="stufe_02_adressierung_speicher.html">
+    <span class="nav-label">&#8592; Vorherige Stufe</span>
+    <span class="nav-title">Stufe 2: Adressierung &amp; Speicher</span>
+  </a>
+  <a href="stufe_04_sprites_animation.html">
+    <span class="nav-label">Nächste Stufe &#8594;</span>
+    <span class="nav-title">Stufe 4: Sprites &amp; Animation</span>
+  </a>
+</nav>
+</main>
+</body>
+</html>

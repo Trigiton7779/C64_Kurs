@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>C64 Mastery — Stufe 10: Meisterschaft</title>
+  <style>
+    :root {
+      --c64-blue: #0033aa;
+      --c64-light-blue: #4477dd;
+      --c64-green: #00ff88;
+      --c64-dark: #1a1a2e;
+      --c64-darker: #0d0d1a;
+      --paper: #f8f6f0;
+      --paper-dark: #ede9df;
+      --text: #1a1a2e;
+      --text-light: #444466;
+      --accent: #cc3300;
+      --gold: #cc8800;
+      --warning-bg: #fff3cd;
+      --warning-border: #ffc107;
+      --tip-bg: #d4edda;
+      --tip-border: #28a745;
+      --info-bg: #cce5ff;
+      --info-border: #0066cc;
+      --important-bg: #f8d7da;
+      --important-border: #dc3545;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Georgia', 'Times New Roman', serif;
+      font-size: 16px;
+      line-height: 1.75;
+      color: var(--text);
+      background: var(--paper);
+      display: grid;
+      grid-template-columns: 270px 1fr;
+      min-height: 100vh;
+    }
+    .sidebar {
+      background: var(--c64-dark);
+      color: #ccc;
+      padding: 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--c64-blue) var(--c64-darker);
+    }
+    .sidebar::-webkit-scrollbar { width: 6px; }
+    .sidebar::-webkit-scrollbar-track { background: var(--c64-darker); }
+    .sidebar::-webkit-scrollbar-thumb { background: var(--c64-blue); }
+    .sidebar-header {
+      background: var(--c64-blue);
+      padding: 18px 20px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      font-weight: bold;
+      color: white;
+      letter-spacing: 0.5px;
+    }
+    .sidebar-header .logo { font-size: 22px; margin-bottom: 4px; color: var(--c64-green); }
+    .sidebar nav { padding: 12px 0; }
+    .sidebar nav a {
+      display: block;
+      padding: 7px 20px;
+      color: #aab;
+      text-decoration: none;
+      font-family: 'Courier New', monospace;
+      font-size: 12.5px;
+      border-left: 3px solid transparent;
+      transition: all 0.2s;
+    }
+    .sidebar nav a:hover { color: white; background: rgba(255,255,255,0.05); border-left-color: var(--c64-green); }
+    .sidebar nav a.active { color: var(--c64-green); border-left-color: var(--c64-green); background: rgba(0,255,136,0.07); font-weight: bold; }
+    .sidebar nav .section-label {
+      padding: 12px 20px 4px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #556;
+      font-family: 'Courier New', monospace;
+    }
+    .sidebar nav .toc-link {
+      padding: 5px 20px 5px 32px;
+      font-size: 11.5px;
+      color: #778;
+    }
+    main { max-width: 860px; padding: 48px 56px; }
+    .chapter-header {
+      border-bottom: 3px solid var(--gold);
+      padding-bottom: 28px;
+      margin-bottom: 40px;
+    }
+    .chapter-number {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+    }
+    .chapter-header h1 { font-size: 36px; color: var(--c64-dark); font-weight: bold; line-height: 1.2; margin-bottom: 16px; }
+    .chapter-meta { display: flex; gap: 20px; font-family: 'Courier New', monospace; font-size: 12px; color: var(--text-light); }
+    .chapter-meta span { background: var(--paper-dark); padding: 4px 10px; border-radius: 3px; }
+    h2 { font-size: 26px; color: var(--c64-blue); margin: 40px 0 16px; padding-bottom: 8px; border-bottom: 1px solid #d0ccc0; }
+    h3 { font-size: 19px; color: var(--c64-dark); margin: 28px 0 12px; }
+    h4 { font-size: 16px; color: var(--text-light); margin: 20px 0 8px; font-style: italic; }
+    p { margin-bottom: 16px; }
+    ul, ol { margin: 12px 0 16px 24px; }
+    li { margin-bottom: 6px; }
+    strong { color: var(--c64-dark); }
+    code { font-family: 'Courier New', monospace; font-size: 14px; background: #e8e4da; padding: 2px 6px; border-radius: 3px; color: var(--accent); }
+    pre {
+      background: var(--c64-dark);
+      color: var(--c64-green);
+      font-family: 'Courier New', monospace;
+      font-size: 13.5px;
+      line-height: 1.6;
+      padding: 24px 28px;
+      border-radius: 6px;
+      overflow-x: auto;
+      margin: 20px 0;
+      border-left: 4px solid var(--c64-blue);
+      white-space: pre;
+    }
+    pre .comment { color: #6688aa; }
+    pre .label { color: #ffcc44; }
+    pre .directive { color: #ff88aa; }
+    pre .number { color: #aaddff; }
+    .box { border-radius: 6px; padding: 16px 20px; margin: 20px 0; border-left: 5px solid; }
+    .box-tip { background: var(--tip-bg); border-color: var(--tip-border); }
+    .box-warning { background: var(--warning-bg); border-color: var(--warning-border); }
+    .box-info { background: var(--info-bg); border-color: var(--info-border); }
+    .box-important { background: var(--important-bg); border-color: var(--important-border); }
+    .box-title { font-weight: bold; font-family: 'Courier New', monospace; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .box-tip .box-title { color: #155724; }
+    .box-warning .box-title { color: #856404; }
+    .box-info .box-title { color: #004085; }
+    .box-important .box-title { color: #721c24; }
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
+    thead { background: var(--c64-blue); color: white; }
+    thead th { padding: 10px 12px; text-align: left; font-family: 'Courier New', monospace; font-size: 13px; }
+    tbody tr:nth-child(even) { background: var(--paper-dark); }
+    tbody tr:hover { background: #e0dbd0; }
+    tbody td { padding: 8px 12px; border-bottom: 1px solid #d0ccc0; vertical-align: top; }
+    td code { font-size: 13px; }
+    .benchmark {
+      background: linear-gradient(135deg, #332200 0%, #cc8800 100%);
+      color: white;
+      border-radius: 8px;
+      padding: 28px 32px;
+      margin: 40px 0;
+    }
+    .benchmark h2 { color: #ffee88; border: none; margin-top: 0; font-size: 22px; }
+    .benchmark-list { list-style: none; margin: 0; padding: 0; }
+    .benchmark-list li { padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.15); display: flex; align-items: flex-start; gap: 12px; }
+    .benchmark-list li:last-child { border-bottom: none; }
+    .benchmark-list .check { color: #ffee88; font-size: 18px; flex-shrink: 0; }
+    .exercises { background: var(--paper-dark); border-radius: 8px; padding: 28px 32px; margin: 40px 0; border: 1px solid #c8c4b8; }
+    .exercises h2 { color: var(--c64-dark); border: none; margin-top: 0; }
+    .exercise-item { background: white; border-radius: 6px; padding: 16px 20px; margin: 14px 0; border-left: 4px solid var(--gold); }
+    .exercise-item h4 { color: var(--gold); margin: 0 0 8px 0; font-style: normal; font-family: 'Courier New', monospace; font-size: 14px; }
+    .chapter-nav { display: flex; justify-content: space-between; margin-top: 56px; padding-top: 24px; border-top: 2px solid var(--gold); }
+    .chapter-nav a { display: inline-flex; align-items: center; gap: 8px; color: var(--c64-blue); text-decoration: none; font-family: 'Courier New', monospace; font-size: 14px; padding: 10px 18px; border: 2px solid var(--c64-blue); border-radius: 4px; transition: all 0.2s; }
+    .chapter-nav a:hover { background: var(--c64-blue); color: white; }
+    .learning-objectives { background: linear-gradient(to right, #f0f4ff, #f8f6f0); border: 1px solid #c0cce8; border-radius: 6px; padding: 20px 24px; margin-bottom: 36px; }
+    .learning-objectives h3 { color: var(--c64-blue); margin: 0 0 12px 0; font-size: 16px; font-family: 'Courier New', monospace; text-transform: uppercase; letter-spacing: 1px; }
+    .learning-objectives ul { margin: 0; padding-left: 20px; }
+    .mastery-banner {
+      background: linear-gradient(135deg, #001166 0%, #0033aa 50%, #001166 100%);
+      border: 2px solid var(--gold);
+      border-radius: 10px;
+      padding: 32px 36px;
+      margin: 30px 0 40px;
+      text-align: center;
+      color: white;
+    }
+    .mastery-banner h3 { color: var(--gold); font-size: 22px; margin-bottom: 12px; font-family: 'Courier New', monospace; letter-spacing: 2px; }
+    .mastery-banner p { color: #aaccff; font-style: italic; margin: 0; }
+    .resources-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+    .resource-card { background: white; border: 1px solid #d0ccc0; border-radius: 6px; padding: 16px; border-top: 3px solid var(--c64-blue); }
+    .resource-card h4 { color: var(--c64-blue); font-style: normal; font-family: 'Courier New', monospace; font-size: 13px; margin: 0 0 8px 0; }
+    .resource-card ul { margin: 0; padding-left: 16px; font-size: 13.5px; }
+    @media print { .sidebar { display: none; } body { grid-template-columns: 1fr; } main { max-width: 100%; padding: 20px; } pre { border: 1px solid #999; } }
+  </style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">■ C64 MASTERY</div>
+    Professioneller Lehrgang
+  </div>
+  <nav>
+    <div class="section-label">Curriculum</div>
+    <a href="index.html">◈ Übersicht &amp; Lernpfad</a>
+    <a href="stufe_00_fundament.html">00 · Fundament</a>
+    <a href="stufe_01_6510_assembler.html">01 · 6510 &amp; Assembler</a>
+    <a href="stufe_02_adressierung_speicher.html">02 · Adressierung &amp; Speicher</a>
+    <a href="stufe_03_bildschirm_zeichen.html">03 · Bildschirm &amp; Zeichen</a>
+    <a href="stufe_04_sprites_animation.html">04 · Sprites &amp; Animation</a>
+    <a href="stufe_05_bitmap_grafik.html">05 · Bitmap-Grafik</a>
+    <a href="stufe_06_sid_sound.html">06 · SID-Sound</a>
+    <a href="stufe_07_interrupts_timing.html">07 · Interrupts &amp; Timing</a>
+    <a href="stufe_08_optimierung.html">08 · Optimierung</a>
+    <a href="stufe_09_demo_effekte.html">09 · Demo-Effekte</a>
+    <a href="stufe_10_meisterschaft.html" class="active">10 · Meisterschaft</a>
+
+    <div class="section-label">Diese Seite</div>
+    <a href="#architecture" class="toc-link">1. Spielarchitektur</a>
+    <a href="#game-loop" class="toc-link">2. Game Loop</a>
+    <a href="#collision" class="toc-link">3. Kollisions-Engine</a>
+    <a href="#tilemap" class="toc-link">4. Tile-Maps</a>
+    <a href="#compression" class="toc-link">5. Datenkompression</a>
+    <a href="#disk-io" class="toc-link">6. Disk-I/O</a>
+    <a href="#minigame" class="toc-link">7. Mini-Spiel</a>
+    <a href="#resources" class="toc-link">8. Weiterführendes</a>
+    <a href="#benchmark" class="toc-link">Skill-Benchmark</a>
+  </nav>
+</aside>
+
+<main>
+  <header class="chapter-header">
+    <div class="chapter-number">Stufe 10 — Abschluss</div>
+    <h1>Meisterschaft &amp; Spieleprogrammierung</h1>
+    <div class="chapter-meta">
+      <span>★ Experten-Niveau</span>
+      <span>⏱ ca. 20+ Stunden</span>
+      <span>📋 Voraussetzung: Alle vorherigen Stufen</span>
+    </div>
+  </header>
+
+  <div class="mastery-banner">
+    <h3>★ DU HAST DEN GIPFEL ERREICHT ★</h3>
+    <p>Diese letzte Stufe verbindet alles Gelernte zu einem vollständigen Spielentwicklungs-Framework für den Commodore 64. Von der Architektur bis zum fertigen Release.</p>
+  </div>
+
+  <section class="learning-objectives">
+    <h3>Lernziele dieser Stufe</h3>
+    <ul>
+      <li>Spielarchitektur mit State Machine, Event System und Game Loop entwerfen</li>
+      <li>Vollständigen Sprite-Multiplexer mit 32+ Sprites und Y-Sortierung implementieren</li>
+      <li>Kollisions-Engine: Bounding-Box und hardware-gestützte Kollisionserkennung</li>
+      <li>Tile-basierte Grafik mit scrollender Spielwelt realisieren</li>
+      <li>RLE-Datenkompression für Level-Daten implementieren</li>
+      <li>Disk-I/O via KERNAL für Levellade-System nutzen</li>
+      <li>Alle gelernten Techniken in einem vollständigen Mini-Spiel vereinen</li>
+    </ul>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="architecture">
+    <h2>1. Spielarchitektur — Das große Bild</h2>
+
+    <p>Ein professionelles C64-Spiel ist kein monolithisches Programm, sondern ein sorgfältig orchestriertes System aus unabhängigen Modulen, die über ein zentrales State-System kommunizieren. Die Architektur entscheidet über Wartbarkeit, Erweiterbarkeit und — auf dem C64 kritisch — über Performance.</p>
+
+    <h3>1.1 Modul-Übersicht</h3>
+
+    <table>
+      <thead><tr><th>Modul</th><th>Verantwortung</th><th>Speicherbereich</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Main / Bootstrap</strong></td><td>Initialisierung, BASIC-Stub</td><td>$0801–$0820</td></tr>
+        <tr><td><strong>Game Loop</strong></td><td>Haupt-Update-Zyklus</td><td>$0900–$09FF</td></tr>
+        <tr><td><strong>State Machine</strong></td><td>Spielzustände, Übergänge</td><td>$0A00–$0AFF</td></tr>
+        <tr><td><strong>Input Handler</strong></td><td>Joystick, Keyboard</td><td>$0B00–$0BFF</td></tr>
+        <tr><td><strong>Sprite Engine</strong></td><td>Multiplexer, Animation</td><td>$1000–$17FF</td></tr>
+        <tr><td><strong>Collision Engine</strong></td><td>Bounding Box, Hardware</td><td>$1800–$1FFF</td></tr>
+        <tr><td><strong>Tilemap Engine</strong></td><td>Tile-Rendering, Scrolling</td><td>$2000–$2FFF</td></tr>
+        <tr><td><strong>SID Player</strong></td><td>Musik, Effekte</td><td>$3000–$37FF</td></tr>
+        <tr><td><strong>Level Data</strong></td><td>Map-Daten, Objekte</td><td>$4000–$7FFF</td></tr>
+        <tr><td><strong>Grafik-Assets</strong></td><td>Sprites, Charset, Tiles</td><td>$8000–$BFFF</td></tr>
+        <tr><td><strong>Stack / ZP</strong></td><td>Zero Page Variablen</td><td>$0002–$00FF</td></tr>
+      </tbody>
+    </table>
+
+    <h3>1.2 State Machine</h3>
+
+    <pre><span class="comment">; Spielzustände</span>
+STATE_TITLE    = 0
+STATE_STORY    = 1
+STATE_GAME     = 2
+STATE_PAUSE    = 3
+STATE_GAMEOVER = 4
+STATE_WIN      = 5
+
+<span class="comment">; State-Tabellen: Init-, Update-, Draw-Funktionen pro Zustand</span>
+StateInitTable:
+          <span class="directive">!word</span> TitleInit, StoryInit, GameInit
+          <span class="directive">!word</span> PauseInit, GameOverInit, WinInit
+
+StateUpdateTable:
+          <span class="directive">!word</span> TitleUpdate, StoryUpdate, GameUpdate
+          <span class="directive">!word</span> PauseUpdate, GameOverUpdate, WinUpdate
+
+StateDrawTable:
+          <span class="directive">!word</span> TitleDraw, StoryDraw, GameDraw
+          <span class="directive">!word</span> PauseDraw, GameOverDraw, WinDraw
+
+CurrentState: <span class="directive">!byte</span> STATE_TITLE
+PrevState:    <span class="directive">!byte</span> $FF   <span class="comment">; Für Übergangs-Erkennung</span>
+
+<span class="comment">; Zustandswechsel mit Init-Aufruf</span>
+ChangeState:
+          <span class="comment">; A = neuer Zustand</span>
+          CMP CurrentState : BEQ .same
+          STA CurrentState
+          ASL : TAX
+          LDA StateInitTable,X   : STA Tmp16
+          LDA StateInitTable+1,X : STA Tmp16+1
+          JMP (Tmp16)            <span class="comment">; Init-Funktion aufrufen (indirekter Sprung)</span>
+.same:    RTS</pre>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="game-loop">
+    <h2>2. Game Loop — Das Herzstück</h2>
+
+    <p>Der Game Loop ist der zentrale Ausführungszyklus, der 50-mal pro Sekunde läuft. Er muss strikt budgetiert sein: Update-Logik im VBlank (Zeilen 250–311), Zeichnen über Raster-IRQ.</p>
+
+    <pre><span class="comment">; Vollständiger Game Loop</span>
+<span class="comment">; Läuft synchron mit dem VBlank-IRQ</span>
+
+VBlankFlag: <span class="directive">!byte</span> 0   <span class="comment">; Gesetzt vom VBlank-IRQ</span>
+
+GameLoop:
+          <span class="comment">; Auf VBlank warten (Synchronisation mit 50 Hz)</span>
+.wait:    LDA VBlankFlag
+          BEQ .wait
+          LDA #0 : STA VBlankFlag   <span class="comment">; Flag zurücksetzen</span>
+
+          <span class="comment">; === PHASE 1: INPUT (sofort, keine Verzögerung) ===</span>
+          JSR ReadJoystick
+          JSR ReadKeyboard
+
+          <span class="comment">; === PHASE 2: UPDATE (Spiellogik) ===</span>
+          LDA CurrentState
+          ASL : TAX
+          LDA StateUpdateTable,X   : STA Tmp16
+          LDA StateUpdateTable+1,X : STA Tmp16+1
+          JSR CallTmp16            <span class="comment">; Update für aktuellen Zustand</span>
+
+          <span class="comment">; === PHASE 3: SPRITE-SORT (VBlank-Mitte) ===</span>
+          JSR SortSprites          <span class="comment">; Y-Sortierung für Multiplexer</span>
+          JSR UpdateAnimations     <span class="comment">; Frame-Counter, Sprite-Animationen</span>
+
+          <span class="comment">; === PHASE 4: MUSIC UPDATE ===</span>
+          JSR MusicUpdate          <span class="comment">; Nächsten Musik-Frame spielen</span>
+
+          <span class="comment">; === PHASE 5: FRAME-COUNTER ===</span>
+          INC FrameCount
+          BNE .next
+          INC FrameCount+1
+.next:
+          JMP GameLoop
+
+CallTmp16:
+          JMP (Tmp16)
+
+<span class="comment">; VBlank-IRQ (Zeile 250)</span>
+VBlankIRQ:
+          PHA
+          LDA #$01 : STA $D019
+          LDA #1 : STA VBlankFlag  <span class="comment">; Game Loop aufwecken</span>
+          <span class="comment">; VBlank-IRQ für nächsten Frame setzen</span>
+          LDA #251 : STA $D012
+          PLA : RTI</pre>
+
+    <h3>2.1 Input-Handler mit Joystick</h3>
+
+    <pre><span class="comment">; Joystick Port 2 = $DC00</span>
+<span class="comment">; Bits: 0=Up, 1=Down, 2=Left, 3=Right, 4=Fire (active LOW)</span>
+
+JoyState:    <span class="directive">!byte</span> 0   <span class="comment">; Aktueller Zustand (invertiert: 1=gedrückt)</span>
+JoyStatePrev:<span class="directive">!byte</span> 0   <span class="comment">; Vorheriger Zustand</span>
+JoyPressed:  <span class="directive">!byte</span> 0   <span class="comment">; Gerade gedrückt (flankengetriggert)</span>
+JoyReleased: <span class="directive">!byte</span> 0   <span class="comment">; Gerade losgelassen</span>
+
+JOY_UP    = %00000001
+JOY_DOWN  = %00000010
+JOY_LEFT  = %00000100
+JOY_RIGHT = %00001000
+JOY_FIRE  = %00010000
+
+ReadJoystick:
+          LDA JoyState : STA JoyStatePrev
+
+          LDA $DC00
+          EOR #$FF           <span class="comment">; Invertieren (active LOW → active HIGH)</span>
+          AND #$1F           <span class="comment">; Nur Bits 0-4</span>
+          STA JoyState
+
+          <span class="comment">; JoyPressed = neue Bits (jetzt 1, vorher 0)</span>
+          EOR JoyStatePrev
+          AND JoyState
+          STA JoyPressed
+
+          <span class="comment">; JoyReleased = verschwundene Bits (jetzt 0, vorher 1)</span>
+          LDA JoyState
+          EOR JoyStatePrev
+          AND JoyStatePrev
+          STA JoyReleased
+          RTS
+
+<span class="comment">; Verwendung:</span>
+<span class="comment">;   LDA JoyState</span>
+<span class="comment">;   AND #JOY_RIGHT</span>
+<span class="comment">;   BNE .moving_right</span>
+<span class="comment">;</span>
+<span class="comment">;   LDA JoyPressed</span>
+<span class="comment">;   AND #JOY_FIRE</span>
+<span class="comment">;   BNE .just_fired   (nur im ersten Frame)</span></pre>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="collision">
+    <h2>3. Kollisions-Engine</h2>
+
+    <h3>3.1 Bounding-Box-Kollision</h3>
+
+    <pre><span class="comment">; Axis-Aligned Bounding Box (AABB) Kollision</span>
+<span class="comment">; Für zwei Rechtecke A und B:</span>
+<span class="comment">; Kein Overlap wenn: A.x2 < B.x1 ODER B.x2 < A.x1</span>
+<span class="comment">;                 ODER A.y2 < B.y1 ODER B.y2 < A.y1</span>
+
+<span class="comment">; Sprite-Bounding-Boxen</span>
+<span class="comment">; (kann pro Sprite-Typ unterschiedlich sein)</span>
+BBoxOffX: <span class="directive">!byte</span> 2    <span class="comment">; Links-Offset vom Sprite-Ursprung</span>
+BBoxOffY: <span class="directive">!byte</span> 2    <span class="comment">; Oben-Offset</span>
+BBoxW:    <span class="directive">!byte</span> 20   <span class="comment">; Breite der BBox</span>
+BBoxH:    <span class="directive">!byte</span> 17   <span class="comment">; Höhe</span>
+
+<span class="comment">; Prüfe ob Sprite A (Index in X) und Sprite B (Index in Y) kollidieren</span>
+<span class="comment">; Ergebnis: Carry gesetzt = Kollision, Carry gelöscht = kein Kontakt</span>
+CheckBBoxCollision:
+          <span class="comment">; A.x1 = SprLogX[A] + BBoxOffX</span>
+          LDA SprLogX,X
+          CLC : ADC BBoxOffX
+          STA AX1
+
+          <span class="comment">; A.x2 = A.x1 + BBoxW - 1</span>
+          CLC : ADC BBoxW
+          SBC #1
+          STA AX2
+
+          <span class="comment">; B.x1, B.x2</span>
+          LDA SprLogX,Y
+          CLC : ADC BBoxOffX
+          STA BX1
+          CLC : ADC BBoxW
+          SBC #1 : STA BX2
+
+          <span class="comment">; Horizontal: A.x2 >= B.x1 AND B.x2 >= A.x1</span>
+          LDA AX2 : CMP BX1 : BCC .no_collision
+          LDA BX2 : CMP AX1 : BCC .no_collision
+
+          <span class="comment">; A.y1, A.y2</span>
+          LDA SprLogY,X
+          CLC : ADC BBoxOffY : STA AY1
+          CLC : ADC BBoxH : SBC #1 : STA AY2
+
+          LDA SprLogY,Y
+          CLC : ADC BBoxOffY : STA BY1
+          CLC : ADC BBoxH : SBC #1 : STA BY2
+
+          <span class="comment">; Vertikal</span>
+          LDA AY2 : CMP BY1 : BCC .no_collision
+          LDA BY2 : CMP AY1 : BCC .no_collision
+
+          SEC : RTS           <span class="comment">; Kollision!</span>
+.no_collision:
+          CLC : RTS</pre>
+
+    <h3>3.2 Hardware-Kollisionserkennung kombiniert nutzen</h3>
+
+    <pre><span class="comment">; Kombinierter Ansatz: Hardware für erste Grob-Prüfung,</span>
+<span class="comment">; dann BBox für genaue Bestimmung</span>
+
+CheckCollisions:
+          <span class="comment">; Phase 1: Hardware-Register lesen</span>
+          LDA $D01E          <span class="comment">; Sprite-Sprite Kollision (LÖSCHT sich beim Lesen!)</span>
+          BEQ .check_bg      <span class="comment">; Keine Sprite-Kollision</span>
+          STA CollidedSprites
+
+          <span class="comment">; Prüfe welche Sprites kollidierten (Bit-Scan)</span>
+          LDX #0
+.bits:    LSR CollidedSprites
+          BCC .next_bit
+          <span class="comment">; Sprite X hat Hardware-Kollision → BBox prüfen</span>
+          <span class="comment">; (Partner nicht direkt bekannt → alle anderen prüfen)</span>
+          JSR FindCollisionPartner  <span class="comment">; X = Sprite-Index</span>
+.next_bit:INX
+          CPX #8 : BNE .bits
+
+.check_bg:
+          LDA $D01F          <span class="comment">; Sprite-Hintergrund Kollision</span>
+          BEQ .done
+          STA CollidedBG
+          <span class="comment">; Sprites mit BG-Kollision verarbeiten</span>
+          LDX #0
+.bgbits:  LSR CollidedBG
+          BCC .next_bg
+          JSR HandleSprBGCollision
+.next_bg: INX : CPX #8 : BNE .bgbits
+.done:    RTS</pre>
+
+    <h3>3.3 Tilemap-Kollision</h3>
+
+    <pre><span class="comment">; Spieler-Position gegen Tilemap-Kacheln prüfen</span>
+<span class="comment">; Jede Kachel hat ein "Solid"-Flag</span>
+
+TileSolid: <span class="directive">!byte</span> 0,0,0,0,1,1,1,0,1,0,0,0,0,0,0,0
+<span class="comment">; Index 0-15: 0=begehbar, 1=Wand</span>
+
+<span class="comment">; Prüfe ob Position (X-Pixel, Y-Pixel) auf einem Solid-Tile liegt</span>
+<span class="comment">; Eingabe: A=X-Pixel, X=Y-Pixel</span>
+<span class="comment">; Ausgabe: Carry = 1 wenn Solid, 0 wenn frei</span>
+IsSolid:
+          STA PixX : STX PixY
+
+          <span class="comment">; Tile-X = PixX / 8 (→ Spalte 0-39)</span>
+          LDA PixX : LSR : LSR : LSR : STA TileX
+
+          <span class="comment">; Tile-Y = PixY / 8 (→ Zeile 0-24)</span>
+          LDA PixY : LSR : LSR : LSR : STA TileY
+
+          <span class="comment">; Map-Index = TileY * 40 + TileX</span>
+          LDA TileY
+          ASL : ASL : ASL : ASL : ASL  <span class="comment">; × 32</span>
+          STA MapIdx
+          LDA TileY
+          ASL : ASL : ASL              <span class="comment">; × 8</span>
+          CLC : ADC MapIdx
+          CLC : ADC TileX
+          TAY
+
+          LDA MapPtr : STA TmpPtr
+          LDA MapPtr+1 : STA TmpPtr+1
+          LDA (TmpPtr),Y               <span class="comment">; Tile-ID holen</span>
+          TAX
+          LDA TileSolid,X              <span class="comment">; Solid-Flag prüfen</span>
+          LSR                          <span class="comment">; → Carry</span>
+          RTS</pre>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="tilemap">
+    <h2>4. Tile-basierte Grafik und Scrollende Welten</h2>
+
+    <h3>4.1 Tilemap-Struktur</h3>
+
+    <pre><span class="comment">; Tilemap: 128×20 Kacheln (5120 Bytes), jede Kachel 8×8 Pixel</span>
+<span class="comment">; Gesamt: 1024×160 Pixel Spielwelt</span>
+<span class="comment">; Sichtbarer Bereich: 40×25 Kacheln = Screen-RAM</span>
+
+MAP_WIDTH  = 128   <span class="comment">; Kacheln horizontal</span>
+MAP_HEIGHT = 20    <span class="comment">; Kacheln vertikal</span>
+SCREEN_W   = 40
+SCREEN_H   = 25
+
+MapScrollX:  <span class="directive">!byte</span> 0     <span class="comment">; Pixel-Scroll X (0-7)</span>
+MapOffsetX:  <span class="directive">!byte</span> 0     <span class="comment">; Kachel-Offset X (0-88)</span>
+MapScrollY:  <span class="directive">!byte</span> 0     <span class="comment">; Pixel-Scroll Y (0-7)</span>
+MapOffsetY:  <span class="directive">!byte</span> 0     <span class="comment">; Kachel-Offset Y (0-0 für Height=25)</span>
+
+MapData:     <span class="directive">!fill</span> MAP_WIDTH * MAP_HEIGHT, 0  <span class="comment">; Level-Daten</span></pre>
+
+    <h3>4.2 Tilemap rendern</h3>
+
+    <pre><span class="comment">; Sichtbaren Ausschnitt der Tilemap auf Screen-RAM rendern</span>
+<span class="comment">; Nutzt vorberechnete Charset-Tiles</span>
+
+RenderTilemap:
+          LDY #0             <span class="comment">; Screen-RAM Index</span>
+          LDA MapOffsetY : STA RowIdx
+
+.nextrow: LDA MapOffsetX : STA ColIdx
+          LDA #0 : STA ColCount
+
+.nextcol: <span class="comment">; Tile-Index aus Map holen</span>
+          <span class="comment">; map_idx = RowIdx * MAP_WIDTH + ColIdx</span>
+          LDA RowIdx
+          STA Tmp16+1        <span class="comment">; High... vereinfacht:</span>
+          ASL : ASL : ASL : ASL : ASL : ASL : ASL  <span class="comment">; × 128</span>
+          CLC : ADC ColIdx
+          TAX
+          LDA MapData,X      <span class="comment">; Tile-ID</span>
+          STA $0400,Y        <span class="comment">; Auf Screen-RAM schreiben</span>
+
+          INC ColIdx
+          INY
+          INC ColCount
+          LDA ColCount : CMP #SCREEN_W : BNE .nextcol
+
+          INC RowIdx
+          LDA RowIdx
+          SEC : SBC MapOffsetY
+          CMP #SCREEN_H : BNE .nextrow
+
+          RTS</pre>
+
+    <h3>4.3 Horizontales Scrollen mit Column-Update</h3>
+
+    <pre><span class="comment">; Scrollen: 1 Pixel nach rechts pro Frame</span>
+ScrollWorldRight:
+          INC MapScrollX
+          LDA MapScrollX
+          CMP #8
+          BNE .applyscroll
+
+          <span class="comment">; 8 Pixel → nächste Kachelspalte</span>
+          LDA #0 : STA MapScrollX
+          INC MapOffsetX
+          LDA MapOffsetX
+          CMP #(MAP_WIDTH - SCREEN_W)
+          BNE .newcol
+          LDA #0 : STA MapOffsetX   <span class="comment">; Wrap</span>
+.newcol:
+          <span class="comment">; Neue rechte Spalte in Screen-RAM eintragen</span>
+          JSR DrawRightmostColumn
+
+.applyscroll:
+          <span class="comment">; Hardware-Scroll anwenden</span>
+          LDA #8
+          SEC : SBC MapScrollX      <span class="comment">; Invertiert: mehr Offset = mehr Scroll</span>
+          STA ScrollHW
+
+          LDA $D016
+          AND #$F8
+          ORA ScrollHW
+          STA $D016
+          RTS
+
+DrawRightmostColumn:
+          <span class="comment">; Neue Spalte rechts = MapOffsetX + SCREEN_W - 1</span>
+          LDA MapOffsetX
+          CLC : ADC #(SCREEN_W - 1)
+          STA NewColX
+          LDA MapOffsetY : STA RowIdx
+
+          LDX #0               <span class="comment">; Zeilen-Zähler</span>
+.loop:    LDA RowIdx
+          ASL : ASL : ASL : ASL : ASL : ASL : ASL  <span class="comment">; × 128</span>
+          CLC : ADC NewColX
+          TAY
+          LDA MapData,Y        <span class="comment">; Tile-ID der neuen Spalte</span>
+
+          <span class="comment">; Schreibe auf rechte Screen-RAM-Spalte (Spalte 39)</span>
+          LDA RowStartAddrLo,X  <span class="comment">; Zeile X, Spalte 39</span>
+          STA TmpPtr
+          LDA RowStartAddrHi,X
+          STA TmpPtr+1
+          LDY #39
+          LDA MapData,Y
+          STA (TmpPtr),Y
+
+          INC RowIdx
+          INX : CPX #SCREEN_H : BNE .loop
+          RTS</pre>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="compression">
+    <h2>5. Datenkompression — RLE</h2>
+
+    <p>Level-Daten auf dem C64 sind oft repetitiv (lange Streifen gleicher Kacheln). Run Length Encoding (RLE) kann typische Level-Daten auf 20–50 % ihrer Originalgröße reduzieren.</p>
+
+    <pre><span class="comment">; RLE-Format: Byte 0 = Wert, Byte 1 = Anzahl (1-255)</span>
+<span class="comment">; Sonderfall: Anzahl = 0 → Ende der Level-Daten</span>
+<span class="comment">; Ausnahme: Wert = $FE (Escape) → nächstes Byte als Literal</span>
+
+RLE_ESCAPE = $FE
+RLE_END    = $FF
+
+<span class="comment">; Dekomprimieren: SrcPtr → dekomprimierte Daten → DstPtr</span>
+RLEDecompress:
+          LDY #0             <span class="comment">; Schreibindex</span>
+.loop:
+          LDA (SrcPtr),Y     <span class="comment">; Nächstes RLE-Byte</span>
+          INY
+
+          CMP #RLE_END : BEQ .done
+
+          CMP #RLE_ESCAPE
+          BEQ .literal
+
+          <span class="comment">; RLE-Paar: Wert in Akku, nächstes Byte = Anzahl</span>
+          STA RLEValue
+          LDA (SrcPtr),Y     <span class="comment">; Anzahl</span>
+          INY
+          TAX                <span class="comment">; X = Anzahl</span>
+          LDA RLEValue
+
+.repeat:  STA (DstPtr),DstY  <span class="comment">; DstY ist separater Schreibzähler</span>
+          INC DstY
+          BNE .no_page
+          INC DstPtr+1
+.no_page: DEX : BNE .repeat
+          JMP .loop
+
+.literal: LDA (SrcPtr),Y     <span class="comment">; Nächstes Byte direkt</span>
+          INY
+          STA (DstPtr),DstY
+          INC DstY
+          BNE .loop
+          INC DstPtr+1
+          JMP .loop
+
+.done:    RTS
+
+<span class="comment">; Beispiel komprimierter Level:</span>
+<span class="comment">; Original: 40× Tile 5, dann 3× Tile 2, dann 5× Tile 7</span>
+<span class="comment">; Original: 48 Bytes</span>
+<span class="comment">; RLE:      $05,$28, $02,$03, $07,$05, $FF → 7 Bytes!</span>
+Level1_RLE:
+          <span class="directive">!byte</span> 5, 40   <span class="comment">; 40× Tile 5</span>
+          <span class="directive">!byte</span> 2,  3   <span class="comment">; 3× Tile 2</span>
+          <span class="directive">!byte</span> 7,  5   <span class="comment">; 5× Tile 7</span>
+          <span class="directive">!byte</span> $FF     <span class="comment">; Ende</span></pre>
+
+    <div class="box box-info">
+      <div class="box-title">Kompressionsrate in der Praxis</div>
+      Typische C64-Spiellevel bestehen zu 60–80 % aus Wiederholungen (Böden, Wände, leere Bereiche). RLE komprimiert diese effizient. Für noch bessere Kompression: Vertikale RLE (Spalten statt Zeilen) oder Pack-LZ (Lempel-Ziv) — allerdings deutlich komplexer zu dekodieren.
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="disk-io">
+    <h2>6. Disk-I/O via KERNAL</h2>
+
+    <p>Für Spiele mit mehreren Leveln ist das Laden von Disk unerlässlich. Der C64 nutzt das 1541-Disk-Laufwerk über das KERNAL-ROM (das für I/O angeschaltet bleiben muss).</p>
+
+    <pre><span class="comment">; KERNAL-Routinen für Disk-I/O</span>
+SETLFS   = $FFBA   <span class="comment">; Logical File, Device, Sekundäradresse setzen</span>
+SETNAM   = $FFBD   <span class="comment">; Dateiname setzen</span>
+OPEN     = $FFC0   <span class="comment">; Datei öffnen</span>
+CHKIN    = $FFC6   <span class="comment">; Eingabe-Kanal setzen</span>
+CHRIN    = $FFCF   <span class="comment">; Zeichen lesen</span>
+CLOSE    = $FFC3   <span class="comment">; Datei schließen</span>
+CLRCHN   = $FFCC   <span class="comment">; Kanal zurücksetzen</span>
+LOAD     = $FFD5   <span class="comment">; Programm/Daten laden</span>
+ST       = $90     <span class="comment">; ZP-Status-Byte</span>
+
+<span class="comment">; Datei laden: Dateiname in FilenamePtr (ZP), Länge in FilenameLen</span>
+<span class="comment">; Ladeadresse: LoadAddrLo/Hi</span>
+LoadFile:
+          <span class="comment">; KERNAL temporär einschalten (falls ausgeschaltet)</span>
+          LDA $01
+          PHA
+          LDA #$37 : STA $01    <span class="comment">; BASIC+KERNAL+I/O ein</span>
+
+          <span class="comment">; Dateiname setzen</span>
+          LDA FilenameLen
+          LDX FilenamePtr
+          LDY FilenamePtr+1
+          JSR SETNAM
+
+          <span class="comment">; Logical File 1, Device 8 (1541), Sekundäradresse 0</span>
+          LDA #1 : LDX #8 : LDY #0
+          JSR SETLFS
+
+          <span class="comment">; LOAD: Akku=0 = laden (nicht verify), X/Y = Zieladresse</span>
+          LDA #0
+          LDX LoadAddrLo
+          LDY LoadAddrHi
+          JSR LOAD              <span class="comment">; Lädt direkt in den Speicher!</span>
+
+          LDA $90               <span class="comment">; Status prüfen</span>
+          STA LoadStatus        <span class="comment">; 0 = OK, sonst Fehler</span>
+
+          <span class="comment">; KERNAL zurückschalten auf vorherigen Zustand</span>
+          PLA : STA $01
+          RTS
+
+<span class="comment">; Dateinamen-Definition</span>
+Level1Name: <span class="directive">!text</span> "LEVEL1.DAT"
+Level1NameLen = * - Level1Name
+
+<span class="comment">; Level laden:</span>
+LoadLevel1:
+          LDA #&lt;Level1Name : STA FilenamePtr
+          LDA #&gt;Level1Name : STA FilenamePtr+1
+          LDA #Level1NameLen : STA FilenameLen
+          LDA #&lt;MapData : STA LoadAddrLo
+          LDA #&gt;MapData : STA LoadAddrHi
+          JSR LoadFile
+          RTS</pre>
+
+    <div class="box box-warning">
+      <div class="box-title">KERNAL-Abhängigkeit</div>
+      Disk-Laden benötigt das KERNAL-ROM eingeschaltet (<code>$01 = $37</code>). Das bedeutet: Während des Ladens kann kein eigener Code im Bereich $E000–$FFFF liegen. Lade alle Level-Daten <em>vor</em> dem Start des zeitkritischen Teils des Spiels, oder nutze ein kurzes Lade-Fenster im Title-Screen.
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="minigame">
+    <h2>7. Vollständiges Mini-Spiel: "STARBLASTER"</h2>
+
+    <p>Als Abschluss-Projekt vereinen wir alle gelernten Techniken in einem vollständigen Shoot'em'up:</p>
+
+    <ul>
+      <li><strong>Spieler:</strong> 1 Sprite (Joystick Port 2), 8-Richtungs-Bewegung, Feuern</li>
+      <li><strong>Feinde:</strong> 8 Feind-Sprites via Multiplexer, Sinus-Bewegungsmuster</li>
+      <li><strong>Schüsse:</strong> 4 Spielerschüsse, Bounding-Box-Kollision mit Feinden</li>
+      <li><strong>Hintergrund:</strong> Scrollendes Sternenfeld (Charset-Zeichen)</li>
+      <li><strong>Sound:</strong> SID - Laser-Effekt, Explosion, Hintergrundmusik</li>
+      <li><strong>Anzeige:</strong> Score im oberen Rand, Lives-Sprites unten</li>
+    </ul>
+
+    <h3>7.1 Projektstruktur</h3>
+
+    <pre><span class="comment">; STARBLASTER.ACM — Haupt-Datei</span>
+
+<span class="directive">!source</span> "engine/gameloop.asm"     <span class="comment">; Game Loop, State Machine</span>
+<span class="directive">!source</span> "engine/input.asm"        <span class="comment">; Joystick-Handler</span>
+<span class="directive">!source</span> "engine/sprite_mux.asm"   <span class="comment">; Sprite-Multiplexer</span>
+<span class="directive">!source</span> "engine/collision.asm"    <span class="comment">; BBox Kollision</span>
+<span class="directive">!source</span> "engine/sid_player.asm"   <span class="comment">; Musik-Player</span>
+<span class="directive">!source</span> "game/player.asm"         <span class="comment">; Spieler-Logik</span>
+<span class="directive">!source</span> "game/enemies.asm"        <span class="comment">; Feind-KI</span>
+<span class="directive">!source</span> "game/bullets.asm"        <span class="comment">; Schuss-System</span>
+<span class="directive">!source</span> "game/starfield.asm"      <span class="comment">; Hintergrund</span>
+<span class="directive">!source</span> "game/hud.asm"            <span class="comment">; Anzeige</span>
+<span class="directive">!source</span> "data/sprites.asm"        <span class="comment">; Sprite-Grafiken</span>
+<span class="directive">!source</span> "data/music.asm"          <span class="comment">; SID-Musikdaten</span></pre>
+
+    <h3>7.2 Spieler-Update</h3>
+
+    <pre><span class="comment">; Spieler bewegen (8 Richtungen, Grenzen beachten)</span>
+PLAYER_SPEED = 2
+PLAYER_X_MIN = 20 : PLAYER_X_MAX = 220
+PLAYER_Y_MIN = 50 : PLAYER_Y_MAX = 220
+
+PlayerUpdate:
+          LDA JoyState
+
+          LSR                <span class="comment">; Bit 0 = Up</span>
+          BCC .no_up
+          LDA SprLogY       <span class="comment">; Spieler ist immer Index 0</span>
+          SEC : SBC #PLAYER_SPEED
+          CMP #PLAYER_Y_MIN : BCS .ok_up
+          LDA #PLAYER_Y_MIN
+.ok_up:   STA SprLogY
+.no_up:
+
+          LSR                <span class="comment">; Bit 1 = Down</span>
+          BCC .no_down
+          LDA SprLogY
+          CLC : ADC #PLAYER_SPEED
+          CMP #PLAYER_Y_MAX : BCC .ok_down
+          LDA #PLAYER_Y_MAX
+.ok_down: STA SprLogY
+.no_down:
+
+          LSR                <span class="comment">; Bit 2 = Left</span>
+          BCC .no_left
+          LDA SprLogX
+          SEC : SBC #PLAYER_SPEED
+          CMP #PLAYER_X_MIN : BCS .ok_left
+          LDA #PLAYER_X_MIN
+.ok_left: STA SprLogX
+.no_left:
+
+          LSR                <span class="comment">; Bit 3 = Right</span>
+          BCC .no_right
+          LDA SprLogX
+          CLC : ADC #PLAYER_SPEED
+          CMP #PLAYER_X_MAX : BCC .ok_right
+          LDA #PLAYER_X_MAX
+.ok_right: STA SprLogX
+.no_right:
+
+          <span class="comment">; Fire</span>
+          LDA JoyPressed : AND #JOY_FIRE : BEQ .no_fire
+          JSR SpawnBullet
+          JSR PlayLaserSound
+.no_fire: RTS</pre>
+
+    <h3>7.3 Feind-KI: Sinus-Bewegungsmuster</h3>
+
+    <pre><span class="comment">; Feinde bewegen sich in Sinus-Wellen horizontal</span>
+<span class="comment">; + langsam nach unten (auf den Spieler zu)</span>
+NUM_ENEMIES = 8
+
+EnemyAngle: <span class="directive">!fill</span> NUM_ENEMIES, 0   <span class="comment">; Phase per Feind</span>
+EnemyBaseX: <span class="directive">!fill</span> NUM_ENEMIES, 0   <span class="comment">; Basis-X (Mitte der Welle)</span>
+EnemyAlive: <span class="directive">!fill</span> NUM_ENEMIES, 0   <span class="comment">; 1=lebt, 0=tot</span>
+
+EnemyUpdate:
+          LDX #0
+.loop:    LDA EnemyAlive,X : BEQ .skip
+
+          <span class="comment">; Sinus-X: BaseX + sin(Angle) * 30</span>
+          LDA EnemyAngle,X : TAY
+          LDA SinTable,Y
+          SEC : SBC #128     <span class="comment">; -128..127</span>
+          <span class="comment">; Skalieren: /4 → -32..31</span>
+          CMP #$80 : BCC .pos
+          SEC : SBC #0       <span class="comment">; War negativ: Vorzeichen erhalten</span>
+.pos:     ASL : ASL          <span class="comment">; × 4 rückgängig für /4: → ASR ASR</span>
+          <span class="comment">; Vereinfacht: nur +/- offset auf BaseX</span>
+          LDA SinTable+1,X   <span class="comment">; Anderer Ansatz...</span>
+
+          <span class="comment">; Sinus ÷ 4 = Amplitude 30 Pixel</span>
+          LDA EnemyAngle,X : TAY
+          LDA SinTable,Y
+          LSR : LSR          <span class="comment">; /4</span>
+          CLC : ADC EnemyBaseX,X
+          STA SprLogX + 1,X  <span class="comment">; +1 weil Index 0 = Spieler</span>
+
+          <span class="comment">; Langsam nach unten</span>
+          LDA SprLogY + 1,X
+          CLC : ADC #1
+          CMP #230 : BCC .ok_y
+          LDA #50            <span class="comment">; Oben neu erscheinen</span>
+.ok_y:    STA SprLogY + 1,X
+
+          INC EnemyAngle,X   <span class="comment">; Phase weiterbewegen</span>
+
+.skip:    INX : CPX #NUM_ENEMIES : BNE .loop
+          RTS</pre>
+
+    <h3>7.4 Score-Anzeige</h3>
+
+    <pre><span class="comment">; Score als 5-stellige Dezimalzahl im Screen-RAM anzeigen</span>
+<span class="comment">; Score: 24-Bit BCD (3 Bytes) für bis zu 999999</span>
+
+Score: <span class="directive">!byte</span> $00, $00, $00  <span class="comment">; BCD: 00-00-00 bis 99-99-99</span>
+
+<span class="comment">; Score um Punkte erhöhen (BCD-Addition)</span>
+AddScore:
+          <span class="comment">; Eingabe: X = Punkte (1-99)</span>
+          SED              <span class="comment">; Dezimal-Modus!</span>
+          TXA
+          CLC : ADC Score+2
+          STA Score+2
+          LDA Score+1 : ADC #0 : STA Score+1
+          LDA Score   : ADC #0 : STA Score
+          CLD              <span class="comment">; Dezimal-Modus aus!</span>
+          RTS
+
+<span class="comment">; Score als Zeichen auf Screen-RAM ausgeben (Zeile 0, Spalten 0-5)</span>
+DrawScore:
+          LDA Score
+          JSR BCD2Screen    <span class="comment">; High-Byte → 2 Ziffern</span>
+          LDA Score+1
+          JSR BCD2Screen
+          LDA Score+2
+          JSR BCD2Screen
+          RTS
+
+BCD2Screen:
+          <span class="comment">; BCD-Byte → 2 Screen-Codes, schreibt nach $0400,Y (Y = Ausgabepos)</span>
+          PHA
+          LSR : LSR : LSR : LSR  <span class="comment">; High-Nibble</span>
+          CLC : ADC #$30         <span class="comment">; → PETSCII '0' = $30</span>
+          STA $0400,Y : INY
+
+          PLA : AND #$0F
+          CLC : ADC #$30
+          STA $0400,Y : INY
+          RTS</pre>
+  </section>
+
+  <!-- ============================================================ -->
+  <section id="resources">
+    <h2>8. Weiterführende Ressourcen</h2>
+
+    <p>Mit dem Abschluss dieser 11 Stufen bist du ein fortgeschrittener C64-Assembler-Programmierer. Die Gemeinschaft ist aktiv und riesig — hier die wichtigsten Anlaufstellen:</p>
+
+    <div class="resources-grid">
+      <div class="resource-card">
+        <h4>Referenz-Dokumentation</h4>
+        <ul>
+          <li>C64 Programmer's Reference Guide (Commodore, 1982) — das Original</li>
+          <li>64doc.txt — inoffizielle vollständige Dokumentation</li>
+          <li>VIC-II Article von Christian Bauer — vollständige VIC-II-Spezifikation</li>
+          <li>SID Chip Technical Information</li>
+          <li>Undocumented Opcodes (www.oxyron.de)</li>
+        </ul>
+      </div>
+      <div class="resource-card">
+        <h4>Emulation &amp; Werkzeuge</h4>
+        <ul>
+          <li>VICE — C64 Emulator (alle Plattformen)</li>
+          <li>ACME Assembler — beliebt, aktiv gepflegt</li>
+          <li>KickAssembler — Java-basiert, sehr mächtig</li>
+          <li>C64Studio — IDE mit Debugger</li>
+          <li>Char Pad / SpritePad — Grafik-Editoren</li>
+          <li>GoatTracker / SidTracker64 — SID-Musik</li>
+        </ul>
+      </div>
+      <div class="resource-card">
+        <h4>Demoscene &amp; Community</h4>
+        <ul>
+          <li>CSDb (C64 Scene Database) — demos, games, tools</li>
+          <li>Lemon64 — Forum, Spiele-Datenbank</li>
+          <li>Forum64.de — deutschsprachige Community</li>
+          <li>Pouet.net — Demoscene Archiv aller Plattformen</li>
+          <li>6502.org — Prozessor-Community</li>
+        </ul>
+      </div>
+      <div class="resource-card">
+        <h4>Lektüre &amp; Tutorials</h4>
+        <ul>
+          <li>Codebase64.org — riesige Assembler-Tutorial-Sammlung</li>
+          <li>"The Bible of C64 Programming" — Michael Steil</li>
+          <li>6502.org Tutorials — Grundlagen und Fortgeschrittenes</li>
+          <li>Dustlayer's Blog — moderne C64-Entwicklung</li>
+          <li>Retro Game Dev (YouTube-Kanäle)</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>8.1 Nächste Herausforderungen</h3>
+
+    <table>
+      <thead><tr><th>Herausforderung</th><th>Schwierigkeit</th><th>Was du brauchst</th></tr></thead>
+      <tbody>
+        <tr><td>Vollständiges Platformer-Spiel</td><td>★★★☆☆</td><td>Stufen 4, 9, 10</td></tr>
+        <tr><td>3D-Vektorgrafik (Wireframe)</td><td>★★★★☆</td><td>Stufen 5, 8 (Multiplikations-LUT)</td></tr>
+        <tr><td>Mandelbrot in Echtzeit</td><td>★★★★☆</td><td>Stufe 8, Multiplikation</td></tr>
+        <tr><td>Vollständige Demo mit Loader</td><td>★★★★☆</td><td>Alle Stufen + Stufe 6</td></tr>
+        <tr><td>Eigenes Betriebssystem</td><td>★★★★★</td><td>Alle Stufen + Hardware-Kenntnisse</td></tr>
+        <tr><td>TCP/IP auf dem C64 (mit Erweiterung)</td><td>★★★★★</td><td>Stufe 10 + CIA-Erweiterungswissen</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="benchmark" id="benchmark">
+    <h2>★ Meisterschafts-Benchmark ★</h2>
+    <p>Du bist ein C64-Experte wenn du folgende Aufgaben erfüllen kannst:</p>
+    <ul class="benchmark-list">
+      <li><span class="check">★</span> Du entwirfst vollständige Spielarchitekturen (State Machine, Modul-Struktur, Speicher-Layout) vor dem ersten Code-Schreiben</li>
+      <li><span class="check">★</span> Dein Sprite-Multiplexer unterstützt 24+ logische Sprites, sortiert per Insertion Sort, läuft stabil bei 50 Hz</li>
+      <li><span class="check">★</span> Du kombinierst Hardware- und Bounding-Box-Kollision: Hardware als erste Stufe, BBox zur genauen Bestimmung</li>
+      <li><span class="check">★</span> Deine Tilemap-Engine scrollt horizontal/vertikal mit Hardware-Scroll + Column/Row-Updates ohne sichtbares Tearing</li>
+      <li><span class="check">★</span> Du implementierst RLE-Kompression und lädst Level-Daten von Diskette via KERNAL</li>
+      <li><span class="check">★</span> Dein vollständiges Mini-Spiel (Shoot'em'up, Platformer oder ähnliches) läuft stabil bei 50 Hz, hat Musik, Score, Game Over und mindestens einen vollständigen Level</li>
+      <li><span class="check">★</span> Du kannst fremden C64-Assembler-Code lesen, verstehen und optimieren — in maximal 30 Minuten</li>
+    </ul>
+  </section>
+
+  <div class="mastery-banner" style="margin-top: 48px;">
+    <h3>HERZLICHEN GLÜCKWUNSCH!</h3>
+    <p>Du hast das vollständige C64 Mastery System abgeschlossen.<br>
+    Du gehörst jetzt zu den Menschen, die die Seele dieser Maschine wirklich verstehen.<br>
+    <strong style="color: #ffee88;">Die Demoscene erwartet dein Meisterwerk.</strong></p>
+  </div>
+
+  <nav class="chapter-nav">
+    <a href="stufe_09_demo_effekte.html">← Stufe 09: Demo-Effekte</a>
+    <a href="index.html">◈ Zurück zur Übersicht</a>
+  </nav>
+</main>
+
+</body>
+</html>

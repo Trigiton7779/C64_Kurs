@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stufe 0 — Das Fundament | C64 Mastery System</title>
+<style>
+:root {
+    --c64-blue: #0033aa;
+    --c64-light-blue: #4466cc;
+    --c64-green: #00ff88;
+    --c64-dark: #1a1a2e;
+    --paper: #f8f6f0;
+    --paper-dark: #ede9e0;
+    --text: #1a1a2e;
+    --text-light: #444466;
+    --border: #c0b8a8;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: 'Georgia', 'Times New Roman', serif;
+    font-size: 17px; line-height: 1.75;
+    color: var(--text); background: var(--paper);
+    display: grid; grid-template-columns: 270px 1fr; min-height: 100vh;
+}
+.sidebar {
+    background: var(--c64-dark); color: #ccc;
+    position: sticky; top: 0; height: 100vh; overflow-y: auto;
+    font-family: 'Courier New', monospace; font-size: 13px;
+}
+.sidebar-header { background: var(--c64-blue); color: white; padding: 20px 16px; text-align: center; }
+.sidebar-header .logo { font-size: 26px; font-weight: bold; color: var(--c64-green); letter-spacing: 2px; }
+.sidebar-header .sub { font-size: 11px; color: #aac; margin-top: 4px; }
+.sidebar nav ul { list-style: none; padding: 8px 0; }
+.sidebar nav ul li a {
+    display: block; padding: 7px 16px; color: #99b; text-decoration: none;
+    border-left: 3px solid transparent; transition: all 0.2s; font-size: 12.5px;
+}
+.sidebar nav ul li a:hover, .sidebar nav ul li a.active {
+    background: rgba(0,51,170,0.3); color: var(--c64-green); border-left-color: var(--c64-green);
+}
+.sidebar nav ul li.section-label {
+    padding: 8px 16px 2px; font-size: 10px; color: #445;
+    text-transform: uppercase; letter-spacing: 1px; margin-top: 8px;
+}
+main { max-width: 860px; padding: 0 56px 80px; }
+.chapter-header { border-bottom: 3px solid var(--c64-blue); padding: 48px 0 28px; margin-bottom: 40px; }
+.chapter-number {
+    font-family: 'Courier New', monospace; font-size: 12px; color: var(--c64-blue);
+    text-transform: uppercase; letter-spacing: 3px; font-weight: bold; margin-bottom: 10px;
+}
+.chapter-header h1 { font-size: 40px; font-weight: bold; color: var(--c64-dark); line-height: 1.2; margin-bottom: 18px; }
+.chapter-meta { display: flex; gap: 24px; font-family: 'Courier New', monospace; font-size: 13px; color: var(--text-light); flex-wrap: wrap; }
+.badge { background: var(--c64-blue); color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px; }
+.badge.green { background: #2e7d32; }
+.badge.orange { background: #e65100; }
+.badge.red { background: #b71c1c; }
+.objectives {
+    background: #e3f2fd; border-left: 4px solid #1565c0; border-radius: 0 8px 8px 0;
+    padding: 22px 26px; margin-bottom: 40px;
+}
+.objectives h3 { color: #1565c0; font-size: 13px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; font-family: 'Courier New', monospace; }
+.objectives ul { padding-left: 20px; }
+.objectives ul li { margin-bottom: 5px; }
+h2 { font-size: 26px; color: var(--c64-dark); border-bottom: 2px solid var(--c64-blue); padding-bottom: 8px; margin: 44px 0 20px; }
+h3 { font-size: 19px; color: var(--c64-blue); margin: 28px 0 14px; }
+h4 { font-size: 15px; color: var(--text); margin: 20px 0 10px; font-family: 'Courier New', monospace; text-transform: uppercase; letter-spacing: 1px; }
+p { margin-bottom: 15px; }
+ul, ol { padding-left: 24px; margin-bottom: 15px; }
+li { margin-bottom: 5px; }
+pre {
+    background: var(--c64-dark); color: var(--c64-green);
+    font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.65;
+    padding: 22px; border-radius: 8px; overflow-x: auto; margin: 18px 0;
+    border: 1px solid #2a2a4a;
+}
+.asm-comment { color: #667799; font-style: italic; }
+.asm-label { color: #ffcc44; font-weight: bold; }
+.asm-instr { color: #44bbff; }
+.asm-addr { color: #ff88aa; }
+.asm-num { color: #ff9944; }
+code { font-family: 'Courier New', monospace; background: #e5e0d4; padding: 2px 6px; border-radius: 3px; font-size: 0.88em; color: #8b0000; }
+pre code { background: none; padding: 0; color: inherit; }
+table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 14.5px; }
+thead { background: var(--c64-blue); color: white; }
+thead th { padding: 11px 14px; text-align: left; font-family: 'Courier New', monospace; font-size: 12px; letter-spacing: 0.5px; }
+tbody tr:nth-child(even) { background: var(--paper-dark); }
+tbody td { padding: 9px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+tbody tr:hover { background: #dde8ff; }
+.mono { font-family: 'Courier New', monospace; color: #8b0000; font-weight: bold; }
+.box { border-radius: 0 8px 8px 0; padding: 18px 22px; margin: 22px 0; border-left: 4px solid; }
+.box .box-title { font-family: 'Courier New', monospace; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+.box.warning { background: #fff8e1; border-color: #f0a000; }
+.box.warning .box-title { color: #e65100; }
+.box.tip { background: #e8f5e9; border-color: #2e7d32; }
+.box.tip .box-title { color: #1b5e20; }
+.box.note { background: #e3f2fd; border-color: #1565c0; }
+.box.note .box-title { color: #0d47a1; }
+.box.important { background: #fce4ec; border-color: #c62828; }
+.box.important .box-title { color: #b71c1c; }
+.benchmark {
+    background: linear-gradient(135deg, #001166 0%, #0033aa 100%);
+    color: white; padding: 30px; border-radius: 12px; margin: 44px 0;
+}
+.benchmark h2 { color: var(--c64-green); border-color: rgba(0,255,136,0.3); margin-top: 0; font-size: 22px; }
+.benchmark ul { list-style: none; padding: 0; }
+.benchmark ul li { padding: 7px 0 7px 28px; position: relative; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.benchmark ul li:before { content: '☐'; position: absolute; left: 0; color: var(--c64-green); }
+.exercises-section { border: 2px solid var(--c64-blue); border-radius: 12px; padding: 28px; margin: 44px 0; }
+.exercises-section h2 { color: var(--c64-blue); margin-top: 0; border: none; padding: 0; }
+.exercise { background: var(--paper-dark); border-radius: 8px; padding: 18px; margin: 14px 0; }
+.exercise-num { font-family: 'Courier New', monospace; font-size: 11px; color: var(--c64-blue); font-weight: bold; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 6px; }
+.chapter-nav { display: flex; justify-content: space-between; margin-top: 56px; padding-top: 28px; border-top: 2px solid var(--border); gap: 16px; }
+.chapter-nav a { display: flex; flex-direction: column; padding: 14px 22px; background: var(--c64-dark); color: white; text-decoration: none; border-radius: 8px; min-width: 180px; transition: background 0.2s; }
+.chapter-nav a:hover { background: var(--c64-blue); }
+.nav-label { font-size: 10px; color: #889; font-family: 'Courier New', monospace; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 4px; }
+.nav-title { font-size: 15px; font-weight: bold; }
+.register-diagram { display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px; margin: 16px 0; font-family: 'Courier New', monospace; font-size: 12px; text-align: center; }
+.reg-bit { background: var(--c64-dark); color: var(--c64-green); padding: 8px 4px; border-radius: 4px; }
+.reg-bit.set { background: var(--c64-blue); }
+.memory-map { border: 2px solid var(--c64-blue); border-radius: 8px; overflow: hidden; font-family: 'Courier New', monospace; font-size: 13px; }
+.mem-row { display: grid; grid-template-columns: 100px 1fr; border-bottom: 1px solid var(--border); }
+.mem-addr { background: var(--c64-dark); color: var(--c64-green); padding: 6px 12px; font-weight: bold; }
+.mem-desc { padding: 6px 14px; }
+.mem-row.highlight .mem-desc { background: #dde8ff; font-weight: bold; }
+.mem-row.io .mem-desc { background: #fff3e0; }
+.mem-row.rom .mem-desc { background: #e8f5e9; }
+.timeline { position: relative; padding-left: 32px; }
+.timeline-item { position: relative; margin-bottom: 28px; }
+.timeline-item:before { content: ''; position: absolute; left: -26px; top: 6px; width: 12px; height: 12px; background: var(--c64-blue); border-radius: 50%; }
+.timeline-item:after { content: ''; position: absolute; left: -21px; top: 18px; width: 2px; height: calc(100% + 16px); background: #c0c8e0; }
+.timeline-item:last-child:after { display: none; }
+.timeline-year { font-family: 'Courier New', monospace; font-size: 12px; color: var(--c64-blue); font-weight: bold; letter-spacing: 2px; margin-bottom: 4px; }
+.chip-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 24px 0; }
+.chip-card { border: 2px solid var(--c64-blue); border-radius: 10px; overflow: hidden; }
+.chip-header { background: var(--c64-blue); color: white; padding: 12px 18px; }
+.chip-header .chip-name { font-family: 'Courier New', monospace; font-size: 18px; font-weight: bold; }
+.chip-header .chip-full { font-size: 12px; color: #aac; margin-top: 2px; }
+.chip-body { padding: 16px 18px; font-size: 14px; }
+.chip-body ul { padding-left: 18px; }
+.chip-body ul li { margin-bottom: 4px; color: var(--text-light); }
+.monitor-table { background: var(--c64-dark); border-radius: 8px; padding: 20px; margin: 18px 0; }
+.monitor-table table { font-family: 'Courier New', monospace; font-size: 13px; }
+.monitor-table thead { background: #002266; }
+.monitor-table thead th { color: var(--c64-green); padding: 8px 14px; }
+.monitor-table tbody td { color: #aac; border-bottom: 1px solid #2a2a4a; padding: 7px 14px; }
+.monitor-table tbody tr:nth-child(even) { background: #1e1e38; }
+.code-explanation { margin: 20px 0; }
+.code-explanation .line-item { display: grid; grid-template-columns: 180px 1fr; gap: 16px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 14px; align-items: start; }
+.code-explanation .line-code { font-family: 'Courier New', monospace; color: #8b0000; font-weight: bold; }
+.code-explanation .line-desc { color: var(--text-light); }
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">C64</div>
+    <div class="sub">MASTERY SYSTEM</div>
+  </div>
+  <nav>
+    <ul>
+      <li><a href="index.html">&#9632; Übersicht &amp; Curriculum</a></li>
+      <li class="section-label">Grundlagen</li>
+      <li><a href="stufe_00_fundament.html" class="active">Stufe 0 — Fundament</a></li>
+      <li><a href="stufe_01_6510_assembler.html">Stufe 1 — 6510 Assembler</a></li>
+      <li><a href="stufe_02_adressierung_speicher.html">Stufe 2 — Adressierung &amp; Speicher</a></li>
+      <li class="section-label">Grafik &amp; Sound</li>
+      <li><a href="stufe_03_bildschirm_zeichen.html">Stufe 3 — VIC-II &amp; Zeichen</a></li>
+      <li><a href="stufe_04_sprites_animation.html">Stufe 4 — Sprites &amp; Animation</a></li>
+      <li><a href="stufe_05_bitmap_grafik.html">Stufe 5 — Bitmap-Grafik</a></li>
+      <li><a href="stufe_06_sid_sound.html">Stufe 6 — SID &amp; Sound</a></li>
+      <li class="section-label">Fortgeschritten</li>
+      <li><a href="stufe_07_interrupts_timing.html">Stufe 7 — Interrupts &amp; Timing</a></li>
+      <li><a href="stufe_08_optimierung.html">Stufe 8 — Optimierung</a></li>
+      <li><a href="stufe_09_demo_effekte.html">Stufe 9 — Demo-Effekte</a></li>
+      <li><a href="stufe_10_meisterschaft.html">Stufe 10 — Meisterschaft</a></li>
+    </ul>
+  </nav>
+</nav>
+
+<main>
+  <div class="chapter-header">
+    <div class="chapter-number">Stufe 0 &mdash; Phase 1: Grundlagen</div>
+    <h1>Das Fundament</h1>
+    <div class="chapter-meta">
+      <span><span class="badge green">Einsteiger</span></span>
+      <span>&#9632; Zeitaufwand: ~4 Stunden</span>
+      <span>&#9632; Voraussetzungen: Keine</span>
+    </div>
+  </div>
+
+  <div class="objectives">
+    <h3>Lernziele dieses Kapitels</h3>
+    <ul>
+      <li>Die Geschichte und kulturelle Bedeutung des Commodore 64 verstehen und einordnen können</li>
+      <li>Die Hardware-Architektur des C64 auf konzeptioneller Ebene erklären können — alle Chips, ihre Aufgaben und ihr Zusammenspiel</li>
+      <li>Eine vollständige Entwicklungsumgebung (VICE + ACME) auf dem eigenen Rechner einrichten und konfigurieren</li>
+      <li>Den VICE-Monitor öffnen, grundlegende Befehle ausführen und Speicherinhalte inspizieren</li>
+      <li>Das erste eigene Maschinenprogramm schreiben, kompilieren und auf dem Emulator ausführen</li>
+      <li>Die Struktur einer <code>.prg</code>-Datei verstehen und den BASIC-Stub erklären können</li>
+    </ul>
+  </div>
+
+  <h2>1. Geschichte des Commodore 64</h2>
+
+  <p>
+    Um den Commodore 64 wirklich zu verstehen, muss man ihn in seinen historischen Kontext einbetten.
+    Der C64 ist kein isoliertes Phänomen — er ist das Ergebnis einer rasanten technologischen
+    Revolution, einer visionären Unternehmenstrategie und einer glücklichen Fügung von Ingenieursgenie
+    und Markttiming. Die Geschichte des C64 beginnt nicht 1982, sondern bereits in den frühen 1970er
+    Jahren, mit der Gründung von Commodore Business Machines und dem Aufstieg eines Mannes, dessen
+    Slogan die gesamte Branche definieren sollte.
+  </p>
+
+  <h3>1.1 Die Vorgeschichte — Von Schreibmaschinen zu Computern</h3>
+
+  <div class="timeline">
+    <div class="timeline-item">
+      <div class="timeline-year">1954</div>
+      <p><strong>Jack Tramiel gründet Commodore.</strong> Der Holocaust-Überlebende und Armeesoldat
+      Tramiel beginnt mit der Reparatur von Schreibmaschinen in New York. Commodore Business Machines
+      wächst schnell zu einem Importeur und später Hersteller von Büromaschinen.</p>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">1977</div>
+      <p><strong>Der Commodore PET (Personal Electronic Transactor)</strong> wird auf der Consumer
+      Electronics Show vorgestellt — gleichzeitig mit dem Apple II und dem TRS-80. Der PET ist ein
+      vollständiger Computer mit integriertem Bildschirm, Kassettenlaufwerk und Tastatur, ausgestattet
+      mit dem MOS 6502 Prozessor. Tramiel positioniert Commodore klar: "Computer for the masses,
+      not the classes." Der PET richtet sich an Schulen und kleine Unternehmen und wird ein Erfolg.</p>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">1980</div>
+      <p><strong>VIC-20</strong>: Commodores erster echter Heimcomputer mit Farbgrafik. 5 KB RAM,
+      VIC-Chip für Video, MOS 6502 Prozessor. Für nur $299 — damals revolutionär günstig. Der VIC-20
+      wird der erste Heimcomputer überhaupt, der sich über eine Million Mal verkauft. Er legt das
+      Fundament für das, was folgen wird.</p>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">Januar 1982</div>
+      <p><strong>Der Commodore 64 wird auf der Consumer Electronics Show in Las Vegas vorgestellt.</strong>
+      64 KB RAM für $595 — zu einer Zeit, als 64 KB RAM allein schon $200 kosten konnten. Die
+      Konkurrenz ist geschockt. Atari und Apple können diesen Preis nicht annähernd unterbieten.
+      Das Herzstück: ein brandneuer Chip namens VIC-II für Video und ein ebenso neuer SID-Chip
+      für Audio, beide entwickelt von Bob Yannes und Al Charpentier bei MOS Technology.</p>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">1983–1985</div>
+      <p><strong>Marktdominanz in Europa und Amerika.</strong> Der C64 verdrängt den Atari 800 und
+      beginnt, dem Sinclair ZX Spectrum in Europa ernsthaft Konkurrenz zu machen. Der Preiskampf
+      ist brutal: Tramiel senkt den Preis aggressiv auf unter $200, dann unter $150. Tausende von
+      Spielen erscheinen. Eine Industrie entsteht. In Deutschland, Großbritannien, den Niederlanden
+      und Skandinavien wird der C64 zum Standardcomputer in Jugendzimmern.</p>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">1984</div>
+      <p><strong>Jack Tramiel verlässt Commodore</strong> nach internen Machtkämpfen. Er übernimmt
+      Atari und baut den Atari ST. Commodore führt den C64 dennoch erfolgreich weiter. In diesem
+      Jahr beginnt auch die C64-Demo-Szene zu erblühen — zunächst als "Cracktros" (Intros, die
+      Cracking-Gruppen ihren illegal kopierten Spielen voranstellen), dann als eigenständige
+      Kunstform.</p>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">1987–1990</div>
+      <p><strong>Die goldene Ära der Demo-Szene.</strong> Gruppen wie Crest, 1001 Crew, Comalight,
+      Plush und Ikari+Talent zeigen Effekte, die als technisch unmöglich galten: Mehr als 8 Sprites
+      gleichzeitig, Rasterbalkengrafiken mit Hunderten von Farben pro Zeile, Sinus-Scroller mit
+      flüssiger Animation bei 50 Hz. Der C64 wird zur Kulturplattform. Coding-Partys entstehen,
+      wo Teams in Wettbewerb treten.</p>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">1994</div>
+      <p><strong>Commodore geht in Konkurs.</strong> Der C64 wird offiziell eingestellt. Doch die
+      Community lebt weiter: Neue Spiele, Demos und Tools erscheinen bis heute. Jährliche Partys
+      wie die X-Party in den Niederlanden oder die Revision in Saarbrücken widmen dem C64
+      eigene Wettbewerbskategorien. Die Maschine ist unsterblich.</p>
+    </div>
+  </div>
+
+  <h3>1.2 Der C64 als kreative Plattform</h3>
+
+  <p>
+    Was macht den Commodore 64 als Lern- und Kreativplattform so besonders? Die Antwort liegt
+    paradoxerweise in seinen Limitierungen. Mit nur 64 KB RAM, einem 1-MHz-Prozessor und einer
+    auf 16 Farben beschränkten Farbpalette zwingt der C64 den Programmierer zu einer Disziplin,
+    die in der Welt moderner, ressourcenreicher Entwicklung kaum noch praktiziert wird: dem
+    wirklichen Verstehen jedes einzelnen Taktzyklus, jedes einzelnen Bytes.
+  </p>
+
+  <p>
+    Es gibt keine Abstraktionsschicht, hinter der man sich verstecken kann. Kein Betriebssystem
+    nimmt einem die Speicherverwaltung ab. Kein Framework erledigt die Bildschirmausgabe. Kein
+    Treiber kümmert sich um die Sound-Hardware. Man schreibt direkt in Register, setzt direkt
+    Bits, und man sieht sofort — auf dem Bildschirm, im Lautsprecher — ob es funktioniert hat
+    oder nicht. Diese Unmittelbarkeit ist es, die C64-Programmierung so lehrreich und gleichzeitig
+    so befriedigend macht.
+  </p>
+
+  <div class="box tip">
+    <div class="box-title">Historische Perspektive</div>
+    Über 10.000 kommerzielle Spiele wurden für den C64 entwickelt. Darunter Klassiker wie
+    "The Last Ninja", "Maniac Mansion", "Turrican" und "Elite" — Programme, die von kleinen Teams
+    oder Einzelpersonen entwickelt wurden und die bis heute als Meisterwerke der Spieleentwicklung
+    gelten. Viele der wichtigsten Spieleentwickler der 1990er-Jahre lernten ihr Handwerk auf dem C64.
+  </div>
+
+  <h2>2. Hardware-Architektur — Das Innenleben des C64</h2>
+
+  <p>
+    Der Commodore 64 ist — trotz seiner scheinbaren Einfachheit — ein technisch faszinierendes System.
+    Drei spezialisierte Chips arbeiten eng mit der CPU zusammen und teilen sich den Adressbus. Das
+    Zusammenspiel dieser Komponenten, ihre genaue Orchestrierung, ist die Grundlage für alles, was
+    man auf dem C64 programmieren kann. Bevor man eine einzige Zeile Assembler schreibt, muss man
+    dieses Zusammenspiel konzeptionell verstanden haben.
+  </p>
+
+  <pre>
+╔══════════════════════════════════════════════════════════════════╗
+║              C64 HARDWARE-ARCHITEKTUR (VEREINFACHT)              ║
+╠══════════════════╦══════════════════╦═══════════════════════════╣
+║   MOS 6510 CPU   ║   MOS 6567/6569  ║       MOS 6581/8580       ║
+║   (Prozessor)    ║   VIC-II (Video) ║       SID (Sound)         ║
+║   1.023 MHz PAL  ║   16 KB Zugriff  ║   3 Stimmen Synthese      ║
+╠══════════════════╩══════════════════╩═══════════════════════════╣
+║         MOS 6526 CIA1            MOS 6526 CIA2                   ║
+║         ($DC00) Tastatur         ($DD00) IEC-Bus/VIC-Bank        ║
+╠═══════════════════════════════════════════════════════════════════╣
+║              16-BIT ADRESSBUS (64 KB Adressraum)                 ║
+╠═══════════════════════════════════════════════════════════════════╣
+║  64 KB RAM  │  Basic ROM  │  Kernal ROM  │  Chargen ROM          ║
+║  ($0000-)   │  ($A000-)   │  ($E000-)    │  ($D000-)             ║
+╚═══════════════════════════════════════════════════════════════════╝</pre>
+
+  <h3>2.1 Der MOS 6510 Prozessor — Die CPU</h3>
+
+  <p>
+    Das Gehirn des C64 ist der MOS Technology 6510 — ein 8-Bit-Mikroprozessor, der sich eng
+    am populären MOS 6502 anlehnt, ihn jedoch um einen entscheidenden Zusatz ergänzt: einen
+    6-Bit-I/O-Port, der direkt in den Prozessor integriert ist. Dieser I/O-Port wird in der
+    Adresse <code>$0001</code> (dezimal: 1) im Speicher abgebildet und steuert unter anderem
+    das Memory-Banking-System des C64.
+  </p>
+
+  <p>
+    Die Taktfrequenz beträgt exakt 0,985 MHz im PAL-Betrieb (europäisch) beziehungsweise
+    1,023 MHz im NTSC-Betrieb (amerikanisch). Das klingt nach sehr wenig — und das ist es auch.
+    Bei einem MHz schafft der Prozessor theoretisch maximal eine Million einfache Operationen
+    pro Sekunde. In der Praxis benötigen die meisten Befehle zwei bis sieben Taktzyklen, was
+    die effektive Zahl sinnvoller Operationen auf etwa 300.000 bis 500.000 pro Sekunde reduziert.
+    Jede einzelne Instruktion zählt.
+  </p>
+
+  <p>
+    Der 6510 besitzt sechs Register: den 8-Bit-Akkumulator A (das zentrale Rechenregister),
+    die 8-Bit-Indexregister X und Y, den 8-Bit-Stack-Pointer SP, den 16-Bit-Programmzähler PC
+    und das 8-Bit-Status-Register P. Diese Register — ihre Funktion, ihre Grenzen und ihr optimaler
+    Einsatz — sind das Thema von Stufe 1. Hier genügt das Wissen, dass der 6510 mit diesen
+    wenigen Registern auskommt und alle Berechnungen über den Akkumulator läuft.
+  </p>
+
+  <div class="box note">
+    <div class="box-title">6510 vs. 6502</div>
+    Der 6510 ist für alle praktischen Zwecke ein 6502 — der gleiche Befehlssatz, die gleiche
+    Architektur, die gleichen Adressierungsarten. Der einzige wesentliche Unterschied ist der
+    integrierte I/O-Port. Alle für den 6502 geschriebene Dokumentation, alle Opcode-Tabellen
+    und alle Timing-Informationen gelten direkt für den 6510.
+  </div>
+
+  <h4>Der I/O-Port des 6510 ($0001)</h4>
+
+  <p>
+    Das Byte an Adresse <code>$0001</code> ist kein gewöhnlicher RAM-Speicherplatz — es ist
+    direkt mit dem I/O-Port des 6510 verbunden und steuert das Memory-Banking-System sowie
+    einige externe Hardware-Signale:
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Bit</th>
+        <th>Funktion</th>
+        <th>0 = ...</th>
+        <th>1 = ...</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="mono">Bit 0</td>
+        <td>LORAM — Basic-ROM</td>
+        <td>Basic-ROM ausgeblendet (RAM sichtbar)</td>
+        <td>Basic-ROM bei $A000–$BFFF aktiv</td>
+      </tr>
+      <tr>
+        <td class="mono">Bit 1</td>
+        <td>HIRAM — Kernal-ROM</td>
+        <td>Kernal-ROM ausgeblendet (RAM sichtbar)</td>
+        <td>Kernal-ROM bei $E000–$FFFF aktiv</td>
+      </tr>
+      <tr>
+        <td class="mono">Bit 2</td>
+        <td>CHAREN — Zeichensatz-ROM vs. I/O</td>
+        <td>Chargen-ROM bei $D000 sichtbar</td>
+        <td>I/O-Bereich ($D000–$DFFF) sichtbar</td>
+      </tr>
+      <tr>
+        <td class="mono">Bit 3</td>
+        <td>Datasette-Ausgang (WRITE)</td>
+        <td>Signal LOW</td>
+        <td>Signal HIGH</td>
+      </tr>
+      <tr>
+        <td class="mono">Bit 4</td>
+        <td>Datasette-Taste (READ)</td>
+        <td>Taste gedrückt</td>
+        <td>Taste nicht gedrückt</td>
+      </tr>
+      <tr>
+        <td class="mono">Bit 5</td>
+        <td>Datasette-Motor</td>
+        <td>Motor läuft</td>
+        <td>Motor gestoppt</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>
+    Der Standardwert beim Einschalten ist <code>$37</code> (binär: <code>%00110111</code>), was
+    bedeutet: Basic-ROM aktiv, Kernal-ROM aktiv, I/O-Bereich sichtbar (kein Chargen-ROM).
+    Für Maschinenspracheprogramme, die maximalen RAM-Zugriff benötigen, kann man die ROMs
+    mit <code>LDA #$35 : STA $0001</code> ausblenden — allerdings verliert man damit auch
+    den Zugriff auf Kernal-Routinen.
+  </p>
+
+  <h3>2.2 Der VIC-II — Video Interface Controller II</h3>
+
+  <p>
+    Der VIC-II (offiziell: MOS 6567 für NTSC bzw. MOS 6569 für PAL) ist das visuelle Herzstück
+    des C64. Er erzeugt das gesamte Videosignal und bietet eine Vielzahl von Hardware-Features,
+    die bei frühen Heimcomputern einzigartig waren. Der VIC-II hat direkten Zugriff auf
+    16 Kilobyte Video-RAM — welches der C64-Programmierer aus dem 64-KB-Adressraum auswählen kann.
+  </p>
+
+  <p>
+    Die Register des VIC-II liegen im Bereich <code>$D000</code> bis <code>$D02E</code>
+    (47 Register, plus Spiegel bis <code>$D3FF</code>). Über diese Register werden Sprite-Positionen,
+    Bildschirmmodi, Farben, Scroll-Position und der Raster-Interrupt konfiguriert. Das Studium
+    dieser Register ist der Kern von Stufe 3 und 4; hier ein erster Überblick:
+  </p>
+
+  <div class="chip-grid">
+    <div class="chip-card">
+      <div class="chip-header">
+        <div class="chip-name">VIC-II</div>
+        <div class="chip-full">MOS 6567 (NTSC) / 6569 (PAL)</div>
+      </div>
+      <div class="chip-body">
+        <ul>
+          <li>Register bei <strong>$D000–$D02E</strong></li>
+          <li>8 Hardware-Sprites (24×21 Pixel oder 12×21 Multicolor)</li>
+          <li>Textmodus: 40×25 Zeichen, 8 Farben pro Zeichen</li>
+          <li>Bitmap-Modi: Hires (320×200) &amp; Multicolor (160×200)</li>
+          <li>Raster-Interrupt: Präzise Programmunterbrechung bei jeder Bildschirmzeile</li>
+          <li>16 Farben aus einer fest verdrahteten Palette</li>
+          <li>Smooth-Scrolling: 8 Pixel horizontal und vertikal</li>
+          <li>Direktzugriff auf 16 KB Video-RAM (auswählbar)</li>
+        </ul>
+      </div>
+    </div>
+    <div class="chip-card">
+      <div class="chip-header">
+        <div class="chip-name">SID</div>
+        <div class="chip-full">MOS 6581 (orig.) / 8580 (rev. 2)</div>
+      </div>
+      <div class="chip-body">
+        <ul>
+          <li>Register bei <strong>$D400–$D41C</strong></li>
+          <li>3 unabhängige Synthesizer-Stimmen</li>
+          <li>Je Stimme: Frequenz (16-Bit), Pulsbreite (12-Bit)</li>
+          <li>4 Wellenformen: Dreieck, Sägezahn, Rechteck, Rauschen</li>
+          <li>ADSR-Hüllkurve je Stimme: Attack, Decay, Sustain, Release</li>
+          <li>Globaler Multimode-Filter: Tiefpass, Bandpass, Hochpass</li>
+          <li>Analoge Ausgangsstufe mit einzigartigem Klangcharakter</li>
+          <li>Stimme 3: Frequenz- und Hüllkurven-Ausgabe lesbar (für Zufall/LFO)</li>
+        </ul>
+      </div>
+    </div>
+    <div class="chip-card">
+      <div class="chip-header">
+        <div class="chip-name">CIA 1</div>
+        <div class="chip-full">MOS 6526 — $DC00</div>
+      </div>
+      <div class="chip-body">
+        <ul>
+          <li>Register bei <strong>$DC00–$DC0F</strong></li>
+          <li>Port A ($DC00): Tastatur-Matrix-Spalten, Joystick 2</li>
+          <li>Port B ($DC01): Tastatur-Matrix-Zeilen, Joystick 1</li>
+          <li>Timer A und Timer B: 16-Bit Countdown-Timer</li>
+          <li>Time-of-Day-Uhr: Stunden, Minuten, Sekunden, 1/10-Sekunden</li>
+          <li>Serielles Schieberegister für IEC (hier nicht verwendet)</li>
+          <li>Interrupt-Control-Register: Erzeugt IRQ bei Timer-Ablauf</li>
+        </ul>
+      </div>
+    </div>
+    <div class="chip-card">
+      <div class="chip-header">
+        <div class="chip-name">CIA 2</div>
+        <div class="chip-full">MOS 6526 — $DD00</div>
+      </div>
+      <div class="chip-body">
+        <ul>
+          <li>Register bei <strong>$DD00–$DD0F</strong></li>
+          <li>Port A Bits 0–1: VIC-II Bank-Auswahl (4 × 16 KB)</li>
+          <li>Port A Bits 2–7: IEC-Bus (Floppy/Drucker-Kommunikation)</li>
+          <li>Port B: RS-232-Schnittstelle (User-Port)</li>
+          <li>Timer A und Timer B: Identisch zu CIA 1</li>
+          <li>Interrupt-Ausgang: NMI statt IRQ (nicht maskierbar)</li>
+          <li>Time-of-Day-Uhr: Identisch zu CIA 1</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <h3>2.3 Das Speichersystem — 64 KB mit Tricks</h3>
+
+  <p>
+    Der Name "64" im Commodore 64 steht für 64 Kilobyte RAM — eine für 1982 beeindruckende Menge.
+    Doch das Bild ist komplizierter, als es zunächst erscheint. Der 16-Bit-Adressbus des 6510
+    kann theoretisch 65.536 Bytes ($0000–$FFFF) adressieren. Davon sind tatsächlich 64 KB RAM
+    physisch vorhanden. Zusätzlich gibt es 20 KB ROM (Basic, Kernal, Zeichensatz), die an
+    verschiedenen Stellen in den Adressraum eingeblendet werden können — und den I/O-Bereich.
+  </p>
+
+  <p>
+    Das Memory-Banking-System des C64 löst den offensichtlichen Konflikt (64 KB RAM + 20 KB ROM
+    passen nicht in 64 KB Adressraum) elegant: ROM und I/O-Bereich können über den I/O-Port
+    des 6510 ein- und ausgeblendet werden. Im Normalzustand sind Basic-ROM ($A000–$BFFF),
+    Kernal-ROM ($E000–$FFFF) und I/O-Bereich ($D000–$DFFF) aktiv. Dahinter liegt aber immer
+    das vollständige RAM — man muss nur wissen, wie man darauf zugreift.
+  </p>
+
+  <div class="memory-map">
+    <div class="mem-row">
+      <div class="mem-addr">$FFFF</div>
+      <div class="mem-desc" style="background:#e8f5e9;">Kernal-ROM ($E000–$FFFF, 8 KB) — Betriebssystem-Routinen</div>
+    </div>
+    <div class="mem-row rom">
+      <div class="mem-addr">$E000</div>
+      <div class="mem-desc">Kernal ROM: LOAD, SAVE, PRINT, CHRIN, CHROUT, Reset-Vektoren</div>
+    </div>
+    <div class="mem-row">
+      <div class="mem-addr">$DFFF</div>
+      <div class="mem-desc" style="background:#fff3e0;">I/O und ROM-Bereich ($D000–$DFFF, 4 KB)</div>
+    </div>
+    <div class="mem-row io">
+      <div class="mem-addr">$D800</div>
+      <div class="mem-desc">Color-RAM: 1000 Bytes, je 4 Bit — Vordergrundfarbe jedes Zeichens</div>
+    </div>
+    <div class="mem-row io">
+      <div class="mem-addr">$DD00</div>
+      <div class="mem-desc">CIA 2 Register ($DD00–$DD0F): IEC-Bus, VIC-Bank, RS-232</div>
+    </div>
+    <div class="mem-row io">
+      <div class="mem-addr">$DC00</div>
+      <div class="mem-desc">CIA 1 Register ($DC00–$DC0F): Tastatur, Joystick, Timer</div>
+    </div>
+    <div class="mem-row io">
+      <div class="mem-addr">$D400</div>
+      <div class="mem-desc">SID Register ($D400–$D41C): Sound-Synthese-Chip</div>
+    </div>
+    <div class="mem-row io">
+      <div class="mem-addr">$D000</div>
+      <div class="mem-desc">VIC-II Register ($D000–$D02E): Video-Chip</div>
+    </div>
+    <div class="mem-row">
+      <div class="mem-addr">$BFFF</div>
+      <div class="mem-desc" style="background:#e8f5e9;">Basic-ROM ($A000–$BFFF, 8 KB) — BASIC V2 Interpreter</div>
+    </div>
+    <div class="mem-row rom">
+      <div class="mem-addr">$A000</div>
+      <div class="mem-desc">BASIC ROM: Interpreter, Schlüsselwörter, Mathematik-Routinen</div>
+    </div>
+    <div class="mem-row">
+      <div class="mem-addr">$9FFF</div>
+      <div class="mem-desc">Freies RAM für Maschinenprogramme, Grafik-Daten, etc.</div>
+    </div>
+    <div class="mem-row highlight">
+      <div class="mem-addr">$0800</div>
+      <div class="mem-desc"><strong>BASIC-Programmbereich ($0800–$9FFF, ~38 KB frei)</strong></div>
+    </div>
+    <div class="mem-row highlight">
+      <div class="mem-addr">$0400</div>
+      <div class="mem-desc"><strong>Bildschirm-RAM ($0400–$07E7, 1000 Bytes)</strong> — Standard-Videoram</div>
+    </div>
+    <div class="mem-row">
+      <div class="mem-addr">$0100</div>
+      <div class="mem-desc">Stack ($0100–$01FF, 256 Bytes) — Wächst von $01FF nach unten</div>
+    </div>
+    <div class="mem-row">
+      <div class="mem-addr">$0002</div>
+      <div class="mem-desc">Zero Page ($0002–$00FF) — Schnellster RAM-Bereich für Variablen</div>
+    </div>
+    <div class="mem-row io">
+      <div class="mem-addr">$0001</div>
+      <div class="mem-desc">I/O-Port des 6510: Memory-Banking, Datasette</div>
+    </div>
+    <div class="mem-row io">
+      <div class="mem-addr">$0000</div>
+      <div class="mem-desc">I/O-Richtungsregister des 6510 (DDR)</div>
+    </div>
+  </div>
+
+  <div class="box warning">
+    <div class="box-title">Wichtig: Color-RAM ist besonders</div>
+    Das Color-RAM bei <code>$D800</code> ist das einzige echte RAM im I/O-Bereich — es ist
+    immer als RAM zugänglich, egal welches Banking aktiv ist. Es speichert die Vordergrundfarbe
+    jedes der 1000 Bildschirmzeichen, aber nur als 4-Bit-Wert (Nibble). Die oberen 4 Bits
+    jedes Bytes sind beim Lesen undefiniert.
+  </div>
+
+  <h2>3. Entwicklungsumgebung einrichten</h2>
+
+  <p>
+    Theorie ist gut — aber ohne eine funktionierende Entwicklungsumgebung bleibt alles abstrakt.
+    In diesem Abschnitt richten wir Schritt für Schritt alles ein, was nötig ist, um C64-Programme
+    zu schreiben, zu kompilieren und auszuführen. Der gesamte Prozess dauert typischerweise 30–60
+    Minuten bei einer stabilen Internetverbindung.
+  </p>
+
+  <h3>3.1 VICE Emulator</h3>
+
+  <p>
+    VICE (Versatile Commodore Emulator) ist der Standard-Emulator für den C64 und verwandte
+    Commodore-Maschinen. Er emuliert nicht nur die CPU korrekt, sondern auch VIC-II, SID und
+    CIA auf Zyklus-genauer Ebene — was für Timing-kritische Programmierung unverzichtbar ist.
+    VICE ist quelloffen, wird aktiv gepflegt und ist für alle wichtigen Betriebssysteme verfügbar.
+  </p>
+
+  <pre><span class="asm-comment"># Linux (Debian/Ubuntu/Mint):</span>
+sudo apt update &amp;&amp; sudo apt install vice
+
+<span class="asm-comment"># macOS (mit Homebrew):</span>
+brew install vice
+
+<span class="asm-comment"># Windows:</span>
+<span class="asm-comment"># Installer von https://vice-emu.sourceforge.io/ herunterladen</span>
+<span class="asm-comment"># VICE enthält mehrere Emulatoren: x64sc ist der präziseste C64-Emulator</span>
+
+<span class="asm-comment"># Nach der Installation: x64sc starten (der 'sc' steht für 'super cpu accurate')</span>
+x64sc</pre>
+
+  <h4>VICE Monitor — Das wichtigste Debugging-Werkzeug</h4>
+
+  <p>
+    Der VICE-Monitor ist ein eingebauter Maschinensprache-Monitor und Debugger, der direkt
+    in den Emulator integriert ist. Er ermöglicht das Inspizieren und Verändern von Speicher
+    und Registern, das Setzen von Breakpoints, das Disassemblieren von Code und vieles mehr.
+    Öffnen lässt er sich mit <code>Alt+H</code> (oder via Menü: Monitor → Open Monitor).
+  </p>
+
+  <div class="monitor-table">
+    <table>
+      <thead>
+        <tr>
+          <th>Befehl</th>
+          <th>Syntax</th>
+          <th>Beschreibung</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>g (go)</td>
+          <td><code>g c000</code></td>
+          <td>Programmausführung ab Adresse $C000 starten</td>
+        </tr>
+        <tr>
+          <td>r (registers)</td>
+          <td><code>r</code></td>
+          <td>Alle CPU-Register anzeigen (A, X, Y, PC, SP, Flags)</td>
+        </tr>
+        <tr>
+          <td>m (memory)</td>
+          <td><code>m d000 d02e</code></td>
+          <td>Speicherinhalt von $D000 bis $D02E hexadezimal anzeigen</td>
+        </tr>
+        <tr>
+          <td>d (disassemble)</td>
+          <td><code>d 0801 0850</code></td>
+          <td>Code ab $0801 disassemblieren und Opcodes anzeigen</td>
+        </tr>
+        <tr>
+          <td>l (load)</td>
+          <td><code>l "prog.prg" 0</code></td>
+          <td>Datei in Speicher laden (0 = Lade-Adresse aus Datei)</td>
+        </tr>
+        <tr>
+          <td>s (save)</td>
+          <td><code>s "dump.prg" 0 0801 0900</code></td>
+          <td>Speicherbereich $0801–$0900 als PRG speichern</td>
+        </tr>
+        <tr>
+          <td>break</td>
+          <td><code>break c000</code></td>
+          <td>Breakpoint bei $C000 setzen — Ausführung stoppt hier</td>
+        </tr>
+        <tr>
+          <td>del</td>
+          <td><code>del 1</code></td>
+          <td>Breakpoint Nummer 1 löschen</td>
+        </tr>
+        <tr>
+          <td>n (next)</td>
+          <td><code>n</code></td>
+          <td>Einen Befehl ausführen (Einzelschritt)</td>
+        </tr>
+        <tr>
+          <td>x (exit)</td>
+          <td><code>x</code></td>
+          <td>Monitor schließen und Emulator fortsetzen</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>3.2 ACME Assembler — Installation und Grundlagen</h3>
+
+  <p>
+    ACME ist ein plattformübergreifender Cross-Assembler für den 6502/6510 und verwandte
+    Prozessoren. Er wird von der Befehlszeile aufgerufen, erzeugt eine kompilierte PRG-Datei
+    und ist dabei blitzschnell. Seine Syntax ist klar und konsistent, seine Fehlermeldungen
+    verständlich. ACME ist die erste Wahl für Einsteiger und bleibt eine solide Wahl auch
+    für fortgeschrittene Entwickler.
+  </p>
+
+  <p>
+    ACME-Quelldateien verwenden die Erweiterung <code>.asm</code> oder <code>.a</code>.
+    Kommentare beginnen mit einem Semikolon (<code>;</code>). Labels werden am Zeilenanfang
+    ohne Leerzeichen geschrieben und mit einem Doppelpunkt abgeschlossen. Direktiven beginnen
+    mit einem Ausrufezeichen (<code>!</code>).
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ACME-Direktive</th>
+        <th>Bedeutung</th>
+        <th>Beispiel</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="mono">!to "datei", format</td>
+        <td>Ausgabedatei und Format festlegen</td>
+        <td><code>!to "prog.prg", cbm</code></td>
+      </tr>
+      <tr>
+        <td class="mono">* = $addr</td>
+        <td>Aktuellen Programmzähler (Adresse) setzen</td>
+        <td><code>* = $0801</code></td>
+      </tr>
+      <tr>
+        <td class="mono">!byte val, ...</td>
+        <td>Einzelne Bytes in den Code einfügen</td>
+        <td><code>!byte $0b, $08, $00</code></td>
+      </tr>
+      <tr>
+        <td class="mono">!word val, ...</td>
+        <td>16-Bit-Werte einfügen (Little-Endian)</td>
+        <td><code>!word $0801</code></td>
+      </tr>
+      <tr>
+        <td class="mono">!src "datei"</td>
+        <td>Andere Quelldatei einbinden</td>
+        <td><code>!src "lib/kernal.asm"</code></td>
+      </tr>
+      <tr>
+        <td class="mono">!zone name</td>
+        <td>Lokalen Label-Bereich erstellen</td>
+        <td><code>!zone schleife</code></td>
+      </tr>
+      <tr>
+        <td class="mono">name = value</td>
+        <td>Konstante definieren (kein Label, keine Adresse)</td>
+        <td><code>VIC_BORDER = $d020</code></td>
+      </tr>
+      <tr>
+        <td class="mono">!fill count, val</td>
+        <td>Speicher mit Wert füllen</td>
+        <td><code>!fill 1000, $20</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>3.3 Empfohlener Build-Workflow</h3>
+
+  <p>
+    Für ein effizientes Arbeiten empfiehlt sich folgender Workflow: Der Quellcode wird in einem
+    Texteditor (VS Code mit 6502-Syntax-Highlighting-Erweiterung empfohlen) geschrieben.
+    Ein Shell-Skript oder ein Makefile kümmert sich um den Build-Prozess. VICE öffnet die
+    erzeugte PRG-Datei automatisch.
+  </p>
+
+  <pre><span class="asm-comment">#!/bin/bash</span>
+<span class="asm-comment"># build.sh — Einzeiler-Build-Skript für C64-Projekte</span>
+
+<span class="asm-comment"># ACME kompilieren (Quelle: prog.asm → Ausgabe: prog.prg)</span>
+acme -f cbm -o prog.prg --labeldump prog.sym prog.asm
+
+<span class="asm-comment"># Nur wenn Kompilierung erfolgreich war ($? = 0): VICE starten</span>
+if [ $? -eq 0 ]; then
+    echo "Kompilierung erfolgreich — starte VICE..."
+    x64sc prog.prg
+else
+    echo "Fehler beim Kompilieren!"
+fi</pre>
+
+  <div class="box tip">
+    <div class="box-title">VS Code Erweiterung</div>
+    Für VS Code empfiehlt sich die Erweiterung "C64 Assembly" (Suche nach "c64" im Extensions-Panel).
+    Sie bietet Syntax-Highlighting für 6510-Assembler, Autocomplete für Mnemonics und
+    sogar Inline-Dokumentation für häufig verwendete Register-Adressen.
+  </div>
+
+  <h2>4. Das erste Maschinenprogramm — Schritt für Schritt</h2>
+
+  <p>
+    Jetzt wird es praktisch. Wir schreiben unser erstes vollständiges Maschinenprogramm für den C64.
+    Das Programm setzt die Rahmen- und Hintergrundfarbe des Bildschirms und füllt den
+    Bildschirmspeicher mit Leerzeichen — einfach genug, um es vollständig zu verstehen,
+    aber nützlich genug, um echte Konzepte zu vermitteln.
+  </p>
+
+  <h3>4.1 Der BASIC-Stub — Brücke zwischen BASIC und Maschinensprache</h3>
+
+  <p>
+    Wenn der C64 eingeschaltet wird, startet er den BASIC-Interpreter und erwartet BASIC-Programme
+    bei Adresse <code>$0801</code>. Maschinenspracheprogramme, die als <code>.prg</code>-Datei
+    geladen werden, müssen daher entweder direkt bei $0801 beginnen oder einen BASIC-Stub
+    enthalten, der das Maschinenprogramm über den <code>SYS</code>-Befehl aufruft.
+  </p>
+
+  <p>
+    Der klassische BASIC-Stub besteht aus einem gültigen BASIC-Programm mit einer einzigen Zeile:
+    <code>1 SYS 2061</code>. Dezimal 2061 entspricht hexadezimal $080D — die Adresse direkt
+    nach dem Stub. Wenn der Benutzer <code>RUN</code> eintippt (oder die Datei automatisch
+    gestartet wird), ruft BASIC <code>SYS 2061</code> auf, was die Kontrolle an unser
+    Maschinenprogramm übergibt.
+  </p>
+
+  <p>
+    Die Bytes des BASIC-Stubs sind streng vordefiniert und müssen exakt in dieser Reihenfolge
+    stehen. Hier ist ihre Bedeutung:
+  </p>
+
+  <div class="code-explanation">
+    <div class="line-item">
+      <div class="line-code">$0801: 0B 08</div>
+      <div class="line-desc">Zeiger auf die nächste BASIC-Zeile (Low-Byte, High-Byte = $080B). Da es keine nächste Zeile gibt, zeigt dieser auf das Ende-Marker.</div>
+    </div>
+    <div class="line-item">
+      <div class="line-code">$0803: 01 00</div>
+      <div class="line-desc">Zeilennummer der BASIC-Zeile: 1 (Low-Byte = $01, High-Byte = $00 → dezimal 1)</div>
+    </div>
+    <div class="line-item">
+      <div class="line-code">$0805: 9E</div>
+      <div class="line-desc">BASIC-Token für das Schlüsselwort SYS ($9E = SYS in BASIC V2)</div>
+    </div>
+    <div class="line-item">
+      <div class="line-code">$0806: 32 30 36 31</div>
+      <div class="line-desc">ASCII-Text "2061" — die Adresse des Maschinenprogramms als lesbare Zahl (32='2', 30='0', 36='6', 31='1')</div>
+    </div>
+    <div class="line-item">
+      <div class="line-code">$080A: 00</div>
+      <div class="line-desc">Null-Byte: Ende der BASIC-Zeile</div>
+    </div>
+    <div class="line-item">
+      <div class="line-code">$080B: 00 00</div>
+      <div class="line-desc">Doppeltes Null-Byte: Ende des BASIC-Programms (Zeiger auf nächste Zeile = $0000)</div>
+    </div>
+    <div class="line-item">
+      <div class="line-code">$080D: (Code)</div>
+      <div class="line-desc">Hier beginnt unser Maschinencode — bei Dezimaladresse 2061, hexadezimal $080D</div>
+    </div>
+  </div>
+
+  <h3>4.2 Das vollständige erste Programm</h3>
+
+  <p>
+    Das folgende Programm demonstriert drei grundlegende Techniken: direkte Register-Schreibzugriffe
+    für die Farbregister des VIC-II, eine Schleife über alle 1000 Bildschirmzeichen und die
+    Rückkehr zum BASIC-Interpreter. Speichern Sie den folgenden Code als <code>farben.asm</code>:
+  </p>
+
+  <pre><span class="asm-comment">; ================================================================
+; Erstes C64-Programm: Bildschirmfarbe und -inhalt setzen
+; Assembler: ACME  |  Ziel: VICE Emulator (PAL)
+; Adresse:   $0801 (BASIC-Start)
+; Autor:     C64 Mastery System — Stufe 0
+; ================================================================</span>
+
+<span class="asm-comment">; Ausgabedatei und Format definieren</span>
+<span class="asm-instr">!to</span> <span class="asm-label">"farben.prg"</span>, cbm
+
+<span class="asm-comment">; Konstanten definieren (Lesbarkeit und Wartbarkeit)</span>
+VIC_BORDER  = <span class="asm-num">$d020</span>   <span class="asm-comment">; VIC-II Rahmenfarbe</span>
+VIC_BG0     = <span class="asm-num">$d021</span>   <span class="asm-comment">; VIC-II Hintergrundfarbe</span>
+SCREEN_RAM  = <span class="asm-num">$0400</span>   <span class="asm-comment">; Standard-Bildschirm-RAM</span>
+COLOR_RAM   = <span class="asm-num">$d800</span>   <span class="asm-comment">; Color-RAM (Vordergrundfarben)</span>
+
+<span class="asm-comment">; Farb-Konstanten (C64 Farbpalette)</span>
+COL_BLACK   = <span class="asm-num">0</span>
+COL_WHITE   = <span class="asm-num">1</span>
+COL_RED     = <span class="asm-num">2</span>
+COL_CYAN    = <span class="asm-num">3</span>
+COL_PURPLE  = <span class="asm-num">4</span>
+COL_GREEN   = <span class="asm-num">5</span>
+COL_BLUE    = <span class="asm-num">6</span>
+COL_YELLOW  = <span class="asm-num">7</span>
+
+<span class="asm-comment">; BASIC-Programm beginnt immer bei $0801</span>
+* = <span class="asm-num">$0801</span>
+
+<span class="asm-comment">; ---- BASIC-Stub: entspricht "1 SYS 2061" ----</span>
+<span class="asm-instr">!byte</span> <span class="asm-num">$0b</span>,<span class="asm-num">$08</span>   <span class="asm-comment">; Nächste Zeile bei $080B</span>
+<span class="asm-instr">!byte</span> <span class="asm-num">$01</span>,<span class="asm-num">$00</span>   <span class="asm-comment">; Zeilennummer: 1</span>
+<span class="asm-instr">!byte</span> <span class="asm-num">$9e</span>       <span class="asm-comment">; Token: SYS</span>
+<span class="asm-instr">!byte</span> <span class="asm-num">$32</span>,<span class="asm-num">$30</span>,<span class="asm-num">$36</span>,<span class="asm-num">$31</span>  <span class="asm-comment">; ASCII: "2061"</span>
+<span class="asm-instr">!byte</span> <span class="asm-num">$00</span>       <span class="asm-comment">; Ende der Zeile</span>
+<span class="asm-instr">!byte</span> <span class="asm-num">$00</span>,<span class="asm-num">$00</span>   <span class="asm-comment">; Ende des BASIC-Programms</span>
+
+<span class="asm-comment">; ---- Maschinenprogramm bei $080D (= 2061 dezimal) ----</span>
+* = <span class="asm-num">$080d</span>
+
+<span class="asm-label">start:</span>
+    <span class="asm-comment">; --- Schritt 1: Farben setzen ---</span>
+    <span class="asm-instr">lda</span> #COL_BLUE       <span class="asm-comment">; Farbe Blau (#6) in Akkumulator laden</span>
+    <span class="asm-instr">sta</span> VIC_BG0         <span class="asm-comment">; → Hintergrundfarbe Register</span>
+
+    <span class="asm-instr">lda</span> #COL_BLACK      <span class="asm-comment">; Farbe Schwarz (#0) in Akkumulator</span>
+    <span class="asm-instr">sta</span> VIC_BORDER      <span class="asm-comment">; → Rahmenfarbe Register</span>
+
+    <span class="asm-comment">; --- Schritt 2: Bildschirm-RAM mit Leerzeichen füllen ---</span>
+    <span class="asm-comment">; Der Bildschirm hat 40×25 = 1000 Zeichen → 4 Blöcke à 256 Bytes</span>
+    <span class="asm-instr">lda</span> #<span class="asm-num">$20</span>            <span class="asm-comment">; $20 = Leerzeichen im C64-Zeichensatz (PETSCII)</span>
+    <span class="asm-instr">ldx</span> #<span class="asm-num">0</span>             <span class="asm-comment">; X-Register als Schleifenzähler starten</span>
+
+<span class="asm-label">fill_loop:</span>
+    <span class="asm-instr">sta</span> SCREEN_RAM,x    <span class="asm-comment">; Zeichen in $0400+X schreiben</span>
+    <span class="asm-instr">sta</span> SCREEN_RAM+<span class="asm-num">$100</span>,x <span class="asm-comment">; Zeichen in $0500+X schreiben</span>
+    <span class="asm-instr">sta</span> SCREEN_RAM+<span class="asm-num">$200</span>,x <span class="asm-comment">; Zeichen in $0600+X schreiben</span>
+    <span class="asm-instr">sta</span> SCREEN_RAM+<span class="asm-num">$300</span>,x <span class="asm-comment">; Zeichen in $0700+X schreiben (letzte 256 - 24 Bytes)</span>
+    <span class="asm-instr">inx</span>                 <span class="asm-comment">; X erhöhen</span>
+    <span class="asm-instr">bne</span> fill_loop       <span class="asm-comment">; Springe wenn X != 0 (also 256 mal)</span>
+
+    <span class="asm-comment">; --- Schritt 3: Color-RAM mit weißer Farbe füllen ---</span>
+    <span class="asm-instr">lda</span> #COL_WHITE      <span class="asm-comment">; Weiß (#1) für alle Zeichen</span>
+    <span class="asm-instr">ldx</span> #<span class="asm-num">0</span>
+
+<span class="asm-label">color_loop:</span>
+    <span class="asm-instr">sta</span> COLOR_RAM,x     <span class="asm-comment">; Farbe in $D800+X</span>
+    <span class="asm-instr">sta</span> COLOR_RAM+<span class="asm-num">$100</span>,x <span class="asm-comment">; Farbe in $D900+X</span>
+    <span class="asm-instr">sta</span> COLOR_RAM+<span class="asm-num">$200</span>,x <span class="asm-comment">; Farbe in $DA00+X</span>
+    <span class="asm-instr">sta</span> COLOR_RAM+<span class="asm-num">$300</span>,x <span class="asm-comment">; Farbe in $DB00+X</span>
+    <span class="asm-instr">inx</span>
+    <span class="asm-instr">bne</span> color_loop
+
+    <span class="asm-comment">; --- Fertig: Zurück zum BASIC-Interpreter ---</span>
+    <span class="asm-instr">rts</span>                 <span class="asm-comment">; Return to BASIC</span></pre>
+
+  <h3>4.3 Kompilieren und Ausführen</h3>
+
+  <p>
+    Speichern Sie den obigen Code als <code>farben.asm</code> in einem Arbeitsverzeichnis.
+    Öffnen Sie dann ein Terminal und führen Sie folgende Befehle aus:
+  </p>
+
+  <pre><span class="asm-comment"># ACME aufrufen:</span>
+acme -f cbm -o farben.prg farben.asm
+
+<span class="asm-comment"># Bei Erfolg erscheint: "ACME -- the ACME Cross-Assembler [...]"</span>
+<span class="asm-comment"># Kein Output = Erfolg (Fehler werden explizit angezeigt)</span>
+
+<span class="asm-comment"># Programm in VICE öffnen:</span>
+x64sc farben.prg
+
+<span class="asm-comment"># Im C64-BASIC prompt erscheint "READY." — jetzt RUN eingeben und Enter drücken</span>
+<span class="asm-comment"># Ergebnis: Blauer Hintergrund, schwarzer Rahmen, weißer leerer Bildschirm</span></pre>
+
+  <h3>4.4 Erweiterung: Text auf dem Bildschirm</h3>
+
+  <p>
+    Das obige Programm füllt den Bildschirm mit Leerzeichen. Schreiben wir eine Erweiterung,
+    die zusätzlich einen Text auf dem Bildschirm ausgibt. Dazu schreiben wir direkt in
+    das Bildschirm-RAM: jedes Byte entspricht einem PETSCII-Zeichen. Beachten Sie: PETSCII
+    ist nicht ASCII — Großbuchstaben liegen bei Werten 1–26 (A=1, B=2, ...) wenn der C64
+    im Standard-Zeichensatz-Modus ist. Die ASCII-Kleinbuchstaben a–z entsprechen PETSCII-
+    Werten $41–$5A.
+  </p>
+
+  <pre><span class="asm-comment">; Fortsetzung nach color_loop (vor dem rts):</span>
+
+<span class="asm-comment">; "HALLO" auf dem Bildschirm ausgeben — Zeile 0, ab Spalte 0</span>
+<span class="asm-comment">; Bildschirm-RAM: $0400 = Position (Zeile 0, Spalte 0)</span>
+<span class="asm-comment">; PETSCII: H=8, A=1, L=12, L=12, O=15 (Großbuchstaben: Wert = Buchstabe-'A'+1)</span>
+
+    <span class="asm-instr">lda</span> #<span class="asm-num">8</span>              <span class="asm-comment">; 'H' im PETSCII</span>
+    <span class="asm-instr">sta</span> <span class="asm-num">$0400</span>           <span class="asm-comment">; Position (0,0)</span>
+
+    <span class="asm-instr">lda</span> #<span class="asm-num">1</span>              <span class="asm-comment">; 'A' im PETSCII</span>
+    <span class="asm-instr">sta</span> <span class="asm-num">$0401</span>           <span class="asm-comment">; Position (0,1)</span>
+
+    <span class="asm-instr">lda</span> #<span class="asm-num">12</span>             <span class="asm-comment">; 'L' im PETSCII</span>
+    <span class="asm-instr">sta</span> <span class="asm-num">$0402</span>           <span class="asm-comment">; Position (0,2)</span>
+    <span class="asm-instr">sta</span> <span class="asm-num">$0403</span>           <span class="asm-comment">; Position (0,3) — zweites L</span>
+
+    <span class="asm-instr">lda</span> #<span class="asm-num">15</span>             <span class="asm-comment">; 'O' im PETSCII</span>
+    <span class="asm-instr">sta</span> <span class="asm-num">$0404</span>           <span class="asm-comment">; Position (0,4)</span>
+
+    <span class="asm-instr">rts</span></pre>
+
+  <h2>5. Workflow und Debugging</h2>
+
+  <p>
+    Ein strukturierter Debugging-Workflow ist von Anfang an wichtig. C64-Programmierung bietet
+    keine freundlichen Fehlermeldungen — ein falsch gesetztes Bit oder eine um-eins-daneben-
+    liegende Adresse kann den gesamten Emulator zum Absturz bringen oder zu einem schwarzen
+    Bildschirm führen. Die folgenden Techniken helfen, Fehler schnell zu finden.
+  </p>
+
+  <h3>5.1 Typische Anfängerfehler</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Symptom</th>
+        <th>Häufige Ursache</th>
+        <th>Lösung</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Schwarzer Bildschirm nach RUN</td>
+        <td>Endloser Sprung, fehlender RTS, falsche Adresse</td>
+        <td>VICE Monitor öffnen (Alt+H), Register inspizieren, PC-Wert prüfen</td>
+      </tr>
+      <tr>
+        <td>RTS bringt keinen Rücksprung</td>
+        <td>Stack korrupt — zu viele PHA ohne PLA</td>
+        <td>Jedes PHA braucht exakt ein PLA; Stack-Symmetrie prüfen</td>
+      </tr>
+      <tr>
+        <td>Zufällige Zeichen auf Bildschirm</td>
+        <td>Schreiben ins falsche RAM (Adressierungsfehler)</td>
+        <td>Adresse rechnen: SCREEN_RAM = $0400, nicht $4000</td>
+      </tr>
+      <tr>
+        <td>Branch "zu weit" — ACME-Fehler</td>
+        <td>Bedingte Sprünge (BEQ etc.) reichen maximal 128 Bytes</td>
+        <td>JMP als Zwischensprung einfügen oder Code umstrukturieren</td>
+      </tr>
+      <tr>
+        <td>Falsche Bildschirmfarbe</td>
+        <td>STA an $D020 statt $D021 oder umgekehrt</td>
+        <td>$D020 = Rahmen (border), $D021 = Hintergrund (background)</td>
+      </tr>
+      <tr>
+        <td>ACME meldet "symbol already defined"</td>
+        <td>Label-Name doppelt verwendet</td>
+        <td>!zone verwenden für lokale Labels, oder Namen eindeutiger machen</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>5.2 Die .prg-Dateistruktur</h3>
+
+  <p>
+    Eine <code>.prg</code>-Datei beginnt mit zwei Bytes, die die Ladeadresse im Little-Endian-Format
+    angeben. Für unser Programm sind das <code>$01</code> und <code>$08</code> — zusammen ergibt
+    das <code>$0801</code> in Little-Endian. Der Rest der Datei sind die eigentlichen Programm-Bytes.
+    Wenn VICE eine PRG-Datei öffnet, liest es diese zwei Bytes, lädt den Rest an die angegebene
+    Adresse und meldet dann "READY." — das Programm ist geladen, aber noch nicht gestartet.
+  </p>
+
+  <pre><span class="asm-comment"># PRG-Dateistruktur untersuchen (Linux/macOS):</span>
+xxd farben.prg | head -5
+
+<span class="asm-comment"># Ausgabe (Beispiel):</span>
+<span class="asm-comment"># 00000000: 0108 0b08 0100 9e32 3036 3100 0000 a906  .......2061.....</span>
+<span class="asm-comment"># ├──┤ = Lade-Adresse: $0801 (01 08 in Little-Endian)</span>
+<span class="asm-comment"># Danach folgen die BASIC-Stub-Bytes und der Maschinencode</span></pre>
+
+  <div class="box important">
+    <div class="box-title">Kommentierungskonvention</div>
+    Gewöhnen Sie sich von Anfang an an ausführliche Kommentare. In C64-Assembler gibt es keine
+    sprechenden Variablennamen, keine Typinformationen, keine Dokumentationstools. Kommentare
+    sind das Einzige, was Code nach einer Woche noch verständlich macht. Jede Sektion sollte
+    kommentiert sein; wichtige Register-Schreibzugriffe sollten immer erklären, <em>was</em>
+    das Register tut, nicht nur <em>welches</em> Register es ist.
+  </div>
+
+  <h2>6. Fazit und Ausblick</h2>
+
+  <p>
+    Sie haben in dieser Stufe die historischen und technischen Grundlagen des Commodore 64
+    kennengelernt. Sie wissen, welche Chips er enthält, wie das Memory-Banking funktioniert
+    und — am wichtigsten — Sie haben Ihre Entwicklungsumgebung eingerichtet und Ihr erstes
+    Maschinenprogramm kompiliert und ausgeführt. Das ist mehr als ein technischer Erfolg:
+    Es ist der erste Schritt in eine Disziplin, die Präzision, Kreativität und ein tiefes
+    Verständnis von Computern auf einer Ebene verlangt, die die meisten modernen Entwickler
+    nie erreichen.
+  </p>
+
+  <p>
+    In Stufe 1 tauchen wir vollständig in den 6510-Prozessor ein: seine sechs Register, die
+    acht Status-Flags und den vollständigen Befehlssatz mit allen Adressierungsarten. Das ist
+    das intellektuelle Herzstück des gesamten Curriculums — wer Stufe 1 gemeistert hat, hat
+    das Rüstzeug für alle folgenden Stufen.
+  </p>
+
+  <div class="benchmark">
+    <h2>Skill-Benchmark: Stufe 0</h2>
+    <p style="color:#aac; margin-bottom:16px;">
+      Bevor Sie zu Stufe 1 weitergehen, sollten Sie folgende Punkte mit Sicherheit bejahen können:
+    </p>
+    <ul>
+      <li>Ich kann den VICE-Emulator starten, konfigurieren und den Monitor öffnen</li>
+      <li>Ich kann ACME aufrufen und eine .prg-Datei erzeugen (acme -f cbm -o out.prg src.asm)</li>
+      <li>Ich kann die fünf Haupt-Chips des C64 (6510, VIC-II, SID, CIA1, CIA2) und ihre Aufgaben benennen</li>
+      <li>Ich kann erklären, was der BASIC-Stub tut und warum er bei $0801 beginnen muss</li>
+      <li>Ich kann die Adresse des Bildschirm-RAMs ($0400) und des Color-RAMs ($D800) auswendig</li>
+      <li>Ich habe das "farben.asm" Programm selbst kompiliert und im Emulator ausgeführt</li>
+      <li>Ich kann im VICE-Monitor mit 'm', 'r' und 'd' grundlegende Inspektion durchführen</li>
+    </ul>
+  </div>
+
+  <div class="exercises-section">
+    <h2>Übungen — Stufe 0</h2>
+
+    <div class="exercise">
+      <div class="exercise-num">Übung 0.1 — Farben ausprobieren</div>
+      <p>Modifizieren Sie das "farben.asm"-Programm, um alle 16 Farben des C64 nacheinander
+      auszuprobieren. Die Farbnummern gehen von 0 (Schwarz) bis 15 (Hellgrau). Setzen Sie
+      Rahmen- und Hintergrundfarbe jeweils auf denselben Wert. Was passiert bei Farbe 0? Bei Farbe 14 (Hellblau)?</p>
+    </div>
+
+    <div class="exercise">
+      <div class="exercise-num">Übung 0.2 — Monitor-Erkundung</div>
+      <p>Laden Sie farben.prg in VICE, tippen Sie im BASIC-Prompt <code>RUN</code>, und öffnen
+      Sie dann den VICE-Monitor (Alt+H). Inspizieren Sie den Speicherbereich $D000–$D021 mit
+      dem Befehl <code>m d000 d021</code>. Welche Werte stehen in den Registern $D020 und $D021?
+      Ändern Sie $D020 manuell auf einen anderen Wert mit dem Befehl <code>f d020 d020 ff</code>
+      (füllt mit $FF = weiß). Was passiert auf dem Bildschirm?</p>
+    </div>
+
+    <div class="exercise">
+      <div class="exercise-num">Übung 0.3 — Text schreiben</div>
+      <p>Erweitern Sie das Programm um eine Routine, die Ihren Namen auf dem Bildschirm ausgibt.
+      Schreiben Sie dazu direkt in das Bildschirm-RAM ab Adresse $0400 (Zeile 0, Spalte 0).
+      Denken Sie daran: Der C64-Zeichensatz ist PETSCII — Großbuchstaben A–Z entsprechen
+      den Werten 1–26 im Standard-Modus. Das Leerzeichen ist $20.</p>
+    </div>
+
+    <div class="exercise">
+      <div class="exercise-num">Übung 0.4 — Speicherkarte zeichnen</div>
+      <p>Zeichnen Sie ohne Hilfsmittel die ungefähre Speicherkarte des C64 auf ein Blatt Papier.
+      Markieren Sie: BASIC-ROM, Kernal-ROM, I/O-Bereich, Screen-RAM, Color-RAM, Zero-Page,
+      Stack und freies RAM. Prüfen Sie anschließend Ihre Zeichnung gegen die Speicherkarte
+      in diesem Kapitel.</p>
+    </div>
+  </div>
+
+  <div class="chapter-nav">
+    <a href="index.html">
+      <span class="nav-label">Zurück</span>
+      <span class="nav-title">&larr; Übersicht &amp; Curriculum</span>
+    </a>
+    <a href="stufe_01_6510_assembler.html">
+      <span class="nav-label">Weiter</span>
+      <span class="nav-title">Stufe 1 — 6510 Assembler &rarr;</span>
+    </a>
+  </div>
+</main>
+
+</body>
+</html>

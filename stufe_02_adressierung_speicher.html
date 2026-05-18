@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stufe 2 — Adressierungsarten &amp; Speicherarchitektur | C64 Mastery System</title>
+<style>
+:root {
+    --c64-blue: #0033aa; --c64-light-blue: #4466cc; --c64-green: #00ff88;
+    --c64-dark: #1a1a2e; --paper: #f8f6f0; --paper-dark: #ede9e0;
+    --text: #1a1a2e; --text-light: #444466; --border: #c0b8a8;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Georgia', 'Times New Roman', serif; font-size: 17px; line-height: 1.75; color: var(--text); background: var(--paper); display: grid; grid-template-columns: 270px 1fr; min-height: 100vh; }
+.sidebar { background: var(--c64-dark); color: #ccc; position: sticky; top: 0; height: 100vh; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 13px; }
+.sidebar-header { background: var(--c64-blue); color: white; padding: 20px 16px; text-align: center; }
+.sidebar-header .logo { font-size: 26px; font-weight: bold; color: var(--c64-green); letter-spacing: 2px; }
+.sidebar-header .sub { font-size: 11px; color: #aac; margin-top: 4px; }
+.sidebar nav ul { list-style: none; padding: 8px 0; }
+.sidebar nav ul li a { display: block; padding: 7px 16px; color: #99b; text-decoration: none; border-left: 3px solid transparent; transition: all 0.2s; font-size: 12.5px; }
+.sidebar nav ul li a:hover, .sidebar nav ul li a.active { background: rgba(0,51,170,0.3); color: var(--c64-green); border-left-color: var(--c64-green); }
+.sidebar nav ul li.section-label { padding: 8px 16px 2px; font-size: 10px; color: #445; text-transform: uppercase; letter-spacing: 1px; margin-top: 8px; }
+main { max-width: 860px; padding: 0 56px 80px; }
+.chapter-header { border-bottom: 3px solid var(--c64-blue); padding: 48px 0 28px; margin-bottom: 40px; }
+.chapter-number { font-family: 'Courier New', monospace; font-size: 12px; color: var(--c64-blue); text-transform: uppercase; letter-spacing: 3px; font-weight: bold; margin-bottom: 10px; }
+.chapter-header h1 { font-size: 40px; font-weight: bold; color: var(--c64-dark); line-height: 1.2; margin-bottom: 18px; }
+.chapter-meta { display: flex; gap: 20px; font-family: 'Courier New', monospace; font-size: 13px; color: var(--text-light); flex-wrap: wrap; align-items: center; }
+.badge { background: var(--c64-blue); color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px; }
+.badge.green { background: #2e7d32; } .badge.orange { background: #e65100; } .badge.red { background: #b71c1c; }
+.objectives { background: #e3f2fd; border-left: 4px solid #1565c0; border-radius: 0 8px 8px 0; padding: 22px 26px; margin-bottom: 40px; }
+.objectives h3 { color: #1565c0; font-size: 13px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; font-family: 'Courier New', monospace; }
+.objectives ul { padding-left: 20px; } .objectives ul li { margin-bottom: 5px; }
+h2 { font-size: 26px; color: var(--c64-dark); border-bottom: 2px solid var(--c64-blue); padding-bottom: 8px; margin: 44px 0 20px; }
+h3 { font-size: 19px; color: var(--c64-blue); margin: 28px 0 14px; }
+h4 { font-size: 15px; color: var(--text); margin: 20px 0 10px; font-family: 'Courier New', monospace; text-transform: uppercase; letter-spacing: 1px; }
+p { margin-bottom: 15px; } ul, ol { padding-left: 24px; margin-bottom: 15px; } li { margin-bottom: 5px; }
+pre { background: var(--c64-dark); color: var(--c64-green); font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.65; padding: 22px; border-radius: 8px; overflow-x: auto; margin: 18px 0; border: 1px solid #2a2a4a; }
+.asm-comment { color: #667799; font-style: italic; } .asm-label { color: #ffcc44; font-weight: bold; } .asm-instr { color: #44bbff; } .asm-addr { color: #ff88aa; } .asm-num { color: #ff9944; }
+code { font-family: 'Courier New', monospace; background: #e5e0d4; padding: 2px 6px; border-radius: 3px; font-size: 0.88em; color: #8b0000; }
+pre code { background: none; padding: 0; color: inherit; }
+table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 14.5px; }
+thead { background: var(--c64-blue); color: white; }
+thead th { padding: 11px 14px; text-align: left; font-family: 'Courier New', monospace; font-size: 12px; letter-spacing: 0.5px; }
+tbody tr:nth-child(even) { background: var(--paper-dark); }
+tbody td { padding: 9px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+tbody tr:hover { background: #dde8ff; }
+.mono { font-family: 'Courier New', monospace; color: #8b0000; font-weight: bold; }
+.box { border-radius: 0 8px 8px 0; padding: 18px 22px; margin: 22px 0; border-left: 4px solid; }
+.box .box-title { font-family: 'Courier New', monospace; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+.box.warning { background: #fff8e1; border-color: #f0a000; } .box.warning .box-title { color: #e65100; }
+.box.tip { background: #e8f5e9; border-color: #2e7d32; } .box.tip .box-title { color: #1b5e20; }
+.box.note { background: #e3f2fd; border-color: #1565c0; } .box.note .box-title { color: #0d47a1; }
+.box.important { background: #fce4ec; border-color: #c62828; } .box.important .box-title { color: #b71c1c; }
+.benchmark { background: linear-gradient(135deg, #001166 0%, #0033aa 100%); color: white; padding: 30px; border-radius: 12px; margin: 44px 0; }
+.benchmark h2 { color: var(--c64-green); border-color: rgba(0,255,136,0.3); margin-top: 0; font-size: 22px; }
+.benchmark ul { list-style: none; padding: 0; }
+.benchmark ul li { padding: 7px 0 7px 28px; position: relative; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.benchmark ul li:before { content: '☐'; position: absolute; left: 0; color: var(--c64-green); }
+.exercises-section { border: 2px solid var(--c64-blue); border-radius: 12px; padding: 28px; margin: 44px 0; }
+.exercises-section h2 { color: var(--c64-blue); margin-top: 0; border: none; padding: 0; }
+.exercise { background: var(--paper-dark); border-radius: 8px; padding: 18px; margin: 14px 0; }
+.exercise-num { font-family: 'Courier New', monospace; font-size: 11px; color: var(--c64-blue); font-weight: bold; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 6px; }
+.chapter-nav { display: flex; justify-content: space-between; margin-top: 56px; padding-top: 28px; border-top: 2px solid var(--border); gap: 16px; }
+.chapter-nav a { display: flex; flex-direction: column; padding: 14px 22px; background: var(--c64-dark); color: white; text-decoration: none; border-radius: 8px; min-width: 180px; transition: background 0.2s; }
+.chapter-nav a:hover { background: var(--c64-blue); }
+.nav-label { font-size: 10px; color: #889; font-family: 'Courier New', monospace; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 4px; }
+.nav-title { font-size: 15px; font-weight: bold; }
+.memmap { font-family: 'Courier New', monospace; font-size: 13px; border-radius: 8px; overflow: hidden; margin: 22px 0; border: 1px solid var(--border); }
+.memmap-row { display: flex; align-items: stretch; border-bottom: 1px solid var(--border); }
+.memmap-row:last-child { border-bottom: none; }
+.memmap-addr { background: var(--c64-dark); color: #ff88aa; padding: 8px 12px; min-width: 130px; font-size: 12px; display: flex; align-items: center; }
+.memmap-label { padding: 8px 14px; flex: 1; font-size: 13px; display: flex; align-items: center; }
+.memmap-size { padding: 8px 10px; min-width: 70px; font-size: 12px; color: var(--text-light); display: flex; align-items: center; }
+.memmap-note { padding: 8px 12px; flex: 2; font-size: 12px; color: var(--text-light); font-family: 'Georgia', serif; display: flex; align-items: center; }
+.mem-zp   { background: #e8f5e9; } .mem-stack { background: #fff3e0; } .mem-sys  { background: #e3f2fd; }
+.mem-screen { background: #fce4ec; } .mem-basic { background: #f3e5f5; } .mem-io   { background: #fff8e1; }
+.mem-kernal { background: #e0f7fa; } .mem-rom  { background: #f1f8e9; } .mem-free { background: #f5f5f5; }
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-header"><div class="logo">C64</div><div class="sub">MASTERY SYSTEM</div></div>
+  <nav><ul>
+    <li><a href="index.html">&#9632; Übersicht &amp; Curriculum</a></li>
+    <li class="section-label">Grundlagen</li>
+    <li><a href="stufe_00_fundament.html">Stufe 0 — Fundament</a></li>
+    <li><a href="stufe_01_6510_assembler.html">Stufe 1 — 6510 Assembler</a></li>
+    <li><a href="stufe_02_adressierung_speicher.html" class="active">Stufe 2 — Adressierung &amp; Speicher</a></li>
+    <li class="section-label">Grafik &amp; Sound</li>
+    <li><a href="stufe_03_bildschirm_zeichen.html">Stufe 3 — VIC-II &amp; Zeichen</a></li>
+    <li><a href="stufe_04_sprites_animation.html">Stufe 4 — Sprites &amp; Animation</a></li>
+    <li><a href="stufe_05_bitmap_grafik.html">Stufe 5 — Bitmap-Grafik</a></li>
+    <li><a href="stufe_06_sid_sound.html">Stufe 6 — SID &amp; Sound</a></li>
+    <li class="section-label">Fortgeschritten</li>
+    <li><a href="stufe_07_interrupts_timing.html">Stufe 7 — Interrupts &amp; Timing</a></li>
+    <li><a href="stufe_08_optimierung.html">Stufe 8 — Optimierung</a></li>
+    <li><a href="stufe_09_demo_effekte.html">Stufe 9 — Demo-Effekte</a></li>
+    <li><a href="stufe_10_meisterschaft.html">Stufe 10 — Meisterschaft</a></li>
+  </ul></nav>
+</nav>
+
+<main>
+  <div class="chapter-header">
+    <div class="chapter-number">Stufe 2 von 10</div>
+    <h1>Adressierungsarten &amp; Speicherarchitektur</h1>
+    <div class="chapter-meta">
+      <span class="badge green">Anfänger</span>
+      <span>&#128337; ca. 6 Stunden</span>
+      <span>&#128214; Voraussetzung: Stufe 1</span>
+      <span>&#128196; 13 Adressierungsarten &bull; Speicherkarte &bull; Banking</span>
+    </div>
+  </div>
+
+  <div class="objectives">
+    <h3>Lernziele dieses Kapitels</h3>
+    <ul>
+      <li>Alle 13 Adressierungsarten des 6510 vollständig verstehen und korrekt anwenden</li>
+      <li>Die vollständige C64-Speicherkarte auswendig kennen und interpretieren</li>
+      <li>Das Bank-Switching-System über Register $0001 beherrschen</li>
+      <li>Die Zero Page als kritische Performance-Ressource strategisch einsetzen</li>
+      <li>Pointer-basierte Programmierung mit indirekten Adressierungsarten realisieren</li>
+      <li>Page-Crossing-Penalties identifizieren und in der Praxis vermeiden</li>
+    </ul>
+  </div>
+
+  <!-- ============================================================ -->
+  <h2>Abschnitt 1: Adressierungsarten — Das Fundament der Maschinenprogrammierung</h2>
+
+  <p>
+    Wer zum ersten Mal mit dem 6502- oder 6510-Prozessor in Berührung kommt, ist oft überrascht von der schieren
+    Anzahl der Adressierungsarten. Während moderne RISC-Architekturen — etwa ARM oder MIPS — mit wenigen, uniformen
+    Adressierungsmodi auskommen, bietet der 6502-Prozessor insgesamt dreizehn verschiedene Modi an. Diese Vielfalt
+    ist kein historischer Zufall, sondern das Ergebnis einer bewussten Designentscheidung von Chuck Peddle und seinem
+    Team bei MOS Technology im Jahr 1975. Der 6502 sollte ein kostengünstiger, aber mächtiger Prozessor für den
+    aufkommenden Heimcomputermarkt sein — und das bedeutete, mit nur 8-Bit-Registern und einem 64-KB-Adressraum
+    maximale Flexibilität zu bieten.
+  </p>
+  <p>
+    Die zentrale Herausforderung der damaligen Zeit war der begrenzte Speicher. Programme mussten kompakt sein,
+    Daten mussten effizient adressiert werden, und häufig genutzte Variablen sollten mit minimaler Rechenzeit
+    erreichbar sein. Die Lösung von MOS Technology war ein hierarchisches Adressierungssystem: Für besonders
+    häufig zugegriffene Daten gab es die "Zero Page" (Seite Null), die mit einem einzigen Byte adressiert werden
+    konnte und damit sowohl Code-Größe als auch Ausführungszeit minimierte. Für weniger häufige Zugriffe standen
+    vollständige 16-Bit-Adressen zur Verfügung. Für strukturierte Daten boten indizierte Modi komfortablen
+    Zugriff auf Arrays und Tabellen. Und für die Implementierung von Zeigern und dynamischen Datenstrukturen
+    existierten die indirekten Modi.
+  </p>
+  <p>
+    Der 6510-Prozessor im Commodore 64 ist eine direkte Weiterentwicklung des 6502 mit einer entscheidenden
+    Erweiterung: einem integrierten 6-Bit-I/O-Port, der über die Adressen $0000 und $0001 erreichbar ist.
+    Über diesen Port wird unter anderem das Memory-Banking-System des C64 gesteuert, das es erlaubt, ROM- und
+    RAM-Bereiche in denselben Adressraum ein- und auszublenden. Alle dreizehn Adressierungsarten des 6502 sind
+    im 6510 unverändert erhalten — wer sie beherrscht, beherrscht das fundamentale Werkzeug der
+    Assembler-Programmierung auf dem C64.
+  </p>
+
+  <h3>1.1 Überblick: Die 13 Adressierungsarten des 6510</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Nr.</th>
+        <th>Name</th>
+        <th>Assembler-Syntax (Beispiel)</th>
+        <th>Byte-Länge</th>
+        <th>Typische Zyklen</th>
+        <th>Hauptverwendung</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td>Implied (Implizit)</td><td class="mono">NOP / CLC / INX</td><td>1</td><td>2</td><td>Registeroperationen ohne Operand</td></tr>
+      <tr><td>2</td><td>Accumulator</td><td class="mono">ASL A / LSR A</td><td>1</td><td>2</td><td>Schiebeoperationen auf Akkumulator</td></tr>
+      <tr><td>3</td><td>Immediate (Unmittelbar)</td><td class="mono">LDA #$42</td><td>2</td><td>2</td><td>Konstanten laden/vergleichen</td></tr>
+      <tr><td>4</td><td>Zero Page</td><td class="mono">LDA $42</td><td>2</td><td>3</td><td>Schnelle Variablenzugriffe (ZP)</td></tr>
+      <tr><td>5</td><td>Zero Page, X</td><td class="mono">LDA $20,X</td><td>2</td><td>4</td><td>Kleine Arrays in Zero Page</td></tr>
+      <tr><td>6</td><td>Zero Page, Y</td><td class="mono">LDX $20,Y</td><td>2</td><td>4</td><td>LDX/STX mit Y-Offset</td></tr>
+      <tr><td>7</td><td>Absolute</td><td class="mono">LDA $D020</td><td>3</td><td>4</td><td>I/O-Register, Screen-RAM, ROM</td></tr>
+      <tr><td>8</td><td>Absolute, X</td><td class="mono">LDA $C000,X</td><td>3</td><td>4 (+1)</td><td>Arrays, Tabellen-Lookup (X als Index)</td></tr>
+      <tr><td>9</td><td>Absolute, Y</td><td class="mono">LDA $C000,Y</td><td>3</td><td>4 (+1)</td><td>Arrays, Tabellen-Lookup (Y als Index)</td></tr>
+      <tr><td>10</td><td>Indirect</td><td class="mono">JMP ($4000)</td><td>3</td><td>5</td><td>Sprungtabellen (nur JMP)</td></tr>
+      <tr><td>11</td><td>(Indirect, X)</td><td class="mono">LDA ($20,X)</td><td>2</td><td>6</td><td>Dispatch-Tabellen, Polymorphismus</td></tr>
+      <tr><td>12</td><td>(Indirect), Y</td><td class="mono">LDA ($20),Y</td><td>2</td><td>5 (+1)</td><td>Zeiger + Index — häufigste Indirektion</td></tr>
+      <tr><td>13</td><td>Relative</td><td class="mono">BNE Label</td><td>2</td><td>2–4</td><td>Bedingte Sprünge (±127 Bytes)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box note">
+    <div class="box-title">Zyklenzählung &amp; Performance</div>
+    <p>Die in der Tabelle angegebenen Zyklen sind Minimalwerte. Ein <strong>+1</strong> kennzeichnet
+    die mögliche Page-Crossing-Penalty: Wenn durch Addition des Indexregisters eine Speicherseiten-Grenze
+    (Vielfaches von $0100) überschritten wird, benötigt die CPU einen zusätzlichen Zyklus. Bei
+    Branch-Befehlen gilt: 2 Zyklen wenn nicht gesprungen, 3 wenn gesprungen ohne Page-Cross,
+    4 wenn gesprungen mit Page-Cross.</p>
+  </div>
+
+  <!-- ---- Implied ---- -->
+  <h3>1.2 Implied — Implizite Adressierung</h3>
+  <p>
+    Die implizite Adressierung ist die einfachste aller Modi: Der Befehl arbeitet ausschließlich auf
+    internen Registern der CPU — kein Operand im Speicher, kein zusätzliches Byte im Maschinencode.
+    Das Opcode-Byte allein bestimmt vollständig, was zu tun ist. Diese Befehle sind immer genau
+    1 Byte lang und benötigen in der Regel 2 Taktzyklen.
+  </p>
+  <pre><span class="asm-comment">; Implied-Befehle: Typische Anwendungen</span>
+<span class="asm-instr">NOP</span>             <span class="asm-comment">; No Operation — 2 Zyklen Zeitverschwendung (oder Timing-Pad)</span>
+<span class="asm-instr">CLC</span>             <span class="asm-comment">; Clear Carry Flag — vor ADC zwingend!</span>
+<span class="asm-instr">SEC</span>             <span class="asm-comment">; Set Carry Flag — vor SBC zwingend!</span>
+<span class="asm-instr">CLI</span>             <span class="asm-comment">; Clear Interrupt Disable — IRQs erlauben</span>
+<span class="asm-instr">SEI</span>             <span class="asm-comment">; Set Interrupt Disable — IRQs sperren</span>
+<span class="asm-instr">CLD</span>             <span class="asm-comment">; Clear Decimal Mode (auf C64 nach Reset nötig)</span>
+<span class="asm-instr">SED</span>             <span class="asm-comment">; Set Decimal Mode (BCD-Arithmetik)</span>
+<span class="asm-instr">CLV</span>             <span class="asm-comment">; Clear Overflow Flag</span>
+<span class="asm-instr">INX</span>             <span class="asm-comment">; Increment X — X++</span>
+<span class="asm-instr">DEX</span>             <span class="asm-comment">; Decrement X — X--</span>
+<span class="asm-instr">INY</span>             <span class="asm-comment">; Increment Y — Y++</span>
+<span class="asm-instr">DEY</span>             <span class="asm-comment">; Decrement Y — Y--</span>
+<span class="asm-instr">TAX</span>             <span class="asm-comment">; Transfer A → X</span>
+<span class="asm-instr">TAY</span>             <span class="asm-comment">; Transfer A → Y</span>
+<span class="asm-instr">TXA</span>             <span class="asm-comment">; Transfer X → A</span>
+<span class="asm-instr">TYA</span>             <span class="asm-comment">; Transfer Y → A</span>
+<span class="asm-instr">TXS</span>             <span class="asm-comment">; Transfer X → SP (Stack-Pointer setzen — KEIN Flag-Update!)</span>
+<span class="asm-instr">TSX</span>             <span class="asm-comment">; Transfer SP → X</span>
+<span class="asm-instr">PHA</span>             <span class="asm-comment">; Push A auf Stack</span>
+<span class="asm-instr">PLA</span>             <span class="asm-comment">; Pull A vom Stack (setzt N und Z Flags!)</span>
+<span class="asm-instr">PHP</span>             <span class="asm-comment">; Push Processor-Flags auf Stack</span>
+<span class="asm-instr">PLP</span>             <span class="asm-comment">; Pull Processor-Flags vom Stack</span>
+<span class="asm-instr">RTS</span>             <span class="asm-comment">; Return from Subroutine — liest Adresse vom Stack</span>
+<span class="asm-instr">RTI</span>             <span class="asm-comment">; Return from Interrupt — liest Flags + Adresse vom Stack</span>
+<span class="asm-instr">BRK</span>             <span class="asm-comment">; Software-Interrupt — löst BRK-IRQ aus</span></pre>
+
+  <!-- ---- Accumulator ---- -->
+  <h3>1.3 Accumulator — Akkumulator-Adressierung</h3>
+  <p>
+    Eine Sonderform der impliziten Adressierung: Der Befehl wirkt direkt auf den Akkumulator A.
+    Im Assembler-Quelltext kann das Ziel explizit als <code>A</code> angegeben werden, viele Assembler
+    erlauben aber auch das Weglassen des Operanden (weil der Kontext eindeutig ist). Nur Schiebe- und
+    Rotationsbefehle unterstützen diesen Modus.
+  </p>
+  <pre><span class="asm-instr">ASL A</span>           <span class="asm-comment">; Arithmetic Shift Left: A = A &lt;&lt; 1, Bit 7 → Carry, 0 → Bit 0</span>
+<span class="asm-instr">LSR A</span>           <span class="asm-comment">; Logical Shift Right: A = A &gt;&gt; 1, Carry ← Bit 0, 0 → Bit 7</span>
+<span class="asm-instr">ROL A</span>           <span class="asm-comment">; Rotate Left: A = A &lt;&lt; 1 (durch Carry), Bit 7 → Carry</span>
+<span class="asm-instr">ROR A</span>           <span class="asm-comment">; Rotate Right: A = A &gt;&gt; 1 (durch Carry), Carry → Bit 7</span>
+
+<span class="asm-comment">; Anwendungsbeispiel: Multiplikation × 2 und Division / 2</span>
+<span class="asm-instr">LDA</span> <span class="asm-num">#$18</span>         <span class="asm-comment">; A = 24</span>
+<span class="asm-instr">ASL A</span>           <span class="asm-comment">; A = 48 (× 2 durch Links-Shift)</span>
+<span class="asm-instr">ASL A</span>           <span class="asm-comment">; A = 96 (× 4 durch zweiten Links-Shift)</span>
+<span class="asm-instr">LSR A</span>           <span class="asm-comment">; A = 48 (÷ 2 durch Rechts-Shift)</span></pre>
+
+  <!-- ---- Immediate ---- -->
+  <h3>1.4 Immediate — Unmittelbare Adressierung</h3>
+  <p>
+    Bei der Immediate-Adressierung folgt der Operand — eine Konstante — direkt auf das Opcode-Byte
+    im Maschinencode. Das Präfix-Zeichen <code>#</code> im Assembler-Quelltext signalisiert dem
+    Assembler, dass ein unmittelbarer Wert folgt. Ohne <code>#</code> würde derselbe Wert als
+    Speicheradresse interpretiert — ein häufiger und schwer zu findender Fehler!
+  </p>
+  <pre><span class="asm-comment">; Verschiedene Literal-Formate für denselben Wert (65 dezimal = $41 = %01000001):</span>
+<span class="asm-instr">LDA</span> <span class="asm-num">#65</span>          <span class="asm-comment">; Dezimal: Wert 65</span>
+<span class="asm-instr">LDA</span> <span class="asm-num">#$41</span>         <span class="asm-comment">; Hexadezimal: $41 = 65</span>
+<span class="asm-instr">LDA</span> <span class="asm-num">#%01000001</span>   <span class="asm-comment">; Binär: %01000001 = 65</span>
+<span class="asm-instr">LDA</span> <span class="asm-num">#'A'</span>         <span class="asm-comment">; ASCII-Zeichen: 'A' = 65 (Assembler-abhängig)</span>
+
+<span class="asm-comment">; DER KRITISCHE UNTERSCHIED:</span>
+<span class="asm-instr">LDA</span> <span class="asm-num">#$42</span>         <span class="asm-comment">; Immediate: Lädt den WERT 66 in A</span>
+<span class="asm-instr">LDA</span> <span class="asm-addr">$42</span>          <span class="asm-comment">; Zero Page: Lädt den INHALT von Adresse $0042 in A!</span>
+<span class="asm-instr">LDA</span> <span class="asm-addr">$0042</span>        <span class="asm-comment">; Absolute: Lädt den INHALT von Adresse $0042 in A (3 Bytes!)</span>
+
+<span class="asm-comment">; Typische Verwendung: Vergleiche und Initialisierungen</span>
+<span class="asm-instr">CMP</span> <span class="asm-num">#$0D</span>         <span class="asm-comment">; Vergleiche A mit Return-Zeichen (13)</span>
+<span class="asm-instr">LDX</span> <span class="asm-num">#$00</span>         <span class="asm-comment">; X auf 0 setzen (Zähler initialisieren)</span>
+<span class="asm-instr">LDA</span> <span class="asm-num">#%00110111</span>   <span class="asm-comment">; Banking-Register: Bitmuster direkt als Binär</span>
+<span class="asm-instr">ORA</span> <span class="asm-num">#%10000000</span>   <span class="asm-comment">; Bit 7 setzen ohne andere Bits zu verändern</span>
+<span class="asm-instr">AND</span> <span class="asm-num">#%01111111</span>   <span class="asm-comment">; Bit 7 löschen ohne andere Bits zu verändern</span></pre>
+
+  <!-- ---- Zero Page ---- -->
+  <h3>1.5 Zero Page — Die Nullseite als Schnellzugriffs-Ressource</h3>
+  <p>
+    Die Zero-Page-Adressierung ist eine der fundamentalsten Optimierungen des 6502/6510-Designs.
+    Der Adressraum $0000–$00FF wird als "Seite Null" (Zero Page) bezeichnet, und für Adressen
+    innerhalb dieses Bereichs genügt ein einziges Byte als Operand: Die CPU setzt das High-Byte
+    der 16-Bit-Adresse intern automatisch auf $00. Daraus ergeben sich zwei entscheidende Vorteile
+    gegenüber der absoluten Adressierung: Der Maschinencode-Befehl ist 1 Byte kürzer (2 statt 3 Bytes),
+    und die Ausführung ist 1 Taktzyklus schneller (3 statt 4 Zyklen). Bei einem Programm, das
+    tausende Male denselben Zero-Page-Zugriff ausführt, summiert sich das zu messbarer Performance.
+  </p>
+  <pre><span class="asm-comment">; Zero Page Adressierung: Syntax und Maschinencode-Größe</span>
+<span class="asm-instr">LDA</span> <span class="asm-addr">$42</span>          <span class="asm-comment">; 2 Bytes: [A5] [42] — Lädt Inhalt von $0042, 3 Zyklen</span>
+<span class="asm-instr">STA</span> <span class="asm-addr">$42</span>          <span class="asm-comment">; 2 Bytes: [85] [42] — Speichert A in $0042, 3 Zyklen</span>
+<span class="asm-instr">INC</span> <span class="asm-addr">$42</span>          <span class="asm-comment">; 2 Bytes: Erhöhe Inhalt von $0042 um 1, 5 Zyklen</span>
+
+<span class="asm-comment">; Zum Vergleich: Absolute Adressierung derselben Stelle</span>
+<span class="asm-instr">LDA</span> <span class="asm-addr">$0042</span>        <span class="asm-comment">; 3 Bytes: [AD] [42] [00] — Lädt Inhalt von $0042, 4 Zyklen</span>
+
+<span class="asm-comment">; Praktisches Beispiel: Schleifenzähler in Zero Page</span>
+<span class="asm-instr">LDX</span> <span class="asm-num">#$00</span>
+<span class="asm-label">MainLoop:</span>
+    <span class="asm-instr">INC</span> <span class="asm-addr">$FB</span>         <span class="asm-comment">; ZP-Variable $FB inkrementieren (5 Zyklen)</span>
+    <span class="asm-instr">LDA</span> <span class="asm-addr">$FB</span>         <span class="asm-comment">; Wert lesen (3 Zyklen)</span>
+    <span class="asm-instr">CMP</span> <span class="asm-num">#100</span>        <span class="asm-comment">; Mit 100 vergleichen</span>
+    <span class="asm-instr">BNE</span> MainLoop    <span class="asm-comment">; Schleife bis 100 erreicht</span></pre>
+
+  <!-- ---- ZP,X ---- -->
+  <h3>1.6 Zero Page, X — Nullseiten-Indizierung mit X</h3>
+  <p>
+    Diese Adressierungsart kombiniert Zero-Page-Effizienz mit der Flexibilität eines Index-Registers.
+    Die CPU addiert den 1-Byte-Operanden und den X-Wert, wobei das Ergebnis auf 8 Bit beschränkt
+    bleibt — es gibt einen <strong>Wraparound</strong> innerhalb der Zero Page! Ein Zeiger von $F0
+    mit X = $20 ergibt nicht $0110, sondern $10 ($F0 + $20 = $110, modulo 256 = $10). Dieses
+    Verhalten ist kein Bug, sondern intendiertes Design und muss beim Einsatz von Zero-Page,X
+    berücksichtigt werden.
+  </p>
+  <pre><span class="asm-comment">; Zero Page,X: Effektive Adresse = ($Operand + X) &amp; $FF (nur in ZP!)</span>
+<span class="asm-instr">LDA</span> <span class="asm-addr">$20,X</span>        <span class="asm-comment">; Adresse: ($20 + X) mod 256  — immer in Zero Page</span>
+<span class="asm-instr">STA</span> <span class="asm-addr">$20,X</span>        <span class="asm-comment">; Schreibt A an ($20 + X) mod 256</span>
+
+<span class="asm-comment">; Anwendung: 8 Spieler-Scores in Zero Page $30-$37</span>
+<span class="asm-comment">; X = Spieler-Nummer (0-7)</span>
+<span class="asm-instr">LDX</span> <span class="asm-num">#3</span>           <span class="asm-comment">; Spieler 3</span>
+<span class="asm-instr">LDA</span> <span class="asm-addr">$30,X</span>        <span class="asm-comment">; Lädt Score[3] aus $0033</span>
+<span class="asm-instr">CLC</span>
+<span class="asm-instr">ADC</span> <span class="asm-num">#10</span>          <span class="asm-comment">; +10 Punkte</span>
+<span class="asm-instr">STA</span> <span class="asm-addr">$30,X</span>        <span class="asm-comment">; Score[3] speichern</span>
+
+<span class="asm-comment">; WRAPAROUND DEMONSTRATION:</span>
+<span class="asm-instr">LDX</span> <span class="asm-num">#$F0</span>
+<span class="asm-instr">LDA</span> <span class="asm-addr">$20,X</span>        <span class="asm-comment">; Effektive Adresse: ($20 + $F0) = $110 → $10 (ZP-Wraparound!)</span></pre>
+
+  <!-- ---- ZP,Y ---- -->
+  <h3>1.7 Zero Page, Y — Nullseiten-Indizierung mit Y</h3>
+  <p>
+    Analog zur Zero-Page,X-Adressierung, jedoch mit dem Y-Register als Offset. Ein wichtiger
+    Unterschied: Nur die Befehle <code>LDX</code> und <code>STX</code> unterstützen
+    Zero-Page,Y — kein anderer Befehl! Der Wraparound-Mechanismus ist identisch mit ZP,X.
+    Diese Einschränkung spiegelt die Hardware-Architektur des 6502 wider: Das X-Register ist
+    primär der Index für horizontale (X-Richtung) Zugriffe, das Y-Register für vertikale.
+  </p>
+  <pre><span class="asm-comment">; Zero Page,Y: NUR für LDX und STX verfügbar!</span>
+<span class="asm-instr">LDX</span> <span class="asm-addr">$20,Y</span>        <span class="asm-comment">; Korrekt: Lädt X aus ZP-Adresse ($20 + Y) mod 256</span>
+<span class="asm-instr">STX</span> <span class="asm-addr">$20,Y</span>        <span class="asm-comment">; Korrekt: Speichert X an ZP-Adresse ($20 + Y) mod 256</span>
+
+<span class="asm-comment">; Häufiger Fehler-Versuch (COMPILIERT NICHT KORREKT):</span>
+<span class="asm-comment">; LDA $20,Y → Dies wird als Absolute,Y $0020,Y übersetzt! Nicht ZP,Y!</span></pre>
+
+  <!-- ---- Absolute ---- -->
+  <h3>1.8 Absolute — Vollständige 16-Bit-Adressierung</h3>
+  <p>
+    Die absolute Adressierung erlaubt den Zugriff auf jeden beliebigen Byte im 64-KB-Adressraum
+    des C64. Der Maschinencode-Befehl enthält die vollständige 16-Bit-Adresse als zwei Bytes
+    nach dem Opcode, gespeichert im <strong>Little-Endian-Format</strong>: das niedrigwertige
+    Byte (Low-Byte) zuerst, dann das höherwertige (High-Byte). So wird die Adresse $D020 im
+    Maschinencode als <code>[20] [D0]</code> gespeichert. Dieser Modus ist unverzichtbar für
+    den Zugriff auf Hardware-Register wie VIC-II, SID, CIA, das Screen-RAM und das Color-RAM.
+  </p>
+  <pre><span class="asm-comment">; Absolute Adressierung: 3 Bytes, 4 Zyklen</span>
+<span class="asm-comment">; Maschinencode: [Opcode] [Low-Byte] [High-Byte]</span>
+
+<span class="asm-instr">LDA</span> <span class="asm-addr">$D020</span>        <span class="asm-comment">; Maschinencode: [AD] [20] [D0] — VIC-II Rahmenfarbe lesen</span>
+<span class="asm-instr">STA</span> <span class="asm-addr">$D020</span>        <span class="asm-comment">; Maschinencode: [8D] [20] [D0] — Rahmenfarbe setzen</span>
+<span class="asm-instr">STA</span> <span class="asm-addr">$0400</span>        <span class="asm-comment">; Erstes Zeichen des Screen-RAM beschreiben</span>
+<span class="asm-instr">LDA</span> <span class="asm-addr">$FFE4</span>        <span class="asm-comment">; Aus KERNAL-ROM lesen (Adresse im ROM-Bereich)</span>
+
+<span class="asm-comment">; Symbolische Namen statt rohe Adressen (bessere Lesbarkeit):</span>
+VICBORDER = <span class="asm-addr">$D020</span>
+VICBGCOL  = <span class="asm-addr">$D021</span>
+SCREENRAM = <span class="asm-addr">$0400</span>
+
+<span class="asm-instr">LDA</span> <span class="asm-num">#2</span>           <span class="asm-comment">; Farbe 2 = Rot</span>
+<span class="asm-instr">STA</span> VICBORDER   <span class="asm-comment">; Rahmen rot</span>
+<span class="asm-instr">STA</span> VICBGCOL    <span class="asm-comment">; Hintergrund ebenfalls rot</span></pre>
+
+  <!-- ---- Absolute,X ---- -->
+  <h3>1.9 Absolute, X — Absolute Adressierung mit X-Offset und Page-Crossing</h3>
+  <p>
+    Der Modus Absolute,X addiert den Wert des X-Registers zur 16-Bit-Basisadresse im Befehl.
+    Das Ergebnis ist eine dynamische effektive Adresse, die sich mit jedem X-Wert ändert — ideal
+    für den Zugriff auf Arrays und Lookup-Tabellen. Normalerweise benötigt dieser Modus 4 Zyklen.
+    Es gibt jedoch einen besonderen Fall: die <strong>Page-Crossing-Penalty</strong>.
+  </p>
+  <p>
+    Eine "Speicherseite" (Page) ist ein 256-Byte-Block mit einer gemeinsamen High-Byte-Adresse:
+    $0100–$01FF ist Page 1, $0200–$02FF ist Page 2, und so weiter. Wenn die Addition von
+    Basisadresse und X-Offset eine Seitengrenze überschreitet — das High-Byte der effektiven
+    Adresse also größer ist als das High-Byte der Basisadresse — benötigt die CPU einen
+    zusätzlichen Taktzyklus (insgesamt 5 statt 4). Dieser Strafzyklus entsteht, weil die CPU
+    intern zuerst nur das Low-Byte addiert und dann beim Übertrag eine Korrektur des High-Bytes
+    vornehmen muss.
+  </p>
+  <pre><span class="asm-comment">; Absolute,X: Effektive Adresse = Basisadresse + X</span>
+
+<span class="asm-instr">LDA</span> <span class="asm-addr">$C000,X</span>      <span class="asm-comment">; Effektive Adresse = $C000 + X</span>
+                 <span class="asm-comment">; X=$00 → $C000 (4 Zyklen, keine Page-Crossing)</span>
+                 <span class="asm-comment">; X=$FF → $C0FF (4 Zyklen, noch auf Seite $C0)</span>
+<span class="asm-instr">LDA</span> <span class="asm-addr">$C0FF,X</span>      <span class="asm-comment">; X=$01 → $C100 (5 Zyklen! Seitengrenze $C0/$C1 überschritten)</span>
+
+<span class="asm-comment">; PAGE CROSSING BEISPIEL:</span>
+<span class="asm-comment">; Basis: $C080, X = $90 → Effektiv: $C110 → Page-Crossing! (+1 Zyklus)</span>
+<span class="asm-comment">; Basis: $C080, X = $7F → Effektiv: $C0FF → Kein Page-Crossing (4 Zyklen)</span>
+
+<span class="asm-comment">; Tabellen-Lookup: Sinus-Tabelle</span>
+<span class="asm-label">SinusLookup:</span>
+    <span class="asm-comment">; 256 Einträge, X = Winkel (0-255)</span>
+    <span class="asm-instr">LDA</span> <span class="asm-addr">SinusTable,X</span>  <span class="asm-comment">; Sinus[X] lesen</span>
+
+<span class="asm-comment">; Optimierung: Tabelle an Seitenanfang platzieren → kein Page-Crossing möglich</span>
+<span class="asm-comment">; SinusTable bei $1200 → $1200 + $FF = $12FF (immer Seite $12)</span>
+        *= <span class="asm-addr">$1200</span>   <span class="asm-comment">; Tabelle erzwingen auf Seitenbeginn</span>
+<span class="asm-label">SinusTable:</span>
+        !byte <span class="asm-num">128,131,134</span>...  <span class="asm-comment">; 256 Werte</span></pre>
+
+  <!-- ---- Absolute,Y ---- -->
+  <h3>1.10 Absolute, Y — Absolute Adressierung mit Y-Offset</h3>
+  <p>
+    Identisch mit Absolute,X, jedoch wird das Y-Register als Offset verwendet. Wichtig: Der
+    Y-Modus wird vom VIC-II-Renderer und von Spieleroutinen intensiv genutzt, weil Y das
+    bevorzugte Register für vertikale Iteration ist. Dieselbe Page-Crossing-Penalty gilt
+    wie bei Absolute,X. Ein häufiges Entwurfsmuster ist die Verwendung von X für eine
+    Tabellenauswahl und Y für den Index innerhalb der Tabelle.
+  </p>
+  <pre><span class="asm-comment">; Absolute,Y: Effektive Adresse = Basisadresse + Y</span>
+<span class="asm-instr">LDA</span> <span class="asm-addr">$D800,Y</span>      <span class="asm-comment">; Color-RAM: Farbe an Position Y lesen</span>
+<span class="asm-instr">STA</span> <span class="asm-addr">$D800,Y</span>      <span class="asm-comment">; Color-RAM: Farbe an Position Y schreiben</span>
+
+<span class="asm-comment">; Zeile des Screen-RAM mit Farbe füllen (Y = Spalte 0-39)</span>
+<span class="asm-instr">LDY</span> <span class="asm-num">#39</span>          <span class="asm-comment">; Von Spalte 39 rückwärts</span>
+<span class="asm-instr">LDA</span> <span class="asm-num">#7</span>           <span class="asm-comment">; Gelbe Farbe</span>
+<span class="asm-label">@ColorRow:</span>
+    <span class="asm-instr">STA</span> <span class="asm-addr">$D800,Y</span>    <span class="asm-comment">; Farbe in Color-RAM Zeile 0</span>
+    <span class="asm-instr">DEY</span>
+    <span class="asm-instr">BPL</span> @ColorRow  <span class="asm-comment">; Bis Y &lt; 0</span></pre>
+
+  <!-- ---- Indirect ---- -->
+  <h3>1.11 Indirect — Indirekter Sprung (nur JMP)</h3>
+  <p>
+    Die Indirect-Adressierung ist auf einen einzigen Befehl beschränkt: <code>JMP</code>.
+    Der Befehl liest aus der angegebenen Adresse ein 16-Bit-Sprungziel und springt dorthin.
+    Das erlaubt dynamische Sprungtabellen: Im Speicher steht nicht direkt die Zieladresse,
+    sondern ein Zeiger auf das Ziel. Indem man den Zeiger-Wert zur Laufzeit ändert, kann man
+    den Kontrollfluss dynamisch umlenken — ein mächtiges Werkzeug für Plugin-Systeme,
+    Betriebssystem-Vektoren und Dispatch-Tabellen.
+  </p>
+
+  <div class="box important">
+    <div class="box-title">Berühmter 6502-Hardware-Bug: JMP ($xxFF)</div>
+    <p>Wenn das Low-Byte der Zeiger-Adresse gleich <code>$FF</code> ist (also die Zeiger-Adresse
+    am Ende einer Speicherseite liegt), tritt ein Hardware-Bug auf: Das High-Byte des Sprungziels
+    wird <strong>nicht</strong> aus <code>$xxFF + 1 = $xx00 + $0100</code> gelesen, sondern
+    aus <code>$xx00</code> (Seitengrenze wird nicht überschritten!). Beispiel:</p>
+    <p><code>JMP ($10FF)</code> liest Low-Byte aus $10FF, aber High-Byte aus $1000 (nicht $1100)!</p>
+    <p>Vermeidung: Zeiger-Adressen nie an Seitengrenzen platzieren ($xxFF vermeiden).</p>
+  </div>
+
+  <pre><span class="asm-comment">; Indirect JMP: Sprungtabelle für Unterprogramm-Dispatch</span>
+<span class="asm-label">JumpTable:</span>
+    !word RoutineA          <span class="asm-comment">; $0: Adresse von RoutineA (Low, High)</span>
+    !word RoutineB          <span class="asm-comment">; $2: Adresse von RoutineB</span>
+    !word RoutineC          <span class="asm-comment">; $4: Adresse von RoutineC</span>
+
+<span class="asm-comment">; Dispatch: A = Routine-Nummer (0, 1, 2)</span>
+<span class="asm-label">Dispatch:</span>
+    <span class="asm-instr">ASL A</span>               <span class="asm-comment">; × 2 (weil jeder Eintrag 2 Bytes)</span>
+    <span class="asm-instr">TAX</span>                 <span class="asm-comment">; Offset in X</span>
+    <span class="asm-instr">LDA</span> JumpTable,X     <span class="asm-comment">; Zieladresse Low-Byte</span>
+    <span class="asm-instr">STA</span> <span class="asm-addr">$FB</span>             <span class="asm-comment">; In ZP-Zeiger $FB</span>
+    <span class="asm-instr">LDA</span> JumpTable+<span class="asm-num">1</span>,X   <span class="asm-comment">; Zieladresse High-Byte</span>
+    <span class="asm-instr">STA</span> <span class="asm-addr">$FC</span>             <span class="asm-comment">; In ZP-Zeiger $FC</span>
+    <span class="asm-instr">JMP</span> (<span class="asm-addr">$FB</span>)           <span class="asm-comment">; Indirekter Sprung über ZP-Zeiger (KEIN $FF-Problem wenn $FB)</span></pre>
+
+  <!-- ---- (Indirect,X) ---- -->
+  <h3>1.12 (Indirect, X) — Pre-Indexed Indirect</h3>
+  <p>
+    Dies ist die komplexeste Adressierungsart des 6510. Der 3-stufige Prozess läuft wie folgt ab:
+    Zunächst wird der 1-Byte-Operand und das X-Register addiert (mit Wraparound in der Zero Page).
+    Dann wird aus dieser Zero-Page-Adresse ein 16-Bit-Zeiger gelesen (Low-Byte aus der berechneten
+    Adresse, High-Byte aus der nächsten Adresse). Schließlich wird der Datenbyte aus dieser
+    16-Bit-Adresse gelesen oder dorthin geschrieben. Der gesamte Prozess kostet 6 Taktzyklen.
+  </p>
+  <pre><span class="asm-comment">; (Indirect,X): Effektive Adresse = Inhalt von [($Operand + X) mod 256]</span>
+<span class="asm-comment">; Schritt 1: ZP-Zeiger-Adresse = ($20 + X) &amp; $FF</span>
+<span class="asm-comment">; Schritt 2: Low-Byte = [$ZP-Zeiger], High-Byte = [$ZP-Zeiger + 1]</span>
+<span class="asm-comment">; Schritt 3: Effektive Adresse = High*256 + Low → Daten lesen/schreiben</span>
+
+<span class="asm-instr">LDA</span> (<span class="asm-addr">$20</span>,X)         <span class="asm-comment">; 6 Zyklen</span>
+
+<span class="asm-comment">; Praktisches Beispiel: Dispatch-Tabelle für 4 Aktionen</span>
+<span class="asm-comment">; In Zero Page ab $20: 4 × 2-Byte-Zeiger auf Handler-Routinen</span>
+<span class="asm-comment">; $20/$21 = Zeiger auf Handler 0</span>
+<span class="asm-comment">; $22/$23 = Zeiger auf Handler 1</span>
+<span class="asm-comment">; $24/$25 = Zeiger auf Handler 2</span>
+<span class="asm-comment">; $26/$27 = Zeiger auf Handler 3</span>
+
+<span class="asm-comment">; Setup:</span>
+    <span class="asm-instr">LDA</span> <span class="asm-num">#&lt;Handler0</span>     <span class="asm-comment">; Low-Byte von Handler0</span>
+    <span class="asm-instr">STA</span> <span class="asm-addr">$20</span>
+    <span class="asm-instr">LDA</span> <span class="asm-num">#&gt;Handler0</span>     <span class="asm-comment">; High-Byte von Handler0</span>
+    <span class="asm-instr">STA</span> <span class="asm-addr">$21</span>
+
+<span class="asm-comment">; Aufruf mit Action-ID in X (0, 2, 4, 6 — da 2-Byte-Zeiger):</span>
+    <span class="asm-instr">LDX</span> <span class="asm-num">#0</span>              <span class="asm-comment">; Action 0 auswählen</span>
+    <span class="asm-instr">JMP</span> (<span class="asm-addr">$20</span>,X)         <span class="asm-comment">; Springt zu Handler0 (liest Zeiger aus $20/$21)</span>
+    <span class="asm-instr">LDX</span> <span class="asm-num">#2</span>              <span class="asm-comment">; Action 1: Zeiger bei $22/$23</span>
+    <span class="asm-instr">JMP</span> (<span class="asm-addr">$20</span>,X)         <span class="asm-comment">; Springt zu Handler1</span></pre>
+
+  <!-- ---- (Indirect),Y ---- -->
+  <h3>1.13 (Indirect), Y — Post-Indexed Indirect: Der mächtigste Modus</h3>
+  <p>
+    Der Modus (Indirect),Y ist ohne Zweifel der wichtigste und am häufigsten verwendete der
+    indirekten Adressierungsarten. Anders als (Indirect,X) ist der Prozess zweistufig:
+    Zuerst wird aus der Zero Page ein 16-Bit-Basiszeiger gelesen (Low-Byte aus der angegebenen
+    Adresse, High-Byte aus der nächsten). Dann wird Y zu dieser Basisadresse addiert, und aus
+    der resultierenden Adresse werden die Daten gelesen. Dieses Muster entspricht exakt dem
+    Konzept eines C-Zeigers mit Array-Index: <code>*(ptr + y)</code>.
+  </p>
+  <p>
+    Die entscheidende Stärke: Der Zeiger in der Zero Page kann zur Laufzeit beliebig geändert
+    werden, sodass dieselbe Code-Routine auf beliebige Datenblöcke im gesamten 64-KB-Adressraum
+    zeigen kann. Dies ist das Fundament für allgemeine String- und Speicher-Routinen. Wie bei
+    Absolute,Y gilt: Wenn Y + Low-Byte des Zeigers eine Seitengrenze überschreitet, kostet
+    das einen zusätzlichen Taktzyklus.
+  </p>
+  <pre><span class="asm-comment">; (Indirect),Y: Effektive Adresse = [Inhalt($ZP, $ZP+1)] + Y</span>
+<span class="asm-comment">; Schritt 1: Base = {$ZP+1} * 256 + {$ZP}  (16-Bit-Zeiger aus Zero Page lesen)</span>
+<span class="asm-comment">; Schritt 2: Effektive Adresse = Base + Y</span>
+<span class="asm-comment">; Schritt 3: Daten lesen/schreiben von/nach effektiver Adresse</span>
+
+<span class="asm-instr">LDA</span> (<span class="asm-addr">$FB</span>),Y         <span class="asm-comment">; 5 Zyklen (6 wenn Page-Crossing)</span>
+
+<span class="asm-comment">; === VOLLSTÄNDIGES BEISPIEL: NULL-TERMINIERTER STRING AUSGEBEN ===</span>
+<span class="asm-comment">; KERNAL CHROUT ($FFD2) gibt Zeichen in A aus.</span>
+<span class="asm-comment">; Konvention: $FB/$FC = 16-Bit-Zeiger auf String im Speicher</span>
+<span class="asm-comment">; String endet mit Byte $00 (Null-Terminator)</span>
+
+<span class="asm-label">PrintString:</span>
+        <span class="asm-instr">ldy</span> <span class="asm-num">#0</span>              <span class="asm-comment">; Y = Index, beginnt bei 0</span>
+<span class="asm-label">@loop:</span>
+        <span class="asm-instr">lda</span> (<span class="asm-addr">$fb</span>),y         <span class="asm-comment">; Zeichen bei [Zeiger + Y] laden</span>
+        <span class="asm-instr">beq</span> @done           <span class="asm-comment">; Wenn Null-Byte → Ausgabe beendet</span>
+        <span class="asm-instr">jsr</span> <span class="asm-addr">$ffd2</span>           <span class="asm-comment">; KERNAL: Zeichen aus A ausgeben</span>
+        <span class="asm-instr">iny</span>                 <span class="asm-comment">; Nächstes Zeichen (Y++)</span>
+        <span class="asm-instr">bne</span> @loop           <span class="asm-comment">; Solange Y nicht auf 0 zurückrollt (max 255 Zeichen)</span>
+<span class="asm-label">@done:</span>
+        <span class="asm-instr">rts</span>
+
+<span class="asm-comment">; Aufruf der Routine:</span>
+<span class="asm-label">Aufruf:</span>
+        <span class="asm-instr">lda</span> <span class="asm-num">#&lt;MeinText</span>      <span class="asm-comment">; Low-Byte der Textadresse</span>
+        <span class="asm-instr">sta</span> <span class="asm-addr">$fb</span>             <span class="asm-comment">; In ZP-Zeiger Low-Byte</span>
+        <span class="asm-instr">lda</span> <span class="asm-num">#&gt;MeinText</span>      <span class="asm-comment">; High-Byte der Textadresse</span>
+        <span class="asm-instr">sta</span> <span class="asm-addr">$fc</span>             <span class="asm-comment">; In ZP-Zeiger High-Byte</span>
+        <span class="asm-instr">jsr</span> PrintString     <span class="asm-comment">; Routine aufrufen</span>
+        <span class="asm-instr">rts</span>
+
+<span class="asm-label">MeinText:</span>
+        !text <span class="asm-num">"HALLO C64 MASTERY!"</span>
+        !byte <span class="asm-num">0</span>              <span class="asm-comment">; Null-Terminator</span>
+
+<span class="asm-comment">; Zweiter Aufruf — völlig andere Adresse, dieselbe Routine:</span>
+        <span class="asm-instr">lda</span> <span class="asm-num">#&lt;AndererText</span>
+        <span class="asm-instr">sta</span> <span class="asm-addr">$fb</span>
+        <span class="asm-instr">lda</span> <span class="asm-num">#&gt;AndererText</span>
+        <span class="asm-instr">sta</span> <span class="asm-addr">$fc</span>
+        <span class="asm-instr">jsr</span> PrintString     <span class="asm-comment">; Dieselbe Routine, anderer Zeiger!</span></pre>
+
+  <!-- ---- Relative ---- -->
+  <h3>1.14 Relative — Bedingte Sprünge mit Reichweitenbeschränkung</h3>
+  <p>
+    Alle Branch-Befehle des 6510 verwenden relative Adressierung. Der Operand ist ein
+    <strong>vorzeichenbehaftetes 8-Bit-Offset</strong> relativ zur Adresse des
+    <em>nächsten</em> Befehls (also PC + 2, da jeder Branch-Befehl 2 Bytes belegt).
+    Das Offset reicht von -128 bis +127, was eine Sprungreichweite von -126 bis +129 Bytes
+    relativ zur Branch-Instruktion selbst bedeutet. Der Assembler berechnet das Offset
+    automatisch aus dem Label — man muss es nicht manuell ermitteln.
+  </p>
+  <pre><span class="asm-comment">; Branch-Befehle und ihre Bedingungen:</span>
+<span class="asm-instr">BEQ</span> Label        <span class="asm-comment">; Branch if Equal (Zero-Flag gesetzt)</span>
+<span class="asm-instr">BNE</span> Label        <span class="asm-comment">; Branch if Not Equal (Zero-Flag nicht gesetzt)</span>
+<span class="asm-instr">BCS</span> Label        <span class="asm-comment">; Branch if Carry Set</span>
+<span class="asm-instr">BCC</span> Label        <span class="asm-comment">; Branch if Carry Clear</span>
+<span class="asm-instr">BMI</span> Label        <span class="asm-comment">; Branch if Minus (Negative-Flag gesetzt)</span>
+<span class="asm-instr">BPL</span> Label        <span class="asm-comment">; Branch if Plus (Negative-Flag nicht gesetzt)</span>
+<span class="asm-instr">BVS</span> Label        <span class="asm-comment">; Branch if Overflow Set</span>
+<span class="asm-instr">BVC</span> Label        <span class="asm-comment">; Branch if Overflow Clear</span>
+
+<span class="asm-comment">; REICHWEITENPROBLEM: Wenn Label zu weit entfernt → Assembler-Fehler!</span>
+<span class="asm-comment">; Lösung: Logik umkehren + absoluter JMP</span>
+
+<span class="asm-comment">; Problematisch (wenn @weit_entfernt > 127 Bytes entfernt):</span>
+<span class="asm-comment">;   BEQ @weit_entfernt   ← Assembler-Fehler!</span>
+
+<span class="asm-comment">; Lösung: Branch umkehren + JMP</span>
+        <span class="asm-instr">bne</span> @skip           <span class="asm-comment">; NICHT gleich → überspringen</span>
+        <span class="asm-instr">jmp</span> WeitEntfernt    <span class="asm-comment">; Gleich → absoluter Sprung (3 Bytes, 3 Zyklen)</span>
+<span class="asm-label">@skip:</span>
+        <span class="asm-comment">; Hier weiterarbeiten wenn nicht gleich...</span>
+
+<span class="asm-comment">; Zyklen-Übersicht für BNE als Beispiel:</span>
+<span class="asm-comment">; Nicht gesprungen (Zero-Flag gesetzt):      2 Zyklen</span>
+<span class="asm-comment">; Gesprungen, kein Page-Crossing:            3 Zyklen</span>
+<span class="asm-comment">; Gesprungen, Page-Crossing (selten!):       4 Zyklen</span></pre>
+
+  <!-- ============================================================ -->
+  <h2>Abschnitt 2: Die C64-Speicherkarte im Detail</h2>
+
+  <p>
+    Das Speichersystem des Commodore 64 gehört zu den faszinierendsten und gleichzeitig
+    komplexesten Designs aller 8-Bit-Heimcomputer. Auf den ersten Blick bietet der C64 einen
+    normalen 64-KB-Adressraum, wie er vom 6510-Prozessor adressiert werden kann. Hinter dieser
+    scheinbar einfachen Oberfläche verbirgt sich jedoch ein ausgeklügeltes Bank-Switching-System,
+    das ROM- und RAM-Bereiche dynamisch ein- und ausblenden kann, einen separaten I/O-Bereich
+    bereitstellt und dem Programmierer damit eine ungewöhnlich hohe Flexibilität bietet.
+  </p>
+  <p>
+    Die Notwendigkeit für dieses komplexe System entstand aus einem grundlegenden Dilemma: Der C64
+    sollte sowohl ein benutzerfreundlicher Heimcomputer (mit BASIC-Interpreter, Betriebssystem und
+    Zeichensatz-ROM) als auch eine leistungsfähige Spiele- und Programmiermaschine sein. Beides
+    gleichzeitig in 64 KB unterzubringen war 1982 eine erhebliche Herausforderung. Die Lösung war
+    das Overlapping-Memory-System: ROM und RAM belegen dieselben Adressen, aber je nach
+    Konfiguration des 6510-I/O-Ports ist entweder das ROM oder das darunterliegende RAM sichtbar.
+    So hat der C64 physisch deutlich mehr als 64 KB — nämlich 64 KB RAM plus ROMs plus I/O —
+    aber nur ein Fenster von 64 KB, durch das die CPU zu einem Zeitpunkt schaut.
+  </p>
+
+  <h3>2.1 Vollständige Speicherkarte des C64</h3>
+
+  <div class="memmap">
+    <div class="memmap-row mem-zp">
+      <div class="memmap-addr">$0000–$00FF</div>
+      <div class="memmap-label"><strong>Zero Page</strong></div>
+      <div class="memmap-size">256 B</div>
+      <div class="memmap-note">Schnellstzugriff: 1 Byte Adresse, 3 Zyklen. Systemvariablen, freie Zeiger.</div>
+    </div>
+    <div class="memmap-row mem-stack">
+      <div class="memmap-addr">$0100–$01FF</div>
+      <div class="memmap-label"><strong>Hardware-Stack</strong></div>
+      <div class="memmap-size">256 B</div>
+      <div class="memmap-note">CPU-Stack für JSR/RTS/PHA/PLA. SP wächst abwärts von $FF.</div>
+    </div>
+    <div class="memmap-row mem-sys">
+      <div class="memmap-addr">$0200–$02FF</div>
+      <div class="memmap-label"><strong>KERNAL-Eingabepuffer</strong></div>
+      <div class="memmap-size">256 B</div>
+      <div class="memmap-note">Tastatur-Puffer, BASIC-Eingabepuffer, diverse KERNAL-Variablen.</div>
+    </div>
+    <div class="memmap-row mem-sys">
+      <div class="memmap-addr">$0300–$03FF</div>
+      <div class="memmap-label"><strong>KERNAL-Vektoren (RAM)</strong></div>
+      <div class="memmap-size">256 B</div>
+      <div class="memmap-note">Interrupt-Vektoren, modifizierbare KERNAL-Einsprungpunkte. Überschreibbar!</div>
+    </div>
+    <div class="memmap-row mem-screen">
+      <div class="memmap-addr">$0400–$07FF</div>
+      <div class="memmap-label"><strong>Standard Screen-RAM</strong></div>
+      <div class="memmap-size">1 KB</div>
+      <div class="memmap-note">25×40 Zeichen-Codes. $07F8–$07FF: Sprite-Pointer (8 Bytes).</div>
+    </div>
+    <div class="memmap-row mem-basic">
+      <div class="memmap-addr">$0800–$9FFF</div>
+      <div class="memmap-label"><strong>BASIC-Programmspeicher</strong></div>
+      <div class="memmap-size">~38 KB</div>
+      <div class="memmap-note">BASIC-Programme beginnen bei $0801. Frei nutzbar ohne BASIC.</div>
+    </div>
+    <div class="memmap-row mem-rom">
+      <div class="memmap-addr">$A000–$BFFF</div>
+      <div class="memmap-label"><strong>BASIC-ROM / Shadow-RAM</strong></div>
+      <div class="memmap-size">8 KB</div>
+      <div class="memmap-note">Banking! Standard: BASIC-ROM. Ausblendbar: 8 KB freies RAM.</div>
+    </div>
+    <div class="memmap-row mem-free">
+      <div class="memmap-addr">$C000–$CFFF</div>
+      <div class="memmap-label"><strong>Freies RAM</strong></div>
+      <div class="memmap-size">4 KB</div>
+      <div class="memmap-note">Immer RAM, kein Overlay. Ideal für eigene Programme und Daten.</div>
+    </div>
+    <div class="memmap-row mem-io">
+      <div class="memmap-addr">$D000–$DFFF</div>
+      <div class="memmap-label"><strong>I/O-Bereich / Charset-ROM / RAM</strong></div>
+      <div class="memmap-size">4 KB</div>
+      <div class="memmap-note">Banking! Standard: VIC-II, SID, CIA, Color-RAM. Alternativ: Charset-ROM oder RAM.</div>
+    </div>
+    <div class="memmap-row mem-kernal">
+      <div class="memmap-addr">$E000–$FFFF</div>
+      <div class="memmap-label"><strong>KERNAL-ROM / Shadow-RAM</strong></div>
+      <div class="memmap-size">8 KB</div>
+      <div class="memmap-note">Banking! Standard: KERNAL-Betriebssystem. Ausblendbar: 8 KB freies RAM.</div>
+    </div>
+  </div>
+
+  <!-- ---- Zero Page Details ---- -->
+  <h3>2.2 Die Zero Page — Heiliger Boden der C64-Programmierung</h3>
+  <p>
+    Die Zero Page ist der wertvollste Speicherbereich für den Assembler-Programmierer. Jedes Byte,
+    das hier platziert wird, ist mit der schnellstmöglichen und kompaktestmöglichen Adressierungsart
+    erreichbar. Professionelle C64-Programmierer legen deshalb alle Performance-kritischen Variablen,
+    Zeiger und Schleifenzähler in der Zero Page ab und benutzen den übrigen RAM für Daten und Code.
+  </p>
+
+  <table>
+    <thead>
+      <tr><th>Adresse</th><th>KERNAL/System-Verwendung</th><th>Eigene Nutzung</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="mono">$00</td><td>6510 I/O Richtungsregister</td><td>Nicht verändern!</td></tr>
+      <tr><td class="mono">$01</td><td>6510 I/O Datenbyte (Banking!)</td><td>Nur mit Vorsicht!</td></tr>
+      <tr><td class="mono">$02</td><td>Frei / Indirekte Befehle (KERNAL)</td><td>Als temp. Variable nutzbar</td></tr>
+      <tr><td class="mono">$03–$04</td><td>KERNAL: Indirect-Fetch Zeiger</td><td>Nicht während KERNAL-Aufrufen</td></tr>
+      <tr><td class="mono">$14–$15</td><td>Frei (System-Zeit low/high)</td><td>16-Bit temporäre Variable</td></tr>
+      <tr><td class="mono">$22–$25</td><td>Frei / BASIC intern</td><td>Nutzbar ohne BASIC</td></tr>
+      <tr><td class="mono">$39–$3A</td><td>BASIC: aktuelle Zeilennummer</td><td>Nutzbar ohne BASIC</td></tr>
+      <tr><td class="mono">$52</td><td>Frei</td><td>Temporäre Variable</td></tr>
+      <tr><td class="mono">$61–$68</td><td>BASIC: Floating-Point Akkumulator 1</td><td>Nutzbar ohne BASIC</td></tr>
+      <tr><td class="mono">$90</td><td>KERNAL: Statusflags I/O-Operationen</td><td>Nach KERNAL-Calls prüfen</td></tr>
+      <tr><td class="mono">$93</td><td>KERNAL: Load/Verify-Flag</td><td>Nicht verwenden</td></tr>
+      <tr><td class="mono">$FB–$FE</td><td>Frei — 2 × 16-Bit-Zeiger</td><td><strong>Häufig genutzte ZP-Zeiger!</strong></td></tr>
+      <tr><td class="mono">$FF</td><td>Frei</td><td>Einzelne Variable</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box tip">
+    <div class="box-title">Praxistipp: Eigenes Zero-Page-Layout definieren</div>
+    <p>Legen Sie für jedes Projekt eine eigene Zero-Page-Belegung fest und dokumentieren Sie sie
+    am Anfang Ihres Quelltexts mit symbolischen Namen. Verwenden Sie primär den Bereich $02–$0F
+    (wenn kein KERNAL benötigt wird) oder $FB–$FE (immer verfügbar). Beispiel:</p>
+    <pre><span class="asm-comment">; Zero-Page-Belegung für "Space Invaders Clone":</span>
+ptr_src      = <span class="asm-addr">$FB</span>  <span class="asm-comment">; 16-Bit Quell-Zeiger  ($FB/$FC)</span>
+ptr_dst      = <span class="asm-addr">$FD</span>  <span class="asm-comment">; 16-Bit Ziel-Zeiger   ($FD/$FE)</span>
+player_x     = <span class="asm-addr">$50</span>  <span class="asm-comment">; Spieler X-Position</span>
+player_y     = <span class="asm-addr">$51</span>  <span class="asm-comment">; Spieler Y-Position</span>
+frame_count  = <span class="asm-addr">$52</span>  <span class="asm-comment">; Frame-Zähler</span>
+game_state   = <span class="asm-addr">$53</span>  <span class="asm-comment">; Spielzustand (0=Menu, 1=Game, 2=GameOver)</span>
+bullet_x     = <span class="asm-addr">$54</span>  <span class="asm-comment">; Schuss-Position X</span>
+bullet_y     = <span class="asm-addr">$55</span>  <span class="asm-comment">; Schuss-Position Y</span></pre>
+  </div>
+
+  <!-- ---- Stack ---- -->
+  <h3>2.3 Der Hardware-Stack ($0100–$01FF)</h3>
+  <p>
+    Der Stack-Bereich ist fest verdrahtet und kann nicht verlegt werden. Der Stack-Pointer (SP)
+    ist ein 8-Bit-Register, das als Offset in den Bereich $0100–$01FF dient. Beim Reset wird SP
+    auf $FF initialisiert, sodass der Stack bei $01FF beginnt und nach unten wächst. Jedes
+    <code>PHA</code> oder jeder <code>JSR</code>-Rücksprungadress-Push verringert SP, jedes
+    <code>PLA</code> oder jedes <code>RTS</code> erhöht SP wieder.
+  </p>
+  <pre><span class="asm-comment">; Stack-Mechanismus im Detail:</span>
+<span class="asm-comment">; PHA: Schreibe A nach [$0100 + SP], dann SP--</span>
+<span class="asm-comment">; PLA: SP++, dann lese A von [$0100 + SP]</span>
+<span class="asm-comment">; JSR: Push (PC+2) Low dann High, dann PC = Zieladresse (SP -= 2)</span>
+<span class="asm-comment">; RTS: Pop High dann Low, PC = Wert + 1 (SP += 2)</span>
+
+<span class="asm-comment">; Typische Verwendung: Register sichern/restaurieren</span>
+<span class="asm-label">MeineRoutine:</span>
+        <span class="asm-instr">pha</span>                 <span class="asm-comment">; A sichern</span>
+        <span class="asm-instr">txa</span>
+        <span class="asm-instr">pha</span>                 <span class="asm-comment">; X sichern (via A)</span>
+        <span class="asm-instr">tya</span>
+        <span class="asm-instr">pha</span>                 <span class="asm-comment">; Y sichern (via A)</span>
+
+        <span class="asm-comment">; ... eigentliche Arbeit ...</span>
+
+        <span class="asm-instr">pla</span>
+        <span class="asm-instr">tay</span>                 <span class="asm-comment">; Y restaurieren</span>
+        <span class="asm-instr">pla</span>
+        <span class="asm-instr">tax</span>                 <span class="asm-comment">; X restaurieren</span>
+        <span class="asm-instr">pla</span>                 <span class="asm-comment">; A restaurieren</span>
+        <span class="asm-instr">rts</span></pre>
+
+  <div class="box warning">
+    <div class="box-title">Warnung: Stack-Überlauf</div>
+    <p>Der Stack hat nur 256 Bytes Kapazität. Zu viele verschachtelte JSR-Aufrufe (ohne entsprechende
+    RTS) oder zu viele PHA ohne PLA führen dazu, dass SP auf $00 wrapat und danach in den negativen
+    Bereich ($FF, $FE, ...) wächst — was bedeutet: Der Stack überschreibt die Zero Page! Dieser Fehler
+    äußert sich in mysteriösem, nicht-deterministischem Programmverhalten. Maximale Schachtelungstiefe
+    ohne zusätzliche PHA-Befehle: 128 JSR-Ebenen.</p>
+  </div>
+
+  <!-- ---- Banking ---- -->
+  <h3>2.4 Das Bank-Switching-System — Register $0001</h3>
+  <p>
+    Das Herzstück des C64-Speicherverwaltungssystems ist das I/O-Port-Register des 6510 an
+    Adresse $0001. Über die unteren drei Bits dieses Registers wird gesteuert, welche
+    ROM- und I/O-Bereiche im Adressraum sichtbar sind. Dies ist eine einzigartige Eigenschaft
+    des 6510 gegenüber dem normalen 6502: Der integrierte I/O-Port ermöglicht das Bank-Switching
+    ohne zusätzliche externe Hardware.
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>$0001 Wert</th>
+        <th>Bit 2 (CHAREN)</th>
+        <th>Bit 1 (HIRAM)</th>
+        <th>Bit 0 (LORAM)</th>
+        <th>$A000–$BFFF</th>
+        <th>$D000–$DFFF</th>
+        <th>$E000–$FFFF</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td class="mono">$37 = %111</td><td>I/O</td><td>KERNAL</td><td>BASIC</td><td>BASIC-ROM</td><td>I/O</td><td>KERNAL-ROM</td></tr>
+      <tr><td class="mono">$36 = %110</td><td>I/O</td><td>KERNAL</td><td>RAM</td><td>RAM</td><td>I/O</td><td>KERNAL-ROM</td></tr>
+      <tr><td class="mono">$35 = %101</td><td>I/O</td><td>KERNAL</td><td>BASIC</td><td>BASIC-ROM</td><td>I/O</td><td>KERNAL-ROM</td></tr>
+      <tr><td class="mono">$34 = %100</td><td>I/O</td><td>RAM</td><td>RAM</td><td>RAM</td><td>I/O</td><td>RAM</td></tr>
+      <tr><td class="mono">$33 = %011</td><td>Char-ROM</td><td>KERNAL</td><td>BASIC</td><td>BASIC-ROM</td><td>Charset-ROM</td><td>KERNAL-ROM</td></tr>
+      <tr><td class="mono">$32 = %010</td><td>Char-ROM</td><td>KERNAL</td><td>RAM</td><td>RAM</td><td>Charset-ROM</td><td>KERNAL-ROM</td></tr>
+      <tr><td class="mono">$31 = %001</td><td>Char-ROM</td><td>RAM</td><td>BASIC</td><td>BASIC-ROM</td><td>Charset-ROM</td><td>RAM</td></tr>
+      <tr><td class="mono">$30 = %000</td><td>RAM</td><td>RAM</td><td>RAM</td><td>RAM</td><td>RAM</td><td>RAM</td></tr>
+    </tbody>
+  </table>
+
+  <pre><span class="asm-comment">; KONFIGURATION 1: Standard nach Reset ($37)</span>
+<span class="asm-comment">; BASIC + KERNAL + I/O sichtbar</span>
+        <span class="asm-instr">lda</span> <span class="asm-num">#$37</span>
+        <span class="asm-instr">sta</span> <span class="asm-addr">$01</span>
+
+<span class="asm-comment">; KONFIGURATION 2: Nur RAM (alle ROMs ausgeblendet)</span>
+<span class="asm-comment">; Maximaler freier RAM: 64 KB minus Stack, ZP, I/O-Bereich</span>
+        <span class="asm-instr">lda</span> <span class="asm-num">#$30</span>
+        <span class="asm-instr">sta</span> <span class="asm-addr">$01</span>
+        <span class="asm-comment">; ACHTUNG: Ab hier kein KERNAL mehr! JSR $FFD2 geht in eigenen Code!</span>
+
+<span class="asm-comment">; KONFIGURATION 3: Zeichensatz-ROM lesen ($33)</span>
+<span class="asm-comment">; Nützlich um den ROM-Zeichensatz in eigenes RAM zu kopieren</span>
+        <span class="asm-instr">lda</span> <span class="asm-addr">$01</span>
+        <span class="asm-instr">and</span> <span class="asm-num">#%11111100</span>     <span class="asm-comment">; Bits 2-0: I/O aus, Charset-ROM ein</span>
+        <span class="asm-instr">ora</span> <span class="asm-num">#%00000011</span>     <span class="asm-comment">; HIRAM+LORAM setzen für BASIC+KERNAL ROM</span>
+        <span class="asm-comment">; Ergebnis: %xxxxxx11 aber mit CHAREN=0 → $33</span>
+        <span class="asm-instr">lda</span> <span class="asm-num">#$33</span>           <span class="asm-comment">; Einfacher: direkt setzen</span>
+        <span class="asm-instr">sta</span> <span class="asm-addr">$01</span>
+        <span class="asm-comment">; Jetzt: Charset-ROM bei $D000 lesbar, I/O NICHT verfügbar!</span>
+        <span class="asm-comment">; VIC-II, SID, CIA sind jetzt NICHT erreichbar bis...</span>
+        <span class="asm-instr">lda</span> <span class="asm-num">#$37</span>           <span class="asm-comment">; ...I/O wieder einblenden</span>
+        <span class="asm-instr">sta</span> <span class="asm-addr">$01</span>
+
+<span class="asm-comment">; SAFE BANKING: Nur Bits 0-2 ändern, andere Bits (Datenleitungen) bewahren</span>
+<span class="asm-label">SetBankingConfig:</span>
+        <span class="asm-comment">; A = gewünschte Konfiguration (Bits 0-2)</span>
+        <span class="asm-instr">pha</span>
+        <span class="asm-instr">lda</span> <span class="asm-addr">$01</span>
+        <span class="asm-instr">and</span> <span class="asm-num">#%11111000</span>     <span class="asm-comment">; Bits 0-2 löschen</span>
+        <span class="asm-instr">sta</span> <span class="asm-addr">$fb</span>             <span class="asm-comment">; Aktuellen Wert (maskiert) speichern</span>
+        <span class="asm-instr">pla</span>
+        <span class="asm-instr">and</span> <span class="asm-num">#%00000111</span>     <span class="asm-comment">; Nur Bits 0-2 von Eingabe</span>
+        <span class="asm-instr">ora</span> <span class="asm-addr">$fb</span>             <span class="asm-comment">; Kombinieren</span>
+        <span class="asm-instr">sta</span> <span class="asm-addr">$01</span>
+        <span class="asm-instr">rts</span></pre>
+
+  <!-- ---- VIC-II Banking ---- -->
+  <h3>2.5 VIC-II Speicher-Banking via CIA 2</h3>
+  <p>
+    Zusätzlich zum CPU-Banking gibt es ein separates Speicher-Banking für den VIC-II-Grafikprozessor.
+    Der VIC-II kann nur einen 16-KB-Bereich gleichzeitig "sehen" — seine VIC-Bank. Die Auswahl
+    dieser Bank erfolgt über die unteren zwei Bits von CIA 2 Port A ($DD00). Wichtig: Die VIC-Bank-Bits
+    sind <strong>invertiert</strong> — Bit-Wert <code>0</code> bedeutet die Bank ist aktiv.
+  </p>
+
+  <table>
+    <thead>
+      <tr><th>$DD00 Bits 1-0</th><th>VIC-Bank</th><th>Adressbereich</th><th>Charset-ROM</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="mono">%11</td><td>Bank 0</td><td>$0000–$3FFF</td><td>Ja, bei $1000–$1FFF und $1800–$1FFF</td></tr>
+      <tr><td class="mono">%10</td><td>Bank 1</td><td>$4000–$7FFF</td><td>Nein (nur RAM)</td></tr>
+      <tr><td class="mono">%01</td><td>Bank 2</td><td>$8000–$BFFF</td><td>Ja, bei $9000–$9FFF</td></tr>
+      <tr><td class="mono">%00</td><td>Bank 3</td><td>$C000–$FFFF</td><td>Nein (nur RAM)</td></tr>
+    </tbody>
+  </table>
+
+  <pre><span class="asm-comment">; VIC-Bank 2 auswählen ($8000-$BFFF):</span>
+        <span class="asm-instr">lda</span> <span class="asm-addr">$dd00</span>           <span class="asm-comment">; CIA2 Port A lesen</span>
+        <span class="asm-instr">and</span> <span class="asm-num">#%11111100</span>     <span class="asm-comment">; Bits 1-0 löschen</span>
+        <span class="asm-instr">ora</span> <span class="asm-num">#%00000001</span>     <span class="asm-comment">; %01 → Bank 2</span>
+        <span class="asm-instr">sta</span> <span class="asm-addr">$dd00</span>
+
+<span class="asm-comment">; VIC-II Zeiger-Register $D018 setzen:</span>
+<span class="asm-comment">; Screen-RAM in Bank 2 bei $8C00 → Offset = $0C00 → $0C00/1024 = 3 → Bits 7-4 = 0011</span>
+<span class="asm-comment">; Charset in Bank 2 bei $9000 → Offset = $1000 in der Bank → $1000/2048 = 2 → Bits 3-1 = 010</span>
+        <span class="asm-instr">lda</span> <span class="asm-num">#%00110100</span>     <span class="asm-comment">; Screen=3 (Bits 7-4=0011), Charset=2 (Bits 3-1=010), Bit0=0</span>
+        <span class="asm-instr">sta</span> <span class="asm-addr">$d018</span>
+
+<span class="asm-comment">; Zur Bank 0 zurück (Standard):</span>
+        <span class="asm-instr">lda</span> <span class="asm-addr">$dd00</span>
+        <span class="asm-instr">and</span> <span class="asm-num">#%11111100</span>
+        <span class="asm-instr">ora</span> <span class="asm-num">#%00000011</span>     <span class="asm-comment">; %11 → Bank 0 (Standard)</span>
+        <span class="asm-instr">sta</span> <span class="asm-addr">$dd00</span>
+
+<span class="asm-comment">; Standard-Wert $D018 für Bank 0, Screen=$0400, Charset=$1000:</span>
+<span class="asm-comment">; Screen-Offset: $0400/1024 = 1 → Bits 7-4 = 0001</span>
+<span class="asm-comment">; Charset-Offset: $1000/2048 = 2 → Bits 3-1 = 010 (ROM-Zeichensatz!)</span>
+<span class="asm-comment">; $D018 = %00010100 = $14 ← Standardwert nach Reset</span></pre>
+
+  <!-- ---- I/O Bereich ---- -->
+  <h3>2.6 Der I/O-Bereich $D000–$DFFF im Detail</h3>
+
+  <table>
+    <thead>
+      <tr><th>Adressbereich</th><th>Gerät</th><th>Größe</th><th>Beschreibung</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="mono">$D000–$D3FF</td><td>VIC-II</td><td>1 KB</td><td>47 Register, gespiegelt alle 64 Bytes ($40). Register $D000–$D02E real vorhanden.</td></tr>
+      <tr><td class="mono">$D400–$D7FF</td><td>SID</td><td>1 KB</td><td>29 Register, gespiegelt alle 32 Bytes ($20). Stimmen, Filter, Hüllkurven.</td></tr>
+      <tr><td class="mono">$D800–$DBFF</td><td>Color-RAM</td><td>1 KB</td><td>1000 Nibbles (4 Bit/Byte), parallel zum Screen-RAM. Immer sichtbar!</td></tr>
+      <tr><td class="mono">$DC00–$DCFF</td><td>CIA 1</td><td>256 B</td><td>16 Register: Joystick, Tastatur, Timer A/B, IRQ-Quelle.</td></tr>
+      <tr><td class="mono">$DD00–$DDFF</td><td>CIA 2</td><td>256 B</td><td>16 Register: Serieller Port, VIC-Bank-Selektion, NMI-Quelle.</td></tr>
+      <tr><td class="mono">$DE00–$DEFF</td><td>I/O Expansion 1</td><td>256 B</td><td>Erweiterungs-Port Slot 1 (Cartridges, Userport-Erweiterungen).</td></tr>
+      <tr><td class="mono">$DF00–$DFFF</td><td>I/O Expansion 2</td><td>256 B</td><td>Erweiterungs-Port Slot 2.</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ---- KERNAL ---- -->
+  <h3>2.7 KERNAL-ROM und seine Vektoren</h3>
+  <p>
+    Das KERNAL-ROM bei $E000–$FFFF enthält das Betriebssystem des C64: Zeichenausgabe, Tape- und
+    Disketten-I/O, Interrupt-Handler, Reset-Routine und die Jump-Table mit den offiziellen API-Einstiegspunkten.
+    Interessanterweise liegen viele der KERNAL-Vektoren als modifizierbare Zeiger im RAM bei $0300–$033B.
+    Das ermöglicht eigene Ersatzroutinen einzuhängen, ohne den ROM-Code zu modifizieren.
+  </p>
+
+  <table>
+    <thead>
+      <tr><th>RAM-Adresse</th><th>Standard-Ziel (ROM)</th><th>Funktion</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="mono">$0314/$0315</td><td class="mono">$EA31</td><td>IRQ-Vektor — häufig für eigene IRQ-Routinen überschrieben</td></tr>
+      <tr><td class="mono">$0316/$0317</td><td class="mono">$FE66</td><td>BRK-Vektor (Software-Interrupt)</td></tr>
+      <tr><td class="mono">$0318/$0319</td><td class="mono">$FE43</td><td>NMI-Vektor (Non-Maskable Interrupt, RESTORE-Taste)</td></tr>
+      <tr><td class="mono">$031A/$031B</td><td class="mono">$F34A</td><td>OPEN — Logischen File öffnen</td></tr>
+      <tr><td class="mono">$031C/$031D</td><td class="mono">$F291</td><td>CLOSE — Logischen File schließen</td></tr>
+      <tr><td class="mono">$031E/$031F</td><td class="mono">$F20E</td><td>CHKIN — Eingabekanal setzen</td></tr>
+      <tr><td class="mono">$0320/$0321</td><td class="mono">$F250</td><td>CHKOUT — Ausgabekanal setzen</td></tr>
+      <tr><td class="mono">$0322/$0323</td><td class="mono">$F333</td><td>CLRCHN — Kanäle zurücksetzen</td></tr>
+      <tr><td class="mono">$0324/$0325</td><td class="mono">$F157</td><td>BASIN — Zeichen von Eingabe lesen</td></tr>
+      <tr><td class="mono">$0326/$0327</td><td class="mono">$F1CA</td><td>BSOUT — Zeichen ausgeben (via $FFD2)</td></tr>
+    </tbody>
+  </table>
+
+  <table>
+    <thead>
+      <tr><th>Jump-Table Adresse</th><th>Name</th><th>Funktion</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="mono">$FF81</td><td>CINT</td><td>Bildschirm und VIC-II initialisieren</td></tr>
+      <tr><td class="mono">$FF84</td><td>IOINIT</td><td>I/O-Chips initialisieren (CIA, VIC, SID)</td></tr>
+      <tr><td class="mono">$FF87</td><td>RAMTAS</td><td>RAM-Test und Zero-Page initialisieren</td></tr>
+      <tr><td class="mono">$FF8A</td><td>RESTOR</td><td>Standard-KERNAL-Vektoren wiederherstellen</td></tr>
+      <tr><td class="mono">$FF8D</td><td>VECTOR</td><td>Vektoren in/aus Benutzertabelle kopieren</td></tr>
+      <tr><td class="mono">$FFCF</td><td>CHRIN</td><td>Zeichen vom aktuellen Eingabekanal lesen</td></tr>
+      <tr><td class="mono">$FFD2</td><td>CHROUT</td><td>Zeichen auf aktuellen Ausgabekanal senden</td></tr>
+      <tr><td class="mono">$FFD5</td><td>LOAD</td><td>Datei laden (LOAD-Routine)</td></tr>
+      <tr><td class="mono">$FFD8</td><td>SAVE</td><td>Datei speichern (SAVE-Routine)</td></tr>
+      <tr><td class="mono">$FFE1</td><td>STOP</td><td>STOP-Taste testen</td></tr>
+      <tr><td class="mono">$FFE4</td><td>GETIN</td><td>Zeichen aus Tastaturpuffer (nicht-blockierend)</td></tr>
+      <tr><td class="mono">$FFE7</td><td>CLALL</td><td>Alle logischen Files schließen</td></tr>
+      <tr><td class="mono">$FFEA</td><td>UDTIM</td><td>Systemuhr um 1/60 sec erhöhen</td></tr>
+      <tr><td class="mono">$FFF3</td><td>IOREG</td><td>I/O-Register-Basisadresse liefern</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ============================================================ -->
+  <div class="benchmark">
+    <h2>Skill-Benchmark Stufe 2 — Selbstkontrolle</h2>
+    <p style="color:#aad; margin-bottom:16px;">Haken Sie jeden Punkt ab, wenn Sie ihn sicher beherrschen. Erst dann ist Stufe 2 abgeschlossen.</p>
+    <ul>
+      <li>Alle 13 Adressierungsarten namentlich aufzählen und die Assembler-Syntax korrekt angeben</li>
+      <li>Den Unterschied zwischen <code>LDA #$42</code> und <code>LDA $42</code> ohne Nachdenken erklären</li>
+      <li>Die Page-Crossing-Penalty bei konkreten Code-Beispielen identifizieren und messen</li>
+      <li>(Indirect),Y für eine allgemeine Speicher-Kopierfunktion mit variablem Zeiger einsetzen</li>
+      <li>Die C64-Speicherkarte aus dem Gedächtnis skizzieren (10 wichtigste Bereiche mit Adressen)</li>
+      <li>Register $0001 für mindestens 3 verschiedene Banking-Konfigurationen korrekt setzen</li>
+      <li>Den Unterschied zwischen CPU-Banking ($0001) und VIC-Banking ($DD00) erklären</li>
+      <li>Ein Zero-Page-Layout für ein eigenes Projekt entwerfen und begründen</li>
+    </ul>
+  </div>
+
+  <!-- ============================================================ -->
+  <div class="exercises-section">
+    <h2>Praktische Übungen — Stufe 2</h2>
+
+    <div class="exercise">
+      <div class="exercise-num">Übung 2-A — Adressierungsarten-Klassifikation</div>
+      <strong>Aufgabe:</strong> Klassifizieren Sie die folgenden 15 Assembler-Zeilen nach Adressierungsart,
+      Byte-Länge und Zyklenanzahl. Schreiben Sie auch die Effektive Adresse auf, wo relevant.
+      <pre><span class="asm-instr">LDA</span> <span class="asm-num">#$FF</span>     <span class="asm-comment">; 1. ___</span>
+<span class="asm-instr">STA</span> <span class="asm-addr">$0400</span>   <span class="asm-comment">; 2. ___</span>
+<span class="asm-instr">INX</span>          <span class="asm-comment">; 3. ___</span>
+<span class="asm-instr">LDA</span> <span class="asm-addr">$20,X</span>   <span class="asm-comment">; 4. ___ (wenn X=$05, Eff.Addr=?)</span>
+<span class="asm-instr">JMP</span> (<span class="asm-addr">$4000</span>) <span class="asm-comment">; 5. ___</span>
+<span class="asm-instr">LDA</span> (<span class="asm-addr">$FB</span>),Y <span class="asm-comment">; 6. ___</span>
+<span class="asm-instr">BNE</span> -<span class="asm-num">5</span>      <span class="asm-comment">; 7. ___</span>
+<span class="asm-instr">ASL A</span>        <span class="asm-comment">; 8. ___</span>
+<span class="asm-instr">LDA</span> <span class="asm-addr">$C000,Y</span> <span class="asm-comment">; 9. ___ (Page-Crossing wenn Y=?)</span>
+<span class="asm-instr">STX</span> <span class="asm-addr">$50,Y</span>   <span class="asm-comment">; 10. ___</span>
+<span class="asm-instr">LDA</span> (<span class="asm-addr">$20</span>,X)  <span class="asm-comment">; 11. ___</span>
+<span class="asm-instr">RTS</span>          <span class="asm-comment">; 12. ___</span>
+<span class="asm-instr">LDA</span> <span class="asm-addr">$D800,X</span> <span class="asm-comment">; 13. ___</span>
+<span class="asm-instr">CMP</span> <span class="asm-num">#0</span>      <span class="asm-comment">; 14. ___</span>
+<span class="asm-instr">LDA</span> <span class="asm-addr">$FC</span>     <span class="asm-comment">; 15. ___</span></pre>
+    </div>
+
+    <div class="exercise">
+      <div class="exercise-num">Übung 2-B — Pointer-Programm: Speicher kopieren</div>
+      <strong>Aufgabe:</strong> Schreiben Sie eine Subroutine <code>MemCopy</code>, die einen beliebig
+      großen Speicherblock von Quelle nach Ziel kopiert. Verwenden Sie (Indirect),Y für den Zugriff.
+      Eingabe-Schnittstelle:
+      <ul>
+        <li><code>$FB/$FC</code> = Quell-Adresse (16-Bit)</li>
+        <li><code>$FD/$FE</code> = Ziel-Adresse (16-Bit)</li>
+        <li><code>$F9/$FA</code> = Byte-Anzahl (16-Bit, 1–65535)</li>
+      </ul>
+      Hinweis: Y kann nur 0–255 iterieren — für mehr als 256 Bytes müssen die Zeiger aktualisiert werden.
+    </div>
+
+    <div class="exercise">
+      <div class="exercise-num">Übung 2-C — Banking-Demo</div>
+      <strong>Aufgabe:</strong> Schreiben Sie ein Programm, das folgendes demonstriert:
+      <ol>
+        <li>BASIC-ROM ausblenden ($A000–$BFFF ist jetzt RAM)</li>
+        <li>Eigenen Text in den Shadow-RAM-Bereich bei $A000 schreiben</li>
+        <li>BASIC-ROM wieder einblenden — der geschriebene Text ist nicht mehr lesbar</li>
+        <li>BASIC-ROM wieder ausblenden — der Text ist wieder da!</li>
+      </ol>
+      Dokumentieren Sie, warum das Shadow-RAM den Inhalt behält.
+    </div>
+
+    <div class="exercise">
+      <div class="exercise-num">Übung 2-D — VIC-Banking Experiement</div>
+      <strong>Aufgabe:</strong> Verschieben Sie den Screen-RAM an eine andere Position:
+      <ol>
+        <li>Screen-RAM nach $0800 verlegen (VIC-Bank 0, Offset $0800)</li>
+        <li>$D018 entsprechend setzen</li>
+        <li>Text in den neuen Screen-RAM bei $0800 schreiben</li>
+        <li>Erklären Sie, warum der alte Inhalt bei $0400 nicht mehr sichtbar ist</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="chapter-nav">
+    <a href="stufe_01_6510_assembler.html">
+      <span class="nav-label">&#8592; Zurück</span>
+      <span class="nav-title">Stufe 1 — 6510 Assembler</span>
+    </a>
+    <a href="stufe_03_bildschirm_zeichen.html" style="text-align:right;">
+      <span class="nav-label">Weiter &#8594;</span>
+      <span class="nav-title">Stufe 3 — VIC-II &amp; Zeichen</span>
+    </a>
+  </div>
+
+</main>
+</body>
+</html>

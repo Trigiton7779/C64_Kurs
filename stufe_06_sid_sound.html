@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C64 Mastery — Stufe 6: SID &amp; Klangsynthese</title>
+<style>
+:root{--c64-blue:#0033aa;--c64-green:#00ff88;--c64-dark:#1a1a2e;--paper:#f8f6f0;--paper-dark:#ede9e0;--text:#1a1a2e;--text-light:#444466;--border:#c0b8a8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Georgia','Times New Roman',serif;font-size:17px;line-height:1.75;color:var(--text);background:var(--paper);display:grid;grid-template-columns:270px 1fr;min-height:100vh}
+.sidebar{background:var(--c64-dark);color:#ccc;position:sticky;top:0;height:100vh;overflow-y:auto;font-family:'Courier New',monospace;font-size:13px}
+.sidebar-header{background:var(--c64-blue);color:white;padding:20px 16px;text-align:center}
+.sidebar-header .logo{font-size:26px;font-weight:bold;color:var(--c64-green);letter-spacing:2px}
+.sidebar-header .sub{font-size:11px;color:#aac;margin-top:4px}
+.sidebar nav ul{list-style:none;padding:8px 0}
+.sidebar nav ul li a{display:block;padding:7px 16px;color:#99b;text-decoration:none;border-left:3px solid transparent;transition:all .2s;font-size:12.5px}
+.sidebar nav ul li a:hover,.sidebar nav ul li a.active{background:rgba(0,51,170,.3);color:var(--c64-green);border-left-color:var(--c64-green)}
+.sidebar nav ul li.section-label{padding:8px 16px 2px;font-size:10px;color:#445;text-transform:uppercase;letter-spacing:1px;margin-top:8px}
+main{max-width:860px;padding:0 56px 80px}
+.chapter-header{border-bottom:3px solid var(--c64-blue);padding:48px 0 28px;margin-bottom:40px}
+.chapter-number{font-family:'Courier New',monospace;font-size:12px;color:var(--c64-blue);text-transform:uppercase;letter-spacing:3px;font-weight:bold;margin-bottom:10px}
+.chapter-header h1{font-size:40px;font-weight:bold;color:var(--c64-dark);line-height:1.2;margin-bottom:18px}
+.chapter-meta{display:flex;gap:20px;font-family:'Courier New',monospace;font-size:13px;color:var(--text-light);flex-wrap:wrap;align-items:center}
+.badge{background:var(--c64-blue);color:white;padding:3px 10px;border-radius:12px;font-size:12px}
+.badge.red{background:#b71c1c}
+.objectives{background:#e3f2fd;border-left:4px solid #1565c0;border-radius:0 8px 8px 0;padding:22px 26px;margin-bottom:40px}
+.objectives h3{color:#1565c0;font-size:13px;text-transform:uppercase;letter-spacing:2px;margin-bottom:10px;font-family:'Courier New',monospace}
+.objectives ul{padding-left:20px}.objectives ul li{margin-bottom:5px}
+h2{font-size:26px;color:var(--c64-dark);border-bottom:2px solid var(--c64-blue);padding-bottom:8px;margin:44px 0 20px}
+h3{font-size:19px;color:var(--c64-blue);margin:28px 0 14px}
+h4{font-size:15px;color:var(--text);margin:20px 0 10px;font-family:'Courier New',monospace;text-transform:uppercase;letter-spacing:1px}
+p{margin-bottom:15px}ul,ol{padding-left:24px;margin-bottom:15px}li{margin-bottom:5px}
+pre{background:var(--c64-dark);color:var(--c64-green);font-family:'Courier New',monospace;font-size:13px;line-height:1.65;padding:22px;border-radius:8px;overflow-x:auto;margin:18px 0;border:1px solid #2a2a4a}
+code{font-family:'Courier New',monospace;background:#e5e0d4;padding:2px 6px;border-radius:3px;font-size:.88em;color:#8b0000}
+pre code{background:none;padding:0;color:inherit}
+table{width:100%;border-collapse:collapse;margin:18px 0;font-size:14.5px}
+thead{background:var(--c64-blue);color:white}
+thead th{padding:11px 14px;text-align:left;font-family:'Courier New',monospace;font-size:12px}
+tbody tr:nth-child(even){background:var(--paper-dark)}
+tbody td{padding:9px 14px;border-bottom:1px solid var(--border);vertical-align:top}
+tbody tr:hover{background:#dde8ff}
+.mono{font-family:'Courier New',monospace;color:#8b0000;font-weight:bold}
+.box{border-radius:0 8px 8px 0;padding:18px 22px;margin:22px 0;border-left:4px solid}
+.box .box-title{font-family:'Courier New',monospace;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px}
+.box.warning{background:#fff8e1;border-color:#f0a000}.box.warning .box-title{color:#e65100}
+.box.tip{background:#e8f5e9;border-color:#2e7d32}.box.tip .box-title{color:#1b5e20}
+.box.note{background:#e3f2fd;border-color:#1565c0}.box.note .box-title{color:#0d47a1}
+.box.important{background:#fce4ec;border-color:#c62828}.box.important .box-title{color:#b71c1c}
+.benchmark{background:linear-gradient(135deg,#001166 0%,#0033aa 100%);color:white;padding:30px;border-radius:12px;margin:44px 0}
+.benchmark h2{color:var(--c64-green);border-color:rgba(0,255,136,.3);margin-top:0;font-size:22px}
+.benchmark ul{list-style:none;padding:0}
+.benchmark ul li{padding:7px 0 7px 28px;position:relative;border-bottom:1px solid rgba(255,255,255,.1)}
+.benchmark ul li:before{content:'☐';position:absolute;left:0;color:var(--c64-green)}
+.exercises-section{border:2px solid var(--c64-blue);border-radius:12px;padding:28px;margin:44px 0}
+.exercises-section h2{color:var(--c64-blue);margin-top:0;border:none;padding:0}
+.exercise{background:var(--paper-dark);border-radius:8px;padding:18px;margin:14px 0}
+.exercise-num{font-family:'Courier New',monospace;font-size:11px;color:var(--c64-blue);font-weight:bold;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px}
+.chapter-nav{display:flex;justify-content:space-between;margin-top:56px;padding-top:28px;border-top:2px solid var(--border);gap:16px}
+.chapter-nav a{display:flex;flex-direction:column;padding:14px 22px;background:var(--c64-dark);color:white;text-decoration:none;border-radius:8px;min-width:180px;transition:background .2s}
+.chapter-nav a:hover{background:var(--c64-blue)}
+.nav-label{font-size:10px;color:#889;font-family:'Courier New',monospace;text-transform:uppercase;letter-spacing:2px;margin-bottom:4px}
+.nav-title{font-size:15px;font-weight:bold}
+.adsr-diagram{background:var(--c64-dark);border-radius:8px;padding:20px;margin:18px 0;font-family:'Courier New',monospace;font-size:13px;color:var(--c64-green)}
+</style>
+</head>
+<body>
+<nav class="sidebar">
+  <div class="sidebar-header"><div class="logo">C64</div><div class="sub">MASTERY SYSTEM</div></div>
+  <nav><ul>
+    <li><a href="index.html">&#9632; Übersicht &amp; Curriculum</a></li>
+    <li class="section-label">Grundlagen</li>
+    <li><a href="stufe_00_fundament.html">Stufe 0 — Fundament</a></li>
+    <li><a href="stufe_01_6510_assembler.html">Stufe 1 — 6510 Assembler</a></li>
+    <li><a href="stufe_02_adressierung_speicher.html">Stufe 2 — Adressierung &amp; Speicher</a></li>
+    <li class="section-label">Grafik &amp; Sound</li>
+    <li><a href="stufe_03_bildschirm_zeichen.html">Stufe 3 — VIC-II &amp; Zeichen</a></li>
+    <li><a href="stufe_04_sprites_animation.html">Stufe 4 — Sprites &amp; Animation</a></li>
+    <li><a href="stufe_05_bitmap_grafik.html">Stufe 5 — Bitmap-Grafik</a></li>
+    <li><a href="stufe_06_sid_sound.html" class="active">Stufe 6 — SID &amp; Sound</a></li>
+    <li class="section-label">Fortgeschritten</li>
+    <li><a href="stufe_07_interrupts_timing.html">Stufe 7 — Interrupts &amp; Timing</a></li>
+    <li><a href="stufe_08_optimierung.html">Stufe 8 — Optimierung</a></li>
+    <li><a href="stufe_09_demo_effekte.html">Stufe 9 — Demo-Effekte</a></li>
+    <li><a href="stufe_10_meisterschaft.html">Stufe 10 — Meisterschaft</a></li>
+  </ul></nav>
+</nav>
+
+<main>
+<div class="chapter-header">
+  <div class="chapter-number">Stufe 6 — Grafik &amp; Sound</div>
+  <h1>Der SID-Chip &amp; Klangsynthese</h1>
+  <div class="chapter-meta">
+    <span><span class="badge red">Fortgeschritten</span></span>
+    <span>&#128337; ca. 10 Stunden</span>
+    <span>Voraussetzungen: Stufen 0–2</span>
+  </div>
+</div>
+
+<div class="objectives">
+  <h3>&#127919; Lernziele dieser Stufe</h3>
+  <ul>
+    <li>Die vollständige SID-Register-Map kennen und alle 3 Stimmen konfigurieren</li>
+    <li>Alle 4 Wellenformen (Triangle, Sawtooth, Pulse, Noise) einsetzen</li>
+    <li>Die ADSR-Hüllkurve für verschiedene Instrumentenklänge gestalten</li>
+    <li>Frequenzwerte für Noten berechnen und eine Noten-Tabelle anlegen</li>
+    <li>Ring-Modulation und Sync für spezielle Klänge nutzen</li>
+    <li>Einen einfachen 3-stimmigen Musikplayer programmieren</li>
+    <li>Voice 3 als LFO für Vibrato-Effekte einsetzen</li>
+  </ul>
+</div>
+
+<h2>1. Der SID — Seele des C64-Klangs</h2>
+
+<p>Der MOS Technology 6581 SID (Sound Interface Device) ist unbestreitbar einer der einflussreichsten Soundchips der Computergeschichte. Entworfen von Bob Yannes, der später Ensoniq gründete und den legendären Synthesizer-Sound der späten 1980er-Jahre mitprägte, ist der SID ein vollständiger analoger Synthesizer auf einem einzigen Chip. Diese Tatsache erklärt, warum C64-Musik bis heute einen unverwechselbaren, lebendigen Klangcharakter hat, der digitale Soundchips nicht replizieren können.</p>
+
+<p>Der SID bietet drei vollständig unabhängige Stimmen (Voices). Jede Stimme verfügt über einen eigenen Oszillator mit vier Wellenformen, einen ADSR-Hüllkurven-Generator und eine Gate-Funktion. Dazu kommt ein gemeinsamer analoger Filter mit einstellbarer Cutoff-Frequenz, Resonanz und drei wählbaren Charakteristiken (Low-Pass, Band-Pass, High-Pass). Die analogen Komponenten des SID — insbesondere der Filter — erzeugen genau die "Unschärfen" und "Wärme", die den C64-Sound so charakteristisch machen.</p>
+
+<p>Zwei Chip-Revisionen existieren: Der 6581 (1982–1985) hat durch seine niedrigere Versorgungsspannung einen stärkeren, raueren Filter-Charakter und erzeugt leises Rauschen im Ausgangssignal. Der 8580 (1987–1994) ist elektrisch "sauberer" mit niedrigerem Rauschboden, aber weniger markanter Filtercharakteristik. Viele Musiker und Puristen bevorzugen den 6581.</p>
+
+<h2>2. SID-Register-Map ($D400–$D41C)</h2>
+
+<p>Der SID belegt 29 Register im Adressbereich <code>$D400</code> bis <code>$D41C</code>. Die Registers für die drei Stimmen sind je 7 Bytes groß und aufeinanderfolgende Blöcke:</p>
+
+<h3>2.1 Voice-Register (pro Stimme, 7 Bytes)</h3>
+
+<table>
+  <thead><tr><th>Offset</th><th>Voice 1</th><th>Voice 2</th><th>Voice 3</th><th>Bits</th><th>Funktion</th></tr></thead>
+  <tbody>
+    <tr><td>+0</td><td class="mono">$D400</td><td class="mono">$D407</td><td class="mono">$D40E</td><td>8</td><td>Frequenz Low-Byte (Bits 0–7)</td></tr>
+    <tr><td>+1</td><td class="mono">$D401</td><td class="mono">$D408</td><td class="mono">$D40F</td><td>8</td><td>Frequenz High-Byte (Bits 8–15)</td></tr>
+    <tr><td>+2</td><td class="mono">$D402</td><td class="mono">$D409</td><td class="mono">$D410</td><td>8</td><td>Pulsbreite Low-Byte (Bits 0–7)</td></tr>
+    <tr><td>+3</td><td class="mono">$D403</td><td class="mono">$D40A</td><td class="mono">$D411</td><td>4</td><td>Pulsbreite High-Nibble (Bits 8–11)</td></tr>
+    <tr><td>+4</td><td class="mono">$D404</td><td class="mono">$D40B</td><td class="mono">$D412</td><td>8</td><td>Control-Register (Wellenform, Gate, Sync, Ring)</td></tr>
+    <tr><td>+5</td><td class="mono">$D405</td><td class="mono">$D40C</td><td class="mono">$D413</td><td>8</td><td>Attack (Bits 4–7) / Decay (Bits 0–3)</td></tr>
+    <tr><td>+6</td><td class="mono">$D406</td><td class="mono">$D40D</td><td class="mono">$D414</td><td>8</td><td>Sustain (Bits 4–7) / Release (Bits 0–3)</td></tr>
+  </tbody>
+</table>
+
+<h3>2.2 Control-Register Bits (Offset +4)</h3>
+
+<table>
+  <thead><tr><th>Bit</th><th>Name</th><th>Funktion</th></tr></thead>
+  <tbody>
+    <tr><td>0</td><td>GATE</td><td>1 = Note starten (Attack→Decay→Sustain); 0 = Note loslassen (Release-Phase)</td></tr>
+    <tr><td>1</td><td>SYNC</td><td>Synchronisiert Oszillator mit Vorgänger-Oszillator (1→3, 2→1, 3→2)</td></tr>
+    <tr><td>2</td><td>RING</td><td>Ring-Modulation mit Vorgänger-Oszillator (ersetzt Triangle-Wellenform)</td></tr>
+    <tr><td>3</td><td>TEST</td><td>Setzt Wellenform-Ausgang auf 0; nützlich für Percussion-Tricks</td></tr>
+    <tr><td>4</td><td>TRI</td><td>Dreieckswelle aktivieren</td></tr>
+    <tr><td>5</td><td>SAW</td><td>Sägezahnwelle aktivieren</td></tr>
+    <tr><td>6</td><td>PUL</td><td>Rechteckwelle aktivieren (Breite durch PW-Register)</td></tr>
+    <tr><td>7</td><td>NOI</td><td>Rauschgenerator (LFSR-basiert)</td></tr>
+  </tbody>
+</table>
+
+<div class="box warning">
+  <div class="box-title">&#9888; Mehrere Wellenformen gleichzeitig</div>
+  <p>Mehrere Wellenform-Bits können gleichzeitig gesetzt werden. Das Ergebnis ist <strong>nicht</strong> eine Addition, sondern eine bitweise AND-Verknüpfung der Wellenform-Ausgaben. Dies erzeugt härtere, eigenartigere Klänge — von Demo-Codern für spezielle Effekte genutzt. Combination <code>TRI+SAW</code> klingt nach einem dumpfen, metallischen Ton.</p>
+</div>
+
+<h3>2.3 Gemeinsame Filter-Register</h3>
+
+<table>
+  <thead><tr><th>Adresse</th><th>Bits</th><th>Funktion</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">$D415</td><td>3</td><td>Filter Cutoff Bits 0–2 (Low)</td></tr>
+    <tr><td class="mono">$D416</td><td>8</td><td>Filter Cutoff Bits 3–10 (High)</td></tr>
+    <tr><td class="mono">$D417</td><td>8</td><td>Bits 4–7: Resonanz (0–15); Bits 0–2: Filter-Routing (1 Bit pro Stimme); Bit 3: Ext. Eingang</td></tr>
+    <tr><td class="mono">$D418</td><td>8</td><td>Bit 7: Voice-3-Stumm; Bit 6: HP; Bit 5: BP; Bit 4: LP; Bits 0–3: Master-Lautstärke (0–15)</td></tr>
+    <tr><td class="mono">$D419</td><td>8</td><td>Paddle X (nur lesen)</td></tr>
+    <tr><td class="mono">$D41A</td><td>8</td><td>Paddle Y (nur lesen)</td></tr>
+    <tr><td class="mono">$D41B</td><td>8</td><td>Voice-3-Wellenform-Ausgang (nur lesen, für LFO!)</td></tr>
+    <tr><td class="mono">$D41C</td><td>8</td><td>Voice-3-ADSR-Hüllkurven-Ausgang (nur lesen)</td></tr>
+  </tbody>
+</table>
+
+<h2>3. Frequenzberechnung und Noten-Tabelle</h2>
+
+<h3>3.1 Die Frequenzformel</h3>
+
+<p>Der SID-Frequenzwert wird aus der gewünschten Ausgangsfrequenz mit folgender Formel berechnet:</p>
+
+<pre>
+Frequenzregister = (Fout × 16777216) / Fclock
+
+PAL-Systemtakt:  Fclock = 985.248 Hz
+NTSC-Systemtakt: Fclock = 1.022.727 Hz
+
+Beispiele (PAL):
+  C4 (261,63 Hz): Reg = 261,63 × 16777216 / 985248 = 4452 = $1164
+  A4 (440,00 Hz): Reg = 440,00 × 16777216 / 985248 = 7484 = $1D3C
+  C5 (523,25 Hz): Reg = 523,25 × 16777216 / 985248 = 8905 = $22C9
+</pre>
+
+<h3>3.2 Vollständige Noten-Tabelle (PAL)</h3>
+
+<pre>
+; Frequenztabelle für PAL (A4 = 440 Hz, gleichschwebend temperiert)
+; Oktaven 1-6, je 12 Noten (C,C#,D,D#,E,F,F#,G,G#,A,A#,B)
+; Format: Lo-Byte, Hi-Byte für jede Note
+
+NoteTabLo:
+  ; Oktave 1
+  !byte $0d,$1c,$2c,$3e,$51,$65,$7b,$93,$ad,$c9,$e7,$08
+  ; Oktave 2
+  !byte $1b,$38,$58,$7b,$a2,$ca,$f5,$26,$5b,$93,$ce,$0e
+  ; Oktave 3
+  !byte $35,$6f,$ac,$f0,$41,$94,$ea,$4c,$b5,$25,$9b,$1a
+  ; Oktave 4 (mittlere Lage)
+  !byte $6a,$de,$58,$de,$82,$28,$d4,$97,$69,$4a,$35,$33
+  ; Oktave 5
+  !byte $d4,$bc,$af,$bc,$04,$4f,$a8,$2d,$d2,$94,$6a,$66
+  ; Oktave 6
+  !byte $a7,$77,$5e,$77,$08,$9e,$50,$5a,$a3,$28,$d4,$cc
+
+NoteTabHi:
+  ; Oktave 1
+  !byte $01,$01,$01,$01,$01,$01,$01,$02,$02,$02,$02,$03
+  ; Oktave 2
+  !byte $03,$03,$04,$04,$05,$05,$05,$06,$07,$07,$07,$08
+  ; Oktave 3
+  !byte $09,$0a,$0b,$0b,$0d,$0e,$0f,$11,$12,$14,$15,$17
+  ; Oktave 4
+  !byte $11,$13,$16,$18,$1b,$1e,$22,$26,$2b,$30,$35,$3b  ; (Beispielwerte)
+  ; Oktave 5
+  !byte $22,$26,$2c,$30,$36,$3c,$44,$4c,$56,$60,$6a,$76
+  ; Oktave 6
+  !byte $44,$4c,$58,$60,$6c,$78,$88,$98,$ac,$c0,$d4,$ec
+</pre>
+
+<h2>4. ADSR — Die Klang-Hüllkurve</h2>
+
+<p>Die ADSR-Hüllkurve (Attack, Decay, Sustain, Release) bestimmt, wie sich die Lautstärke einer Note über die Zeit verändert. Sie ist das wichtigste Werkzeug zur Gestaltung des Klangcharakters eines Instruments.</p>
+
+<div class="adsr-diagram">
+<pre>
+Lautstärke (0-15)
+    15 ──────┐ Decay ─ Sustain ────────────────
+             │       /                         \
+         A  ╱        │                          \ Release
+            │                                    \
+     0 ─────┴────────┴────────────────────────────┴──→ Zeit
+         Attack   Note gehalten                Note losgelassen
+</pre>
+</div>
+
+<h3>4.1 ADSR-Zeitwerte</h3>
+
+<table>
+  <thead><tr><th>Wert (0–15)</th><th>Attack-Zeit</th><th>Decay/Release-Zeit</th></tr></thead>
+  <tbody>
+    <tr><td>0</td><td>2 ms</td><td>6 ms</td></tr>
+    <tr><td>1</td><td>8 ms</td><td>24 ms</td></tr>
+    <tr><td>2</td><td>16 ms</td><td>48 ms</td></tr>
+    <tr><td>3</td><td>24 ms</td><td>72 ms</td></tr>
+    <tr><td>4</td><td>38 ms</td><td>114 ms</td></tr>
+    <tr><td>5</td><td>56 ms</td><td>168 ms</td></tr>
+    <tr><td>6</td><td>68 ms</td><td>204 ms</td></tr>
+    <tr><td>7</td><td>80 ms</td><td>240 ms</td></tr>
+    <tr><td>8</td><td>100 ms</td><td>300 ms</td></tr>
+    <tr><td>9</td><td>250 ms</td><td>750 ms</td></tr>
+    <tr><td>10</td><td>500 ms</td><td>1,5 Sek</td></tr>
+    <tr><td>11</td><td>800 ms</td><td>2,4 Sek</td></tr>
+    <tr><td>12</td><td>1 Sek</td><td>3 Sek</td></tr>
+    <tr><td>13</td><td>3 Sek</td><td>9 Sek</td></tr>
+    <tr><td>14</td><td>5 Sek</td><td>15 Sek</td></tr>
+    <tr><td>15</td><td>8 Sek</td><td>24 Sek</td></tr>
+  </tbody>
+</table>
+
+<h3>4.2 Klang-Presets</h3>
+
+<table>
+  <thead><tr><th>Instrument</th><th>Attack</th><th>Decay</th><th>Sustain</th><th>Release</th><th>Wellenform</th></tr></thead>
+  <tbody>
+    <tr><td>Piano</td><td>0</td><td>9</td><td>0</td><td>9</td><td>SAW</td></tr>
+    <tr><td>Orgel</td><td>0</td><td>0</td><td>15</td><td>4</td><td>SAW</td></tr>
+    <tr><td>Flöte</td><td>4</td><td>4</td><td>12</td><td>8</td><td>TRI</td></tr>
+    <tr><td>Streichinstrument</td><td>6</td><td>4</td><td>10</td><td>6</td><td>SAW</td></tr>
+    <tr><td>Bass (gezupft)</td><td>0</td><td>6</td><td>0</td><td>2</td><td>TRI</td></tr>
+    <tr><td>Harfe</td><td>0</td><td>12</td><td>0</td><td>8</td><td>TRI</td></tr>
+    <tr><td>Bassdrum</td><td>0</td><td>5</td><td>0</td><td>0</td><td>NOI</td></tr>
+    <tr><td>Snare</td><td>0</td><td>4</td><td>0</td><td>2</td><td>NOI</td></tr>
+    <tr><td>Hi-Hat</td><td>0</td><td>2</td><td>0</td><td>1</td><td>NOI</td></tr>
+    <tr><td>Lead-Synth</td><td>0</td><td>3</td><td>10</td><td>5</td><td>PUL ($800)</td></tr>
+  </tbody>
+</table>
+
+<h2>5. Vollständige Sound-Routinen</h2>
+
+<h3>5.1 Einfacher Ton auf Voice 1</h3>
+
+<pre>
+; =====================================================
+; Ton spielen: Note C4 (261 Hz) mit Sawtooth-Welle
+; ADSR: Piano-ähnlich (kurzer Attack, langer Decay)
+; =====================================================
+
+PlayNote_C4:
+        ; Master-Lautstärke auf 15 (falls noch nicht gesetzt)
+        lda #$0f
+        sta $d418
+
+        ; ADSR: Attack=0, Decay=9, Sustain=0, Release=9
+        lda #$09        ; Attack=0 (Hi-Nibble), Decay=9 (Lo-Nibble)
+        sta $d405
+        lda #$09        ; Sustain=0, Release=9
+        sta $d406
+
+        ; Frequenz: C4 ≈ $1164 (PAL)
+        lda #$64        ; Frequenz Low
+        sta $d400
+        lda #$11        ; Frequenz High
+        sta $d401
+
+        ; Sawtooth-Welle + Gate AN
+        lda #%00100001  ; SAW (Bit 5) + GATE (Bit 0)
+        sta $d404
+        rts
+
+; Note beenden (Gate aus → Release-Phase):
+StopNote_V1:
+        lda $d404
+        and #%11111110  ; Gate-Bit löschen
+        sta $d404
+        rts
+</pre>
+
+<h3>5.2 Percussion-Sounds</h3>
+
+<pre>
+; =====================================================
+; Schlagzeug-Sounds auf Voice 3
+; Bassdrum: Rauschen + fallende Frequenz
+; =====================================================
+
+PlayBassDrum:
+        ; Voice 3: Noise, kurze ADSR
+        lda #$00        ; Attack=0, Decay=0
+        sta $d413
+        lda #$00        ; Sustain=0, Release=0
+        sta $d414
+
+        ; Hohe Anfangsfrequenz für "Knall"-Charakter
+        lda #$ff
+        sta $d40e       ; Freq Lo
+        lda #$08
+        sta $d40f       ; Freq Hi
+
+        ; Triangle + Gate (Triangle klingt für Bassdrum warm)
+        lda #%00010001  ; TRI + GATE
+        sta $d412
+
+        ; Frequenz wird per Hauptschleife auf 0 heruntergezogen
+        rts
+
+PlaySnare:
+        ; Noise mit mittlerer Frequenz und kurzem ADSR
+        lda #$04        ; Attack=0, Decay=4
+        sta $d413
+        lda #$02        ; Sustain=0, Release=2
+        sta $d414
+        lda #$80        ; Mittlere Frequenz
+        sta $d40e
+        lda #$1a
+        sta $d40f
+        lda #%10000001  ; NOI + GATE
+        sta $d412
+        rts
+
+PlayHiHat:
+        lda #$02        ; Attack=0, Decay=2
+        sta $d413
+        lda #$01        ; Sustain=0, Release=1
+        sta $d414
+        lda #$ff
+        sta $d40e       ; Hohe Frequenz = helles Rauschen
+        lda #$7f
+        sta $d40f
+        lda #%10000001  ; NOI + GATE
+        sta $d412
+        rts
+</pre>
+
+<h2>6. Voice 3 als LFO — Vibrato-Effekt</h2>
+
+<p>Eine der mächtigsten SID-Techniken ist die Nutzung von Voice 3 als Low-Frequency Oscillator (LFO). Indem Voice 3 auf eine sehr niedrige Frequenz eingestellt und über Register <code>$D41B</code> ausgelesen wird, können Voice 1 und 2 mit einem Vibrato- oder Tremolo-Effekt moduliert werden.</p>
+
+<pre>
+; =====================================================
+; Voice 3 als LFO für Vibrato auf Voice 1
+; Voice 3: sehr langsam (~5 Hz), Triangle, kein Gate
+; =====================================================
+
+InitLFO:
+        ; Voice 3: LFO-Frequenz (~5 Hz PAL)
+        ; Reg = 5 × 16777216 / 985248 ≈ 85 = $55
+        lda #$55        ; LFO-Frequenz Lo
+        sta $d40e
+        lda #$00        ; Hi = 0
+        sta $d40f
+        ; Control: Triangle OHNE Gate (kein Ton, nur Wellenform)
+        lda #%00010000  ; TRI, kein GATE
+        sta $d412
+        ; Voice 3 stumm schalten (nicht im Audio-Mix)
+        lda $d418
+        ora #%10000000  ; Bit 7 setzen
+        sta $d418
+        rts
+
+; Im Haupt-IRQ (50 Hz): Vibrato auf Voice 1 anwenden
+ApplyVibrato:
+        ; LFO-Wert lesen (0-255, repräsentiert Sinuswelle)
+        lda $d41b       ; Voice-3-Waveform-Ausgang
+
+        ; Auf ±16 Frequenzschritte skalieren
+        lsr             ; / 2
+        lsr             ; / 4  (0-63)
+        lsr             ; / 8  (0-31)
+        sec
+        sbc #16         ; -16 bis +15 (signed)
+
+        ; Zu Basis-Frequenz addieren (16-Bit-Addition)
+        clc
+        adc BaseFreqLo
+        sta $d400       ; Voice 1 Freq Lo
+
+        lda BaseFreqHi
+        adc #0          ; Carry übertragen
+        sta $d401       ; Voice 1 Freq Hi
+        rts
+
+BaseFreqLo: !byte $64   ; C4 Lo
+BaseFreqHi: !byte $11   ; C4 Hi
+</pre>
+
+<h2>7. Einfacher Musik-Player</h2>
+
+<pre>
+; =====================================================
+; Einfacher 1-stimmiger Musik-Player
+; Format: Note-Index (0=Pause, 1=C3...), Dauer (Frames)
+; Aufruf: 50x/Sekunde im Raster-IRQ
+; =====================================================
+
+; Player-Variablen (Zero Page)
+mus_note_dur  = $70   ; Verbleibende Dauer der aktuellen Note
+mus_pos       = $71   ; Position im Melodie-Array (Low-Byte)
+mus_pos_hi    = $72   ; Position (High-Byte)
+
+; Player initialisieren
+MusicInit:
+        lda #<Melody
+        sta mus_pos
+        lda #>Melody
+        sta mus_pos_hi
+        lda #1
+        sta mus_note_dur ; Sofort erste Note laden
+        ; Lautstärke setzen
+        lda #$0f
+        sta $d418
+        rts
+
+; Player-Update (einmal pro Frame aufrufen)
+MusicUpdate:
+        dec mus_note_dur
+        bne @playing    ; Noch nicht fertig
+
+        ; Nächste Note laden
+        ldy #0
+        lda (mus_pos),y ; Note-Index
+        bmi @end_of_music   ; $FF = Ende
+
+        beq @play_rest  ; 0 = Pause
+
+        ; Frequenz aus Tabelle laden
+        sec
+        sbc #1          ; Index 1 = C3 = Tabellen-Offset 0
+        tax
+        lda NoteTabLo,x
+        sta $d400
+        lda NoteTabHi,x
+        sta $d401
+
+        ; Sawtooth + Gate
+        lda #$21        ; SAW + GATE
+        sta $d404
+        bne @load_dur
+
+@play_rest:
+        ; Gate aus für Pause
+        lda $d404
+        and #$fe
+        sta $d404
+
+@load_dur:
+        ; Dauer laden (Byte 2 der Note)
+        iny
+        lda (mus_pos),y
+        sta mus_note_dur
+
+        ; Pointer weitersetzen (+2)
+        lda mus_pos
+        clc
+        adc #2
+        sta mus_pos
+        bcc @playing
+        inc mus_pos_hi
+
+@playing:
+        rts
+
+@end_of_music:
+        ; Lied wiederholen
+        lda #<Melody
+        sta mus_pos
+        lda #>Melody
+        sta mus_pos_hi
+        lda #1
+        sta mus_note_dur
+        rts
+
+; Melodie-Daten: Note-Index, Dauer (in Frames @ 50 Hz)
+; Note 1=C3, 2=C#3, ..., 12=B3, 13=C4, ...
+Melody:
+        !byte 13,12  ; C4, 12 Frames (Viertel bei ~100 BPM)
+        !byte 15,12  ; D4
+        !byte 17,12  ; E4
+        !byte 13,24  ; C4, halbe Note
+        !byte  0,12  ; Pause
+        !byte 17,12  ; E4
+        !byte 18,12  ; F4
+        !byte 20,24  ; G4
+        !byte $ff    ; Ende-Marker
+</pre>
+
+<div class="benchmark">
+  <h2>&#127942; Skill-Benchmark: Stufe 6</h2>
+  <ul>
+    <li>Alle SID-Register von $D400–$D41C benennen und ihre Funktion erklären</li>
+    <li>Frequenzwert für A4 (440 Hz) auf PAL selbst berechnen</li>
+    <li>Piano, Orgel und Bassdrum als Klang-Presets konfigurieren</li>
+    <li>Pulsbreiten-Modulation (PWM) per Code implementieren</li>
+    <li>Voice 3 als LFO einrichten und $D41B auslesen</li>
+    <li>Einen einfachen 1-stimmigen Musik-Player mit Stop/Start implementieren</li>
+    <li>Unterschied zwischen 6581 und 8580 erklären</li>
+  </ul>
+</div>
+
+<div class="exercises-section">
+  <h2>&#9997; Übungen</h2>
+  <div class="exercise">
+    <div class="exercise-num">Übung 6.1 — Tonleiter</div>
+    <p>Spiele alle 12 Halbtonschritte einer Oktave (C4 bis B4) nacheinander ab. Jede Note soll 0,5 Sekunden klingen, mit einer 0,1-Sekunden-Pause dazwischen. Verwende Sägezahnwelle mit einem Piano-artigen ADSR.</p>
+  </div>
+  <div class="exercise">
+    <div class="exercise-num">Übung 6.2 — Drum-Machine</div>
+    <p>Programmiere ein 8-Beat-Muster mit Bassdrum, Snare und Hi-Hat auf den drei Voices. Verwende einen 50-Hz-Timer-IRQ (nach Stufe 7 nachholen, falls noch nicht bekannt: einfache Verzögerungsschleife). Beat-Muster: BD auf 1+3, Snare auf 2+4, Hi-Hat auf alle 8.</p>
+  </div>
+  <div class="exercise">
+    <div class="exercise-num">Übung 6.3 — PWM-Synthese</div>
+    <p>Implementiere einen Lead-Sound mit Pulse-Width-Modulation: Pulsbreite geht per Schleife von $100 bis $F00 und zurück. Die Modulationsgeschwindigkeit soll durch eine Variable einstellbar sein.</p>
+  </div>
+  <div class="exercise">
+    <div class="exercise-num">Übung 6.4 — Kleines Lied</div>
+    <p>Erweitere den Musik-Player auf 2 Stimmen. Implementiere "Alle meine Entchen" oder "Twinkle Twinkle" als Melodie auf Voice 1, mit einem einfachen Bassbegleitung auf Voice 2 (Root-Note des Akkords, eine Oktave tiefer).</p>
+  </div>
+</div>
+
+<nav class="chapter-nav">
+  <a href="stufe_05_bitmap_grafik.html">
+    <span class="nav-label">&#8592; Vorherige Stufe</span>
+    <span class="nav-title">Stufe 5: Bitmap-Grafik</span>
+  </a>
+  <a href="stufe_07_interrupts_timing.html">
+    <span class="nav-label">Nächste Stufe &#8594;</span>
+    <span class="nav-title">Stufe 7: Interrupts &amp; Timing</span>
+  </a>
+</nav>
+</main>
+</body>
+</html>

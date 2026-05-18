@@ -1,0 +1,1581 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stufe 1 — 6510 Assembler | C64 Mastery System</title>
+<style>
+:root {
+    --c64-blue: #0033aa;
+    --c64-light-blue: #4466cc;
+    --c64-green: #00ff88;
+    --c64-dark: #1a1a2e;
+    --paper: #f8f6f0;
+    --paper-dark: #ede9e0;
+    --text: #1a1a2e;
+    --text-light: #444466;
+    --border: #c0b8a8;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: 'Georgia', 'Times New Roman', serif;
+    font-size: 17px; line-height: 1.75;
+    color: var(--text); background: var(--paper);
+    display: grid; grid-template-columns: 270px 1fr; min-height: 100vh;
+}
+.sidebar {
+    background: var(--c64-dark); color: #ccc;
+    position: sticky; top: 0; height: 100vh; overflow-y: auto;
+    font-family: 'Courier New', monospace; font-size: 13px;
+}
+.sidebar-header { background: var(--c64-blue); color: white; padding: 20px 16px; text-align: center; }
+.sidebar-header .logo { font-size: 26px; font-weight: bold; color: var(--c64-green); letter-spacing: 2px; }
+.sidebar-header .sub { font-size: 11px; color: #aac; margin-top: 4px; }
+.sidebar nav ul { list-style: none; padding: 8px 0; }
+.sidebar nav ul li a {
+    display: block; padding: 7px 16px; color: #99b; text-decoration: none;
+    border-left: 3px solid transparent; transition: all 0.2s; font-size: 12.5px;
+}
+.sidebar nav ul li a:hover, .sidebar nav ul li a.active {
+    background: rgba(0,51,170,0.3); color: var(--c64-green); border-left-color: var(--c64-green);
+}
+.sidebar nav ul li.section-label {
+    padding: 8px 16px 2px; font-size: 10px; color: #445;
+    text-transform: uppercase; letter-spacing: 1px; margin-top: 8px;
+}
+main { max-width: 860px; padding: 0 56px 80px; }
+.chapter-header { border-bottom: 3px solid var(--c64-blue); padding: 48px 0 28px; margin-bottom: 40px; }
+.chapter-number {
+    font-family: 'Courier New', monospace; font-size: 12px; color: var(--c64-blue);
+    text-transform: uppercase; letter-spacing: 3px; font-weight: bold; margin-bottom: 10px;
+}
+.chapter-header h1 { font-size: 40px; font-weight: bold; color: var(--c64-dark); line-height: 1.2; margin-bottom: 18px; }
+.chapter-meta { display: flex; gap: 24px; font-family: 'Courier New', monospace; font-size: 13px; color: var(--text-light); flex-wrap: wrap; }
+.badge { background: var(--c64-blue); color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px; }
+.badge.green { background: #2e7d32; }
+.badge.orange { background: #e65100; }
+.badge.red { background: #b71c1c; }
+.objectives {
+    background: #e3f2fd; border-left: 4px solid #1565c0; border-radius: 0 8px 8px 0;
+    padding: 22px 26px; margin-bottom: 40px;
+}
+.objectives h3 { color: #1565c0; font-size: 13px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; font-family: 'Courier New', monospace; }
+.objectives ul { padding-left: 20px; }
+.objectives ul li { margin-bottom: 5px; }
+h2 { font-size: 26px; color: var(--c64-dark); border-bottom: 2px solid var(--c64-blue); padding-bottom: 8px; margin: 44px 0 20px; }
+h3 { font-size: 19px; color: var(--c64-blue); margin: 28px 0 14px; }
+h4 { font-size: 15px; color: var(--text); margin: 20px 0 10px; font-family: 'Courier New', monospace; text-transform: uppercase; letter-spacing: 1px; }
+p { margin-bottom: 15px; }
+ul, ol { padding-left: 24px; margin-bottom: 15px; }
+li { margin-bottom: 5px; }
+pre {
+    background: var(--c64-dark); color: var(--c64-green);
+    font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.65;
+    padding: 22px; border-radius: 8px; overflow-x: auto; margin: 18px 0;
+    border: 1px solid #2a2a4a;
+}
+.asm-comment { color: #667799; font-style: italic; }
+.asm-label { color: #ffcc44; font-weight: bold; }
+.asm-instr { color: #44bbff; }
+.asm-addr { color: #ff88aa; }
+.asm-num { color: #ff9944; }
+code { font-family: 'Courier New', monospace; background: #e5e0d4; padding: 2px 6px; border-radius: 3px; font-size: 0.88em; color: #8b0000; }
+pre code { background: none; padding: 0; color: inherit; }
+table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 14.5px; }
+thead { background: var(--c64-blue); color: white; }
+thead th { padding: 11px 14px; text-align: left; font-family: 'Courier New', monospace; font-size: 12px; letter-spacing: 0.5px; }
+tbody tr:nth-child(even) { background: var(--paper-dark); }
+tbody td { padding: 9px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+tbody tr:hover { background: #dde8ff; }
+.mono { font-family: 'Courier New', monospace; color: #8b0000; font-weight: bold; }
+.box { border-radius: 0 8px 8px 0; padding: 18px 22px; margin: 22px 0; border-left: 4px solid; }
+.box .box-title { font-family: 'Courier New', monospace; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+.box.warning { background: #fff8e1; border-color: #f0a000; }
+.box.warning .box-title { color: #e65100; }
+.box.tip { background: #e8f5e9; border-color: #2e7d32; }
+.box.tip .box-title { color: #1b5e20; }
+.box.note { background: #e3f2fd; border-color: #1565c0; }
+.box.note .box-title { color: #0d47a1; }
+.box.important { background: #fce4ec; border-color: #c62828; }
+.box.important .box-title { color: #b71c1c; }
+.benchmark {
+    background: linear-gradient(135deg, #001166 0%, #0033aa 100%);
+    color: white; padding: 30px; border-radius: 12px; margin: 44px 0;
+}
+.benchmark h2 { color: var(--c64-green); border-color: rgba(0,255,136,0.3); margin-top: 0; font-size: 22px; }
+.benchmark ul { list-style: none; padding: 0; }
+.benchmark ul li { padding: 7px 0 7px 28px; position: relative; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.benchmark ul li:before { content: '☐'; position: absolute; left: 0; color: var(--c64-green); }
+.exercises-section { border: 2px solid var(--c64-blue); border-radius: 12px; padding: 28px; margin: 44px 0; }
+.exercises-section h2 { color: var(--c64-blue); margin-top: 0; border: none; padding: 0; }
+.exercise { background: var(--paper-dark); border-radius: 8px; padding: 18px; margin: 14px 0; }
+.exercise-num { font-family: 'Courier New', monospace; font-size: 11px; color: var(--c64-blue); font-weight: bold; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 6px; }
+.chapter-nav { display: flex; justify-content: space-between; margin-top: 56px; padding-top: 28px; border-top: 2px solid var(--border); gap: 16px; }
+.chapter-nav a { display: flex; flex-direction: column; padding: 14px 22px; background: var(--c64-dark); color: white; text-decoration: none; border-radius: 8px; min-width: 180px; transition: background 0.2s; }
+.chapter-nav a:hover { background: var(--c64-blue); }
+.nav-label { font-size: 10px; color: #889; font-family: 'Courier New', monospace; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 4px; }
+.nav-title { font-size: 15px; font-weight: bold; }
+.register-diagram { display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px; margin: 16px 0; font-family: 'Courier New', monospace; font-size: 12px; text-align: center; }
+.reg-bit { background: var(--c64-dark); color: var(--c64-green); padding: 8px 4px; border-radius: 4px; }
+.reg-bit.set { background: var(--c64-blue); }
+.memory-map { border: 2px solid var(--c64-blue); border-radius: 8px; overflow: hidden; font-family: 'Courier New', monospace; font-size: 13px; }
+.mem-row { display: grid; grid-template-columns: 100px 1fr; border-bottom: 1px solid var(--border); }
+.mem-addr { background: var(--c64-dark); color: var(--c64-green); padding: 6px 12px; font-weight: bold; }
+.mem-desc { padding: 6px 14px; }
+.mem-row.highlight .mem-desc { background: #dde8ff; font-weight: bold; }
+.mem-row.io .mem-desc { background: #fff3e0; }
+.mem-row.rom .mem-desc { background: #e8f5e9; }
+/* Seite-spezifisch */
+.register-block { background: white; border: 2px solid var(--c64-blue); border-radius: 10px; margin: 22px 0; overflow: hidden; }
+.register-block .reg-header { background: var(--c64-blue); color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
+.register-block .reg-name { font-family: 'Courier New', monospace; font-size: 20px; font-weight: bold; }
+.register-block .reg-full { font-size: 13px; color: #aac; }
+.register-block .reg-size { background: rgba(255,255,255,0.2); padding: 2px 10px; border-radius: 10px; font-family: 'Courier New', monospace; font-size: 12px; }
+.register-block .reg-body { padding: 18px 20px; }
+.register-block .reg-bits { display: grid; grid-template-columns: repeat(8, 1fr); gap: 3px; margin: 12px 0; font-family: 'Courier New', monospace; font-size: 11px; text-align: center; }
+.register-block .bit { padding: 8px 2px; border-radius: 4px; }
+.register-block .bit.used { background: var(--c64-dark); color: var(--c64-green); }
+.register-block .bit.unused { background: #ddd; color: #999; }
+.register-block .bit-num { font-size: 9px; color: #889; display: block; margin-top: 2px; }
+.flag-table { width: 100%; }
+.flag-table td { vertical-align: top; padding: 10px 14px; }
+.flag-table .flag-name { font-family: 'Courier New', monospace; font-size: 15px; font-weight: bold; color: var(--c64-blue); width: 60px; }
+.opcode-group { margin: 28px 0; }
+.opcode-group h4 { background: var(--c64-dark); color: var(--c64-green); padding: 8px 16px; border-radius: 6px 6px 0 0; margin: 0; font-size: 13px; }
+.opcode-group table { margin: 0; }
+.opcode-group table tbody tr:first-child td { border-top: none; }
+.branch-table { background: white; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.branch-table th { background: #002266; color: white; padding: 10px 16px; font-family: 'Courier New', monospace; font-size: 12px; }
+.branch-table td { padding: 9px 16px; border-bottom: 1px solid var(--border); font-size: 14px; }
+.branch-table tr:nth-child(even) td { background: var(--paper-dark); }
+.timing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+.timing-card { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 16px 18px; }
+.timing-card h4 { margin: 0 0 10px; color: var(--c64-blue); font-size: 14px; }
+.timing-card table { font-size: 13px; margin: 0; }
+.stack-diagram { background: var(--c64-dark); border-radius: 8px; padding: 20px; margin: 18px 0; font-family: 'Courier New', monospace; font-size: 13px; color: #aac; }
+.stack-diagram .sp-line { color: var(--c64-green); font-weight: bold; }
+.stack-diagram .empty-line { color: #445; }
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">C64</div>
+    <div class="sub">MASTERY SYSTEM</div>
+  </div>
+  <nav>
+    <ul>
+      <li><a href="index.html">&#9632; Übersicht &amp; Curriculum</a></li>
+      <li class="section-label">Grundlagen</li>
+      <li><a href="stufe_00_fundament.html">Stufe 0 — Fundament</a></li>
+      <li><a href="stufe_01_6510_assembler.html" class="active">Stufe 1 — 6510 Assembler</a></li>
+      <li><a href="stufe_02_adressierung_speicher.html">Stufe 2 — Adressierung &amp; Speicher</a></li>
+      <li class="section-label">Grafik &amp; Sound</li>
+      <li><a href="stufe_03_bildschirm_zeichen.html">Stufe 3 — VIC-II &amp; Zeichen</a></li>
+      <li><a href="stufe_04_sprites_animation.html">Stufe 4 — Sprites &amp; Animation</a></li>
+      <li><a href="stufe_05_bitmap_grafik.html">Stufe 5 — Bitmap-Grafik</a></li>
+      <li><a href="stufe_06_sid_sound.html">Stufe 6 — SID &amp; Sound</a></li>
+      <li class="section-label">Fortgeschritten</li>
+      <li><a href="stufe_07_interrupts_timing.html">Stufe 7 — Interrupts &amp; Timing</a></li>
+      <li><a href="stufe_08_optimierung.html">Stufe 8 — Optimierung</a></li>
+      <li><a href="stufe_09_demo_effekte.html">Stufe 9 — Demo-Effekte</a></li>
+      <li><a href="stufe_10_meisterschaft.html">Stufe 10 — Meisterschaft</a></li>
+    </ul>
+  </nav>
+</nav>
+
+<main>
+  <div class="chapter-header">
+    <div class="chapter-number">Stufe 1 &mdash; Phase 1: Grundlagen</div>
+    <h1>Der 6510 Prozessor &amp; Assembler-Grundlagen</h1>
+    <div class="chapter-meta">
+      <span><span class="badge">Anfänger</span></span>
+      <span>&#9632; Zeitaufwand: ~8 Stunden</span>
+      <span>&#9632; Voraussetzungen: Stufe 0 abgeschlossen</span>
+    </div>
+  </div>
+
+  <div class="objectives">
+    <h3>Lernziele dieses Kapitels</h3>
+    <ul>
+      <li>Die vollständige Register-Architektur des 6510 (A, X, Y, SP, PC, P) auswendig kennen und erklären können</li>
+      <li>Alle acht Status-Flags (N, V, B, D, I, Z, C) und ihre genauen Auswirkungen auf Befehle verstehen</li>
+      <li>Alle Kategorien des 6510-Befehlssatzes sicher anwenden: Laden, Speichern, Transfer, Arithmetik, Logik, Shift, Sprung, Stack</li>
+      <li>16-Bit-Arithmetik mit dem 8-Bit-Prozessor durchführen können (Addition und Subtraktion)</li>
+      <li>Schleifen, bedingte Verzweigungen und Unterprogramme korrekt strukturieren</li>
+      <li>Den Stack bewusst und korrekt für Register-Rettung und Unterprogramme einsetzen</li>
+      <li>Taktzyklen kennen und deren Bedeutung für Performance und Timing-Programmierung verstehen</li>
+    </ul>
+  </div>
+
+  <h2>1. CPU-Architektur — Das Herzstück des C64</h2>
+
+  <p>
+    Der Prozessor ist der Dirigent des gesamten Systems. Er liest Befehle aus dem Speicher,
+    interpretiert sie und führt sie aus — einer nach dem anderen, Takt für Takt, in einer
+    streng deterministischen Abfolge. Auf dem C64 ist dieser Dirigent der MOS Technology 6510,
+    ein 8-Bit-Prozessor mit 16-Bit-Adressbus, dessen Architektur in ihrer Einfachheit und
+    Eleganz Generationen von Programmierern fasziniert hat.
+  </p>
+
+  <p>
+    Die Architektur des 6510 — und seines Vorgängers 6502 — unterscheidet sich fundamental von
+    der der x86-Prozessoren, die die meisten heutigen Programmierer kennen. Es gibt nur einen
+    einzigen allgemeinen Rechenregister (den Akkumulator), zwei Indexregister und keinerlei
+    allgemeine Zweck-Register. Diese extreme Einfachheit zwingt zu einer Denkweise, die dem
+    Computer viel näher ist als jede Hochsprache: Man denkt in Bytes, in Taktzyklen, in
+    Adressen.
+  </p>
+
+  <h3>1.1 Die Geschichte: Von 6502 zu 6510</h3>
+
+  <p>
+    Der MOS Technology 6502 wurde 1975 von Chuck Peddle und einem Team bei MOS Technology
+    entworfen — als direkte Reaktion auf den Motorola 6800, für den Peddle zuvor gearbeitet
+    hatte. Das Ziel war ein funktional äquivalenter Prozessor zu einem Bruchteil des Preises.
+    Der 6502 kostete bei seiner Einführung 25 US-Dollar — der Motorola 6800 kostete 175 Dollar.
+    Dieser Preisunterschied erschütterte die Computerindustrie und machte persönliche Computer
+    erst möglich.
+  </p>
+
+  <p>
+    Der 6502 trieb neben dem C64 auch den Apple II, den Atari 800, den BBC Micro, den Nintendo
+    Entertainment System (NES) und viele andere legendäre Maschinen an. Die Familie ist damit
+    einer der einflussreichsten Prozessoren der Computergeschichte.
+  </p>
+
+  <p>
+    Der 6510, verwendet im C64, ist im Wesentlichen ein 6502 mit einem zusätzlichen 6-Bit-I/O-Port,
+    der direkt in den Chip integriert ist. Dieser Port steuert — wie in Stufe 0 erklärt — das
+    Memory-Banking des C64. Bis auf diesen Zusatz sind 6502 und 6510 identisch; alle Opcode-
+    Referenzen, Timing-Tabellen und Programmiertechniken für den 6502 gelten direkt für den 6510.
+  </p>
+
+  <h2>2. Die Register — Der Herzschlag des Prozessors</h2>
+
+  <p>
+    Der 6510 besitzt sechs Register. Das ist bemerkenswert wenig — moderne RISC-Prozessoren
+    (ARM, RISC-V) haben 16 bis 32 allgemeine Register. Doch diese Beschränkung zwingt zu
+    einer Denkweise, die äußerst lehrreich ist: Man muss sorgfältig überlegen, welche Daten
+    wann in welchem Register sind und wie man Register-Inhalte effizient durch den Stack oder
+    den Speicher verwaltet.
+  </p>
+
+  <div class="register-block">
+    <div class="reg-header">
+      <span class="reg-name">A</span>
+      <span class="reg-full">Akkumulator — Accumulator</span>
+      <span class="reg-size">8 Bit</span>
+    </div>
+    <div class="reg-body">
+      <div class="reg-bits">
+        <div class="bit used">Bit 7<span class="bit-num">MSB</span></div>
+        <div class="bit used">Bit 6</div>
+        <div class="bit used">Bit 5</div>
+        <div class="bit used">Bit 4</div>
+        <div class="bit used">Bit 3</div>
+        <div class="bit used">Bit 2</div>
+        <div class="bit used">Bit 1</div>
+        <div class="bit used">Bit 0<span class="bit-num">LSB</span></div>
+      </div>
+      <p>
+        Der Akkumulator ist das zentrale Rechenregister des 6510. Fast alle arithmetischen und
+        logischen Operationen verwenden ihn als primären Operanden und hinterlegen dort das
+        Ergebnis. Er ist der Engpass und zugleich der Dreh- und Angelpunkt jedes Assembler-Programms:
+        Werte müssen zunächst in den Akkumulator geladen werden (LDA), berechnet werden (ADC,
+        SBC, AND, ORA, EOR) und dann aus ihm heraus gespeichert werden (STA).
+      </p>
+      <p>
+        Der Akkumulator wird von folgenden Operationen gesetzt: LDA, PLA, TXA, TYA sowie allen
+        Arithmetik- und Logik-Operationen. Seine Besonderheit: Er kann nicht direkt inkrementiert
+        oder dekrementiert werden — dafür gibt es den Umweg über ADC #1 beziehungsweise SBC #1,
+        oder man überträgt den Wert erst nach X oder Y (TAX/TAY) und verwendet INX/INY.
+      </p>
+    </div>
+  </div>
+
+  <div class="register-block">
+    <div class="reg-header">
+      <span class="reg-name">X</span>
+      <span class="reg-full">Index-Register X — X Index Register</span>
+      <span class="reg-size">8 Bit</span>
+    </div>
+    <div class="reg-body">
+      <div class="reg-bits">
+        <div class="bit used">Bit 7<span class="bit-num">MSB</span></div>
+        <div class="bit used">Bit 6</div>
+        <div class="bit used">Bit 5</div>
+        <div class="bit used">Bit 4</div>
+        <div class="bit used">Bit 3</div>
+        <div class="bit used">Bit 2</div>
+        <div class="bit used">Bit 1</div>
+        <div class="bit used">Bit 0<span class="bit-num">LSB</span></div>
+      </div>
+      <p>
+        Das X-Register ist eines von zwei Indexregistern. Es wird primär für die indizierte
+        Adressierung verwendet (<code>LDA $0400,X</code> liest den Speicherwert an Adresse
+        $0400 + X) und als Schleifenzähler. Im Gegensatz zum Akkumulator kann X direkt
+        inkrementiert und dekrementiert werden (INX, DEX), ohne den Akkumulator zu berühren —
+        was Schleifen deutlich effizienter macht.
+      </p>
+      <p>
+        X kann aus dem Akkumulator gesetzt werden (TAX) oder direkt geladen werden (LDX).
+        Sein Inhalt kann in den Akkumulator transferiert werden (TXA) oder — als einzige
+        Ausnahme — direkt in den Stack Pointer (TXS). Arithmetische Operationen sind
+        mit X nicht direkt möglich; dafür muss der Wert erst nach A transferiert werden.
+      </p>
+    </div>
+  </div>
+
+  <div class="register-block">
+    <div class="reg-header">
+      <span class="reg-name">Y</span>
+      <span class="reg-full">Index-Register Y — Y Index Register</span>
+      <span class="reg-size">8 Bit</span>
+    </div>
+    <div class="reg-body">
+      <div class="reg-bits">
+        <div class="bit used">Bit 7<span class="bit-num">MSB</span></div>
+        <div class="bit used">Bit 6</div>
+        <div class="bit used">Bit 5</div>
+        <div class="bit used">Bit 4</div>
+        <div class="bit used">Bit 3</div>
+        <div class="bit used">Bit 2</div>
+        <div class="bit used">Bit 1</div>
+        <div class="bit used">Bit 0<span class="bit-num">LSB</span></div>
+      </div>
+      <p>
+        Das Y-Register ist dem X-Register sehr ähnlich, hat jedoch einige wichtige Unterschiede
+        in den unterstützten Adressierungsarten. Besonders bedeutsam: Y ist das einzige
+        Index-Register, das bei der indirekten indizierten Adressierung (<code>LDA ($zp),Y</code>)
+        verwendet werden kann. Diese Adressierungsart ist die effizienteste Methode, um über
+        16-Bit-Pointer im Speicher zu iterieren — unverzichtbar für Datenstrukturen wie
+        Zeichenketten oder Sprite-Tabellen.
+      </p>
+      <p>
+        Y kann nicht direkt mit TYS in den Stack Pointer transferiert werden — das ist der
+        einzige praktisch relevante Unterschied zu X. INY und DEY funktionieren identisch
+        zu INX und DEX.
+      </p>
+    </div>
+  </div>
+
+  <div class="register-block">
+    <div class="reg-header">
+      <span class="reg-name">SP</span>
+      <span class="reg-full">Stack Pointer — Stapelzeiger</span>
+      <span class="reg-size">8 Bit (effektiv 9 Bit)</span>
+    </div>
+    <div class="reg-body">
+      <p>
+        Der Stack Pointer ist ein 8-Bit-Register, das immer auf die Seite 1 des Speichers
+        verweist — die Adressen <code>$0100</code> bis <code>$01FF</code>. Das High-Byte
+        der Stack-Adresse ist hardwaremäßig auf <code>$01</code> fixiert; nur das Low-Byte
+        ist variabel und wird vom SP-Register angegeben. Der vollständige Stack-Pointer
+        ist also immer <code>$01xx</code>, wobei <code>xx</code> der SP-Wert ist.
+      </p>
+      <p>
+        Der Stack wächst <em>abwärts</em>: Beim Drücken (PUSH) wird der aktuelle Wert an
+        die Adresse <code>$0100 + SP</code> geschrieben, dann wird SP dekrementiert.
+        Beim Holen (PULL) wird SP zuerst inkrementiert, dann der Wert von <code>$0100 + SP</code>
+        gelesen. Nach dem Reset zeigt SP auf <code>$FF</code>, also beginnt der Stack
+        bei <code>$01FF</code> und wächst Richtung <code>$0100</code>.
+      </p>
+      <div class="box warning">
+        <div class="box-title">Stack-Overflow</div>
+        Wenn der Stack über <code>$0100</code> hinauswächst (SP wird kleiner als $00 und
+        wraps-around zu $FF), beginnt er, die Daten am Stack-Ende zu überschreiben —
+        ohne Fehlermeldung, ohne Absturz (zunächst). Stack-Overflows auf dem C64 äußern
+        sich oft als schwer zu debuggende Abstürze nach langer Laufzeit. Halten Sie
+        den Stack so flach wie möglich.
+      </div>
+    </div>
+  </div>
+
+  <div class="register-block">
+    <div class="reg-header">
+      <span class="reg-name">PC</span>
+      <span class="reg-full">Program Counter — Programmzähler</span>
+      <span class="reg-size">16 Bit</span>
+    </div>
+    <div class="reg-body">
+      <p>
+        Der Program Counter ist das einzige 16-Bit-Register im 6510 und zeigt immer auf
+        die Adresse des nächsten auszuführenden Befehls. Nach dem Fetch jedes Opcode-Bytes
+        wird PC automatisch inkrementiert. PC kann nicht direkt gelesen oder geschrieben
+        werden — er wird ausschließlich durch JMP, JSR, Branches und Interrupts verändert.
+      </p>
+      <p>
+        Beim Reset (Einschalten oder Reset-Knopf) liest der 6510 die Reset-Vektoren bei
+        <code>$FFFC</code> und <code>$FFFD</code> (Low-Byte / High-Byte) und setzt PC
+        auf den dort gespeicherten Wert. Beim C64 zeigt dieser Vector auf den Kernal-Reset-Code.
+        Im VICE-Monitor kann PC direkt gesetzt werden, um die Ausführung an einem
+        beliebigen Punkt zu starten — nützlich für gezieltes Debugging.
+      </p>
+    </div>
+  </div>
+
+  <div class="register-block">
+    <div class="reg-header">
+      <span class="reg-name">P</span>
+      <span class="reg-full">Status Register — Prozessor-Status</span>
+      <span class="reg-size">8 Bit (7 Flags)</span>
+    </div>
+    <div class="reg-body">
+      <div class="reg-bits">
+        <div class="bit used">N<span class="bit-num">Bit 7</span></div>
+        <div class="bit used">V<span class="bit-num">Bit 6</span></div>
+        <div class="bit unused">—<span class="bit-num">Bit 5</span></div>
+        <div class="bit used">B<span class="bit-num">Bit 4</span></div>
+        <div class="bit used">D<span class="bit-num">Bit 3</span></div>
+        <div class="bit used">I<span class="bit-num">Bit 2</span></div>
+        <div class="bit used">Z<span class="bit-num">Bit 1</span></div>
+        <div class="bit used">C<span class="bit-num">Bit 0</span></div>
+      </div>
+      <p>
+        Das Status-Register enthält sieben Flags, die den aktuellen Zustand der letzten
+        Operation widerspiegeln. Bit 5 ist immer 1 und hat keine Funktion. Die Flags werden
+        von den meisten Befehlen automatisch gesetzt oder gelöscht und von bedingten
+        Sprungbefehlen (Branches) gelesen, um Verzweigungen zu realisieren.
+      </p>
+
+      <table class="flag-table">
+        <thead>
+          <tr>
+            <th>Flag</th>
+            <th>Name</th>
+            <th>Wird gesetzt wenn...</th>
+            <th>Wird gelöscht wenn...</th>
+            <th>Verwendet von...</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="flag-name">N</td>
+            <td><strong>Negative</strong></td>
+            <td>Bit 7 des Ergebnisses ist 1 (Wert ≥ 128)</td>
+            <td>Bit 7 des Ergebnisses ist 0 (Wert ≤ 127)</td>
+            <td>BMI (springe wenn N=1), BPL (springe wenn N=0)</td>
+          </tr>
+          <tr>
+            <td class="flag-name">V</td>
+            <td><strong>oVerflow</strong></td>
+            <td>Vorzeichenüberlauf bei vorzeichenbehafteter Addition/Subtraktion</td>
+            <td>Kein Vorzeichenüberlauf; CLV-Befehl</td>
+            <td>BVS (N=1), BVC (V=0); wichtig für vorzeichenbehaftete Arithmetik</td>
+          </tr>
+          <tr>
+            <td class="flag-name">B</td>
+            <td><strong>Break</strong></td>
+            <td>BRK-Befehl ausgeführt (Software-Interrupt)</td>
+            <td>Hardware-IRQ oder NMI (B wird beim Stack-Push auf 0 gesetzt)</td>
+            <td>Unterscheidung IRQ vs. BRK in der ISR-Routine</td>
+          </tr>
+          <tr>
+            <td class="flag-name">D</td>
+            <td><strong>Decimal</strong></td>
+            <td>SED-Befehl</td>
+            <td>CLD-Befehl; Reset</td>
+            <td>Aktiviert BCD-Arithmetik bei ADC und SBC (auf C64 kaum verwendet)</td>
+          </tr>
+          <tr>
+            <td class="flag-name">I</td>
+            <td><strong>Interrupt disable</strong></td>
+            <td>SEI-Befehl; Reset; bei Interrupt-Eintritt</td>
+            <td>CLI-Befehl; RTI-Befehl (falls ISR I gelöscht hatte)</td>
+            <td>Wenn I=1, werden maskierbare IRQs ignoriert; NMI ist immer aktiv</td>
+          </tr>
+          <tr>
+            <td class="flag-name">Z</td>
+            <td><strong>Zero</strong></td>
+            <td>Ergebnis der letzten Operation ist exakt 0</td>
+            <td>Ergebnis ist ungleich 0</td>
+            <td>BEQ (springe wenn Z=1), BNE (springe wenn Z=0) — das meistgenutzte Flag!</td>
+          </tr>
+          <tr>
+            <td class="flag-name">C</td>
+            <td><strong>Carry</strong></td>
+            <td>Übertrag aus Bit 7 (Addition); kein Borgen nötig (Subtraktion); SEC-Befehl; Shift/Rotate</td>
+            <td>Kein Übertrag; CLC-Befehl</td>
+            <td>BCC (C=0), BCS (C=1); muss vor ADC (CLC) und SBC (SEC) manuell gesetzt werden</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="box important">
+    <div class="box-title">Kritisch: Carry vor Arithmetik setzen</div>
+    Dies ist der häufigste Fehler bei 6510-Einsteigern: <strong>ADC addiert immer mit Carry!</strong>
+    A = A + Operand + C. Wenn Sie einfach addieren wollen, müssen Sie <em>zuerst</em> <code>CLC</code>
+    (Clear Carry) aufrufen. Analog: <strong>SBC subtrahiert immer mit inversem Carry!</strong>
+    A = A − Operand − (1−C). Für einfache Subtraktion: <em>zuerst</em> <code>SEC</code> (Set Carry).
+  </div>
+
+  <h2>3. Der vollständige Befehlssatz</h2>
+
+  <p>
+    Der 6510 kennt 56 verschiedene Mnemonics (Befehlskürzel). Viele davon unterstützen mehrere
+    Adressierungsarten, was zu insgesamt 151 gültigen Opcode-Bytes führt (von 256 möglichen).
+    Der vollständige Befehlssatz lässt sich in acht logische Gruppen einteilen, die wir der
+    Reihe nach behandeln werden.
+  </p>
+
+  <h3>3.1 Lade- und Speicherbefehle (Load / Store)</h3>
+
+  <p>
+    Dies sind die häufigsten Befehle in jedem C64-Programm. Sie bilden die Brücke zwischen
+    Prozessor und Speicher. Jeder Wert, mit dem man rechnen will, muss zuerst in ein Register
+    geladen werden; jedes Ergebnis muss explizit gespeichert werden — der 6510 macht das
+    niemals automatisch.
+  </p>
+
+  <div class="opcode-group">
+    <h4>LDA — Load Accumulator (Akkumulator laden)</h4>
+    <table>
+      <thead>
+        <tr><th>Adressierungsart</th><th>Syntax</th><th>Zyklen</th><th>Bytes</th><th>Beispiel und Wirkung</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Immediate</td>
+          <td class="mono">LDA #$42</td>
+          <td>2</td>
+          <td>2</td>
+          <td>A = $42 (direkter Wert). Das schnellste Laden — Wert direkt im Opcode.</td>
+        </tr>
+        <tr>
+          <td>Zero Page</td>
+          <td class="mono">LDA $42</td>
+          <td>3</td>
+          <td>2</td>
+          <td>A = Inhalt von Adresse $0042. Zero-Page-Adressen sind 1 Byte kompakt.</td>
+        </tr>
+        <tr>
+          <td>Zero Page,X</td>
+          <td class="mono">LDA $42,X</td>
+          <td>4</td>
+          <td>2</td>
+          <td>A = Inhalt von Adresse $0042 + X. Ideal für Zero-Page-Arrays.</td>
+        </tr>
+        <tr>
+          <td>Absolute</td>
+          <td class="mono">LDA $D020</td>
+          <td>4</td>
+          <td>3</td>
+          <td>A = Inhalt von Adresse $D020 (z.B. VIC-II Rahmenfarbe lesen).</td>
+        </tr>
+        <tr>
+          <td>Absolute,X</td>
+          <td class="mono">LDA $0400,X</td>
+          <td>4(+1)</td>
+          <td>3</td>
+          <td>A = Inhalt von Adresse $0400 + X. +1 Zyklus bei Page-Crossing ($04FF → $0500).</td>
+        </tr>
+        <tr>
+          <td>Absolute,Y</td>
+          <td class="mono">LDA $0400,Y</td>
+          <td>4(+1)</td>
+          <td>3</td>
+          <td>A = Inhalt von Adresse $0400 + Y. Analog zu Absolute,X mit Y-Register.</td>
+        </tr>
+        <tr>
+          <td>(Indirect,X)</td>
+          <td class="mono">LDA ($10,X)</td>
+          <td>6</td>
+          <td>2</td>
+          <td>Liest 16-Bit-Adresse aus Zero-Page ($10+X, $11+X), dann Wert von dort.</td>
+        </tr>
+        <tr>
+          <td>(Indirect),Y</td>
+          <td class="mono">LDA ($10),Y</td>
+          <td>5(+1)</td>
+          <td>2</td>
+          <td>Liest 16-Bit-Adresse aus Zero-Page ($10, $11), addiert Y, liest Wert. Wichtigste Pointer-Methode!</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    <strong>Flags beeinflusst durch LDA:</strong> N (gesetzt wenn Bit 7 des geladenen Werts = 1),
+    Z (gesetzt wenn geladener Wert = 0). LDA beeinflusst weder Carry noch Overflow.
+  </p>
+
+  <p>
+    <strong>LDX und LDY</strong> funktionieren analog zu LDA, unterstützen aber teilweise andere
+    Adressierungsarten: LDX kennt keine Absolute,X-Variante (wohl aber Absolute,Y), LDY kennt
+    keine Absolute,Y-Variante (wohl aber Absolute,X). Dies ist eine der wenigen Asymmetrien im
+    6510-Befehlssatz.
+  </p>
+
+  <pre><span class="asm-comment">; Praxisbeispiel: 256 Bytes von Quelle nach Ziel kopieren</span>
+<span class="asm-comment">; Quelle: $C000–$C0FF, Ziel: $D000–$D0FF</span>
+
+        <span class="asm-instr">ldx</span> #<span class="asm-num">0</span>             <span class="asm-comment">; X = 0 (Schleifenzähler)</span>
+<span class="asm-label">copy_loop:</span>
+        <span class="asm-instr">lda</span> <span class="asm-addr">$c000</span>,x     <span class="asm-comment">; Byte von Quelladresse + X laden</span>
+        <span class="asm-instr">sta</span> <span class="asm-addr">$d000</span>,x     <span class="asm-comment">; Byte an Zieladresse + X speichern</span>
+        <span class="asm-instr">inx</span>             <span class="asm-comment">; X erhöhen (X=0 → 1 → 2 → ... → 255 → 0)</span>
+        <span class="asm-instr">bne</span> copy_loop   <span class="asm-comment">; Wenn X noch nicht 0 geworden: weiter</span>
+        <span class="asm-instr">rts</span>             <span class="asm-comment">; Fertig — 256 Bytes kopiert</span>
+
+<span class="asm-comment">; Anmerkung: INX setzt das Zero-Flag wenn X = 0 wird (nach 256 Iterationen).
+; BNE springt nur wenn Z=0 → Schleife läuft genau 256 Mal.</span></pre>
+
+  <h3>3.2 Transfer-Befehle</h3>
+
+  <p>
+    Transfer-Befehle kopieren den Inhalt eines Registers in ein anderes. Mit sechs Registern
+    und vier möglichen Directions (A↔X, A↔Y, X↔SP) ergeben sich sechs Befehle: TAX, TXA,
+    TAY, TYA, TXS und TSX. Alle außer TXS setzen die N- und Z-Flags entsprechend dem
+    transferierten Wert.
+  </p>
+
+  <table>
+    <thead>
+      <tr><th>Mnemonic</th><th>Bedeutung</th><th>Operation</th><th>Flags</th><th>Zyklen</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="mono">TAX</td>
+        <td>Transfer A → X</td>
+        <td>X = A</td>
+        <td>N, Z</td>
+        <td>2</td>
+      </tr>
+      <tr>
+        <td class="mono">TXA</td>
+        <td>Transfer X → A</td>
+        <td>A = X</td>
+        <td>N, Z</td>
+        <td>2</td>
+      </tr>
+      <tr>
+        <td class="mono">TAY</td>
+        <td>Transfer A → Y</td>
+        <td>Y = A</td>
+        <td>N, Z</td>
+        <td>2</td>
+      </tr>
+      <tr>
+        <td class="mono">TYA</td>
+        <td>Transfer Y → A</td>
+        <td>A = Y</td>
+        <td>N, Z</td>
+        <td>2</td>
+      </tr>
+      <tr>
+        <td class="mono">TXS</td>
+        <td>Transfer X → Stack Pointer</td>
+        <td>SP = X</td>
+        <td>keine</td>
+        <td>2</td>
+      </tr>
+      <tr>
+        <td class="mono">TSX</td>
+        <td>Transfer Stack Pointer → X</td>
+        <td>X = SP</td>
+        <td>N, Z</td>
+        <td>2</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>
+    Ein häufiges Muster: Man braucht Y für eine Adressierung, hat aber einen Wert im Akkumulator.
+    Lösung: <code>TAY</code>. Anschließend will man Y wieder loswerden und den Akkumulator
+    wiederherstellen: <code>TYA</code>. Beachten Sie, dass diese Transfers immer den <em>aktuellen</em>
+    Wert überschreiben — der alte Inhalt des Zielregisters ist verloren. Wenn man ihn braucht,
+    muss man ihn vorher auf dem Stack sichern.
+  </p>
+
+  <h3>3.3 Arithmetik — Addition und Subtraktion</h3>
+
+  <p>
+    Der 6510 kennt nur zwei arithmetische Grundoperationen: Addition (ADC — Add with Carry)
+    und Subtraktion (SBC — Subtract with Carry). Division und Multiplikation müssen durch
+    Shiften und Schleifenkonstruktionen implementiert werden. Das ist keine Schwäche —
+    es ist die elegante Einfachheit, die effizient auf Silizium abbildbar ist.
+  </p>
+
+  <h4>ADC — Add with Carry (Addition mit Übertrag)</h4>
+
+  <p>
+    Die vollständige Formel: <strong>A = A + Operand + C</strong>. Der Carry-Flag wird
+    immer mit einbezogen. Das Ergebnis bei Überlauf über 255 setzt C=1. Dieser mechanismus
+    ermöglicht die kaskadierende Addition von Zahlen beliebiger Breite (16-Bit, 24-Bit, 32-Bit...).
+  </p>
+
+  <pre><span class="asm-comment">; 8-Bit Addition: A = 100 + 150 = 250 → kein Carry</span>
+        <span class="asm-instr">clc</span>             <span class="asm-comment">; Carry löschen! IMMER vor ADC</span>
+        <span class="asm-instr">lda</span> #<span class="asm-num">100</span>         <span class="asm-comment">; A = 100 ($64)</span>
+        <span class="asm-instr">adc</span> #<span class="asm-num">150</span>         <span class="asm-comment">; A = 100 + 150 + 0 = 250 ($FA), C=0</span>
+
+<span class="asm-comment">; 8-Bit Addition mit Überlauf: A = 200 + 100 = 300 = $12C</span>
+        <span class="asm-instr">clc</span>
+        <span class="asm-instr">lda</span> #<span class="asm-num">200</span>         <span class="asm-comment">; A = 200 ($C8)</span>
+        <span class="asm-instr">adc</span> #<span class="asm-num">100</span>         <span class="asm-comment">; A = 200 + 100 + 0 = 300. Ergebnis im Byte: 300-256=$2C, C=1</span>
+<span class="asm-comment">; → A = $2C (44), C = 1 (Carry = das Bit, das nicht mehr ins Byte passt)</span>
+
+<span class="asm-comment">; 16-Bit Addition: (val1_hi:val1_lo) + (val2_hi:val2_lo) → result</span>
+<span class="asm-comment">; Variablen in Zero-Page: val1 bei $20/$21 (lo/hi), val2 bei $22/$23</span>
+        <span class="asm-instr">clc</span>             <span class="asm-comment">; Carry vor dem Low-Byte löschen</span>
+        <span class="asm-instr">lda</span> <span class="asm-num">$20</span>          <span class="asm-comment">; Low-Byte von val1</span>
+        <span class="asm-instr">adc</span> <span class="asm-num">$22</span>          <span class="asm-comment">; + Low-Byte von val2; möglicher Carry ins C-Flag</span>
+        <span class="asm-instr">sta</span> <span class="asm-num">$24</span>          <span class="asm-comment">; → result Low-Byte</span>
+        <span class="asm-instr">lda</span> <span class="asm-num">$21</span>          <span class="asm-comment">; High-Byte von val1</span>
+        <span class="asm-instr">adc</span> <span class="asm-num">$23</span>          <span class="asm-comment">; + High-Byte von val2 + Carry vom Low-Byte!</span>
+        <span class="asm-instr">sta</span> <span class="asm-num">$25</span>          <span class="asm-comment">; → result High-Byte</span>
+<span class="asm-comment">; Kein CLC vor dem High-Byte! Das Carry vom Low-Byte wird gebraucht.</span></pre>
+
+  <h4>SBC — Subtract with Carry (Subtraktion mit Borgen)</h4>
+
+  <p>
+    Die vollständige Formel: <strong>A = A − Operand − (1 − C)</strong>. Das klingt komplizierter
+    als es ist: Bei gesetztem Carry (C=1) gilt A = A − Operand (normaler Fall). Bei C=0 ist
+    A = A − Operand − 1 (es wurde geborgt). Daher muss vor einer einfachen Subtraktion
+    immer <code>SEC</code> (Set Carry) aufgerufen werden.
+  </p>
+
+  <pre><span class="asm-comment">; 8-Bit Subtraktion: A = 200 - 50 = 150</span>
+        <span class="asm-instr">sec</span>             <span class="asm-comment">; Carry setzen! IMMER vor SBC</span>
+        <span class="asm-instr">lda</span> #<span class="asm-num">200</span>
+        <span class="asm-instr">sbc</span> #<span class="asm-num">50</span>         <span class="asm-comment">; A = 200 - 50 - (1-1) = 150, C=1 (kein Borrow)</span>
+
+<span class="asm-comment">; 8-Bit Subtraktion mit Unterlauf: A = 50 - 200 → negatives Ergebnis</span>
+        <span class="asm-instr">sec</span>
+        <span class="asm-instr">lda</span> #<span class="asm-num">50</span>
+        <span class="asm-instr">sbc</span> #<span class="asm-num">200</span>        <span class="asm-comment">; A = 50 - 200 - 0 = -150. Als Byte: 256-150=106, C=0 (Borrow!)</span>
+
+<span class="asm-comment">; 16-Bit Subtraktion: val1 - val2 → result</span>
+        <span class="asm-instr">sec</span>             <span class="asm-comment">; Carry setzen vor dem Low-Byte</span>
+        <span class="asm-instr">lda</span> <span class="asm-num">$20</span>          <span class="asm-comment">; Low-Byte von val1</span>
+        <span class="asm-instr">sbc</span> <span class="asm-num">$22</span>          <span class="asm-comment">; - Low-Byte von val2; Borrow-Bit ins C-Flag</span>
+        <span class="asm-instr">sta</span> <span class="asm-num">$24</span>          <span class="asm-comment">; → result Low-Byte</span>
+        <span class="asm-instr">lda</span> <span class="asm-num">$21</span>          <span class="asm-comment">; High-Byte von val1</span>
+        <span class="asm-instr">sbc</span> <span class="asm-num">$23</span>          <span class="asm-comment">; - High-Byte von val2 - Borrow vom Low-Byte!</span>
+        <span class="asm-instr">sta</span> <span class="asm-num">$25</span>          <span class="asm-comment">; → result High-Byte</span></pre>
+
+  <h4>INC, DEC — Speicher-Inkrement und -Dekrement</h4>
+
+  <p>
+    INC und DEC modifizieren Speicherwerte direkt, ohne den Akkumulator zu berühren. Das
+    ist in vielen Situationen äußerst wertvoll — man spart sich das LDA/Modify/STA-Muster.
+    INX, DEX, INY, DEY arbeiten direkt auf den Index-Registern.
+  </p>
+
+  <pre><span class="asm-comment">; Zähler an Adresse $60 erhöhen (ohne Akkumulator zu verändern)</span>
+        <span class="asm-instr">inc</span> <span class="asm-num">$60</span>          <span class="asm-comment">; [$60] = [$60] + 1</span>
+
+<span class="asm-comment">; Gleiches mit Akkumulator — schlechter, da 2 Befehle mehr:</span>
+        <span class="asm-instr">lda</span> <span class="asm-num">$60</span>
+        <span class="asm-instr">clc</span>
+        <span class="asm-instr">adc</span> #<span class="asm-num">1</span>
+        <span class="asm-instr">sta</span> <span class="asm-num">$60</span>          <span class="asm-comment">; Funktioniert, aber kostet mehr Zyklen und verändert A</span>
+
+<span class="asm-comment">; Countdown-Schleife mit DEX:</span>
+        <span class="asm-instr">ldx</span> #<span class="asm-num">10</span>         <span class="asm-comment">; 10 Iterationen</span>
+<span class="asm-label">loop:</span>
+        <span class="asm-comment">; ... Code ...</span>
+        <span class="asm-instr">dex</span>             <span class="asm-comment">; X--; setzt Z=1 wenn X jetzt 0</span>
+        <span class="asm-instr">bne</span> loop        <span class="asm-comment">; Springe wenn X != 0</span></pre>
+
+  <h3>3.4 Logische Operationen</h3>
+
+  <p>
+    Logische Operationen arbeiten bitweise auf dem Akkumulator und einem Operanden. Sie sind
+    unverzichtbar für die Manipulation von Registern und Flags in Hardware-Chips: Einzelne Bits
+    setzen, löschen oder umschalten ist das tägliche Brot der C64-Programmierung.
+  </p>
+
+  <table>
+    <thead>
+      <tr><th>Mnemonic</th><th>Operation</th><th>Verwendung</th><th>Flags</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="mono">AND</td>
+        <td>A = A &amp; Operand (bitweises UND)</td>
+        <td>Bits <em>maskieren</em> (löschen): AND mit 0-Bits löscht diese Bits</td>
+        <td>N, Z</td>
+      </tr>
+      <tr>
+        <td class="mono">ORA</td>
+        <td>A = A | Operand (bitweises ODER)</td>
+        <td>Bits <em>setzen</em>: ORA mit 1-Bits setzt diese Bits</td>
+        <td>N, Z</td>
+      </tr>
+      <tr>
+        <td class="mono">EOR</td>
+        <td>A = A ^ Operand (bitweises XOR)</td>
+        <td>Bits <em>umschalten</em>: EOR mit 1-Bits invertiert diese Bits</td>
+        <td>N, Z</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <pre><span class="asm-comment">; Bit-Manipulation — Die drei Grundmuster:</span>
+
+<span class="asm-comment">; 1. Bestimmte Bits LÖSCHEN (AND mit Maske, 0 = löschen, 1 = behalten)</span>
+        <span class="asm-instr">lda</span> <span class="asm-addr">$D011</span>        <span class="asm-comment">; VIC-II Steuerregister lesen</span>
+        <span class="asm-instr">and</span> #<span class="asm-num">%01111111</span>   <span class="asm-comment">; Bit 7 löschen (RST8 — Rasterzeile-Bit 8)</span>
+        <span class="asm-instr">sta</span> <span class="asm-addr">$D011</span>        <span class="asm-comment">; Zurückschreiben</span>
+
+<span class="asm-comment">; 2. Bestimmte Bits SETZEN (ORA mit Maske, 1 = setzen, 0 = unverändert)</span>
+        <span class="asm-instr">lda</span> <span class="asm-addr">$D011</span>
+        <span class="asm-instr">ora</span> #<span class="asm-num">%00100000</span>   <span class="asm-comment">; Bit 5 setzen (Bitmap-Modus aktivieren)</span>
+        <span class="asm-instr">sta</span> <span class="asm-addr">$D011</span>
+
+<span class="asm-comment">; 3. Bestimmte Bits UMSCHALTEN (EOR mit Maske, 1 = umschalten, 0 = unverändert)</span>
+        <span class="asm-instr">lda</span> <span class="asm-addr">$D011</span>
+        <span class="asm-instr">eor</span> #<span class="asm-num">%00010000</span>   <span class="asm-comment">; Bit 4 umschalten (Multicolor-Modus toggeln)</span>
+        <span class="asm-instr">sta</span> <span class="asm-addr">$D011</span>
+
+<span class="asm-comment">; Praktisches Beispiel: Low-Nibble aus Byte isolieren</span>
+        <span class="asm-instr">lda</span> <span class="asm-num">$50</span>
+        <span class="asm-instr">and</span> #<span class="asm-num">$0F</span>         <span class="asm-comment">; #$0F = %00001111 → High-Nibble löschen, Low-Nibble behalten</span>
+<span class="asm-comment">; A enthält jetzt nur noch die Bits 0–3 (Werte 0–15)</span></pre>
+
+  <h3>3.5 Shift- und Rotate-Operationen</h3>
+
+  <p>
+    Shift- und Rotate-Befehle verschieben die Bits eines Bytes nach links oder rechts.
+    Jede Verschiebung um eine Position entspricht einer Multiplikation (Linksshift) bzw.
+    Division (Rechtsshift) durch 2. Die Rotate-Varianten beziehen den Carry-Flag in
+    die Rotation ein, was mehrbyte-breite Shifts ermöglicht.
+  </p>
+
+  <table>
+    <thead>
+      <tr><th>Mnemonic</th><th>Bedeutung</th><th>Bit 7</th><th>Bit 0</th><th>Carry</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="mono">ASL</td>
+        <td>Arithmetic Shift Left (Linksschiebung)</td>
+        <td>→ Carry</td>
+        <td>← 0</td>
+        <td>← Bit 7 alt</td>
+      </tr>
+      <tr>
+        <td class="mono">LSR</td>
+        <td>Logical Shift Right (Rechtsschiebung)</td>
+        <td>← 0</td>
+        <td>→ Carry</td>
+        <td>← Bit 0 alt</td>
+      </tr>
+      <tr>
+        <td class="mono">ROL</td>
+        <td>Rotate Left (Linksrotation durch Carry)</td>
+        <td>→ Carry</td>
+        <td>← Carry alt</td>
+        <td>← Bit 7 alt</td>
+      </tr>
+      <tr>
+        <td class="mono">ROR</td>
+        <td>Rotate Right (Rechtsrotation durch Carry)</td>
+        <td>← Carry alt</td>
+        <td>→ Carry</td>
+        <td>← Bit 0 alt</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <pre><span class="asm-comment">; Einfache Shifts — Multiplikation und Division durch 2</span>
+        <span class="asm-instr">lda</span> #<span class="asm-num">10</span>          <span class="asm-comment">; A = 10</span>
+        <span class="asm-instr">asl</span> a           <span class="asm-comment">; A = A * 2 = 20 (Linksshift)</span>
+        <span class="asm-instr">asl</span> a           <span class="asm-comment">; A = 20 * 2 = 40 (nochmal)</span>
+        <span class="asm-instr">lsr</span> a           <span class="asm-comment">; A = 40 / 2 = 20 (Rechtsshift)</span>
+
+<span class="asm-comment">; 16-Bit Linksshift (×2) eines 16-Bit-Werts in $20/$21</span>
+        <span class="asm-instr">asl</span> <span class="asm-num">$20</span>          <span class="asm-comment">; Low-Byte verschieben; Carry = altes Bit 7 des Low-Bytes</span>
+        <span class="asm-instr">rol</span> <span class="asm-num">$21</span>          <span class="asm-comment">; High-Byte rotieren (Carry = neues Bit 0 des High-Bytes!)</span>
+<span class="asm-comment">; Resultat: 16-Bit-Wert um 1 nach links geschoben (×2)</span>
+
+<span class="asm-comment">; Bits eines Bytes einzeln auswerten (Bit-Test durch Rotation)</span>
+        <span class="asm-instr">lda</span> <span class="asm-num">$50</span>          <span class="asm-comment">; Byte laden</span>
+        <span class="asm-instr">lsr</span> a           <span class="asm-comment">; Bit 0 → Carry; Rest nach rechts</span>
+        <span class="asm-instr">bcc</span> bit0_clear  <span class="asm-comment">; Springe wenn Carry = 0 (Bit 0 war 0)</span>
+<span class="asm-comment">; Hier: Bit 0 war 1</span>
+<span class="asm-label">bit0_clear:</span>
+<span class="asm-comment">; Hier: Bit 0 war 0</span></pre>
+
+  <h3>3.6 Sprungbefehle — Kontrollfluss</h3>
+
+  <p>
+    Sprungbefehle sind das Rückgrat jedes Programms. Ohne sie wäre ein Prozessor nichts
+    als ein sequenzieller Befehlsinterpreter. Mit Sprüngen entstehen Schleifen, Funktionen,
+    Fallunterscheidungen und schließlich komplexe Programme. Der 6510 kennt zwei Kategorien:
+    unbedingte Sprünge (JMP, JSR) und bedingte Sprünge (Branches).
+  </p>
+
+  <h4>Unbedingte Sprünge</h4>
+
+  <table>
+    <thead>
+      <tr><th>Mnemonic</th><th>Adressierung</th><th>Funktion</th><th>Zyklen</th><th>Stack</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="mono">JMP $addr</td>
+        <td>Absolut</td>
+        <td>PC = $addr (direkter Sprung zur absoluten Adresse)</td>
+        <td>3</td>
+        <td>unverändert</td>
+      </tr>
+      <tr>
+        <td class="mono">JMP ($addr)</td>
+        <td>Indirekt</td>
+        <td>PC = [$addr] (Sprungziel steht im Speicher → Sprung-Tabellen)</td>
+        <td>5</td>
+        <td>unverändert</td>
+      </tr>
+      <tr>
+        <td class="mono">JSR $addr</td>
+        <td>Absolut</td>
+        <td>PC-1 auf Stack pushen, dann PC = $addr (Unterprogrammaufruf)</td>
+        <td>6</td>
+        <td>+2 Bytes</td>
+      </tr>
+      <tr>
+        <td class="mono">RTS</td>
+        <td>Implizit</td>
+        <td>PC vom Stack holen (+1), weitermachen hinter JSR</td>
+        <td>6</td>
+        <td>−2 Bytes</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="box warning">
+    <div class="box-title">JMP ($addr) — Hardware-Bug beachten!</div>
+    Der indirekte JMP-Befehl hat einen bekannten Hardware-Bug: Wenn die Adresse an einer
+    Page-Grenze liegt (z.B. $10FF), liest der 6510 das Low-Byte des Vektors aus $10FF, aber
+    das High-Byte aus $1000 statt $1100. Vermeiden Sie indirekte JMPs auf Page-Grenzen!
+    Der Bug ist in allen 6502/6510-Chips vorhanden und ist Teil der "Spezifikation".
+  </div>
+
+  <h4>Bedingte Sprünge (Branches)</h4>
+
+  <p>
+    Alle acht bedingten Sprungbefehle des 6510 funktionieren nach demselben Prinzip: Sie prüfen
+    ein einzelnes Flag im Status-Register und springen entweder zum angegebenen Offset oder
+    führen den nächsten Befehl aus. Das Offset ist ein <em>vorzeichenbehaftetes</em> 8-Bit-Byte
+    — Sprünge können also maximal 127 Bytes vorwärts oder 128 Bytes rückwärts gehen.
+  </p>
+
+  <table class="branch-table">
+    <thead>
+      <tr>
+        <th>Mnemonic</th>
+        <th>Bedeutung</th>
+        <th>Bedingung</th>
+        <th>Typische Verwendung</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="mono">BEQ</td>
+        <td>Branch if Equal</td>
+        <td>Z = 1</td>
+        <td>Nach CMP: Gleichheit geprüft; nach INC/DEC: Wert = 0</td>
+      </tr>
+      <tr>
+        <td class="mono">BNE</td>
+        <td>Branch if Not Equal</td>
+        <td>Z = 0</td>
+        <td>Der häufigste Branch! Schleifen (BNE loop), Ungleichheitsprüfung</td>
+      </tr>
+      <tr>
+        <td class="mono">BCC</td>
+        <td>Branch if Carry Clear</td>
+        <td>C = 0</td>
+        <td>Nach CMP: A &lt; Operand (vorzeichenlos); kein Überlauf</td>
+      </tr>
+      <tr>
+        <td class="mono">BCS</td>
+        <td>Branch if Carry Set</td>
+        <td>C = 1</td>
+        <td>Nach CMP: A &gt;= Operand (vorzeichenlos); Übertrag vorhanden</td>
+      </tr>
+      <tr>
+        <td class="mono">BMI</td>
+        <td>Branch if Minus</td>
+        <td>N = 1</td>
+        <td>Ergebnis hat Bit 7 gesetzt (Wert &gt;= 128 oder vorzeichenbehaftet negativ)</td>
+      </tr>
+      <tr>
+        <td class="mono">BPL</td>
+        <td>Branch if Plus</td>
+        <td>N = 0</td>
+        <td>Ergebnis hat Bit 7 gelöscht (Wert &lt;= 127 oder vorzeichenbehaftet positiv)</td>
+      </tr>
+      <tr>
+        <td class="mono">BVS</td>
+        <td>Branch if oVerflow Set</td>
+        <td>V = 1</td>
+        <td>Vorzeichenüberlauf bei Addition/Subtraktion</td>
+      </tr>
+      <tr>
+        <td class="mono">BVC</td>
+        <td>Branch if oVerflow Clear</td>
+        <td>V = 0</td>
+        <td>Kein Vorzeichenüberlauf</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h4>Vergleichs-Befehle (CMP, CPX, CPY, BIT)</h4>
+
+  <p>
+    Bedingte Sprünge sind nur nützlich, wenn die Flags vorher sinnvoll gesetzt wurden.
+    Die Vergleichs-Befehle <code>CMP</code>, <code>CPX</code> und <code>CPY</code> subtrahieren
+    den Operanden vom jeweiligen Register, schreiben das Ergebnis aber <em>nicht</em> zurück —
+    sie setzen lediglich die Flags N, Z und C entsprechend dem Vergleich.
+  </p>
+
+  <pre><span class="asm-comment">; Vergleich von A mit einem Wert:</span>
+<span class="asm-comment">; CMP setzt: Z=1 wenn A==op, C=1 wenn A>=op, N=1 wenn A&lt;op (vorzeichenlos)</span>
+
+        <span class="asm-instr">lda</span> <span class="asm-num">$50</span>          <span class="asm-comment">; Wert laden</span>
+        <span class="asm-instr">cmp</span> #<span class="asm-num">10</span>          <span class="asm-comment">; Mit 10 vergleichen</span>
+        <span class="asm-instr">bcc</span> kleiner     <span class="asm-comment">; Springe wenn A &lt; 10 (C=0 nach CMP bedeutet "kleiner als")</span>
+        <span class="asm-instr">beq</span> gleich      <span class="asm-comment">; Springe wenn A == 10 (Z=1)</span>
+<span class="asm-comment">; Hier: A > 10</span>
+        <span class="asm-instr">jmp</span> groesser
+<span class="asm-label">kleiner:</span>
+        <span class="asm-instr">jmp</span> done
+<span class="asm-label">gleich:</span>
+        <span class="asm-instr">jmp</span> done
+<span class="asm-label">groesser:</span>
+<span class="asm-label">done:</span>   <span class="asm-instr">rts</span>
+
+<span class="asm-comment">; If-Then-Else Konstrukt in Assembly:</span>
+<span class="asm-comment">; if (A == 5) { Rahmen=Blau } else { Rahmen=Schwarz }</span>
+        <span class="asm-instr">cmp</span> #<span class="asm-num">5</span>
+        <span class="asm-instr">bne</span> else_teil   <span class="asm-comment">; Wenn A != 5, spring zum else-Teil</span>
+<span class="asm-comment">; then-Teil (A == 5):</span>
+        <span class="asm-instr">lda</span> #<span class="asm-num">6</span>           <span class="asm-comment">; Blau</span>
+        <span class="asm-instr">sta</span> <span class="asm-addr">$D020</span>
+        <span class="asm-instr">jmp</span> ende_if
+<span class="asm-label">else_teil:</span>
+        <span class="asm-instr">lda</span> #<span class="asm-num">0</span>           <span class="asm-comment">; Schwarz</span>
+        <span class="asm-instr">sta</span> <span class="asm-addr">$D020</span>
+<span class="asm-label">ende_if:</span>
+        <span class="asm-instr">rts</span></pre>
+
+  <h3>3.7 Stack-Operationen</h3>
+
+  <p>
+    Der Stack ist eine der wichtigsten Datenstrukturen in der 6510-Programmierung. Er ermöglicht
+    Unterprogramme (JSR/RTS funktionieren über den Stack), das temporäre Sichern von Register-Inhalten
+    während komplexer Operationen und das Weitergeben von Parametern. Ohne ein gutes Verständnis
+    des Stacks ist saubere Assembler-Programmierung unmöglich.
+  </p>
+
+  <div class="stack-diagram">
+    <pre>
+Stack ($0100–$01FF) — Nach Reset, SP = $FF:
+
+  $01FF: [leer]   ← SP zeigt hier (nächster freier Platz)
+  $01FE: [leer]
+  $01FD: [leer]
+  ...
+  $0101: [leer]
+  $0100: [leer]
+
+Nach PHA (A = $42):
+  $01FF: $42      ← Wert wurde hier geschrieben
+  $01FE: [leer]   ← SP zeigt jetzt hier (SP wurde von $FF auf $FE dekrementiert)
+  ...
+
+Nach JSR $C000 (PC = $080F, also "return address" = $080E gespeichert):
+  $01FF: $42
+  $01FE: $08      ← High-Byte der Return-Adresse
+  $01FD: $0E      ← Low-Byte der Return-Adresse (JSR speichert PC-1!)
+  $01FC: [leer]   ← SP = $FC
+  ...
+    </pre>
+  </div>
+
+  <table>
+    <thead>
+      <tr><th>Mnemonic</th><th>Funktion</th><th>Stack-Effekt</th><th>Flags</th><th>Zyklen</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="mono">PHA</td>
+        <td>Push Accumulator — A auf Stack legen</td>
+        <td>[SP] = A; SP--</td>
+        <td>keine</td>
+        <td>3</td>
+      </tr>
+      <tr>
+        <td class="mono">PLA</td>
+        <td>Pull Accumulator — A vom Stack holen</td>
+        <td>SP++; A = [SP]</td>
+        <td>N, Z</td>
+        <td>4</td>
+      </tr>
+      <tr>
+        <td class="mono">PHP</td>
+        <td>Push Processor Status — P auf Stack</td>
+        <td>[SP] = P; SP--</td>
+        <td>keine</td>
+        <td>3</td>
+      </tr>
+      <tr>
+        <td class="mono">PLP</td>
+        <td>Pull Processor Status — P vom Stack</td>
+        <td>SP++; P = [SP]</td>
+        <td>alle</td>
+        <td>4</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <pre><span class="asm-comment">; Unterprogramm mit vollständiger Register-Sicherung:</span>
+<span class="asm-comment">; Rettet A, X, Y auf dem Stack, führt Arbeit durch, stellt alles wieder her.</span>
+
+<span class="asm-label">mein_unterprogramm:</span>
+        <span class="asm-instr">pha</span>             <span class="asm-comment">; A sichern</span>
+        <span class="asm-instr">txa</span>             <span class="asm-comment">; X → A (damit PHA X sichern kann)</span>
+        <span class="asm-instr">pha</span>             <span class="asm-comment">; X (über A) sichern</span>
+        <span class="asm-instr">tya</span>             <span class="asm-comment">; Y → A</span>
+        <span class="asm-instr">pha</span>             <span class="asm-comment">; Y (über A) sichern</span>
+
+        <span class="asm-comment">; Stack-Zustand: [SP+1]=Y, [SP+2]=X, [SP+3]=A (von unten nach oben)</span>
+        <span class="asm-comment">; Hier kann beliebiger Code stehen, der A, X, Y verändert</span>
+        <span class="asm-instr">ldx</span> #<span class="asm-num">255</span>
+        <span class="asm-instr">ldy</span> #<span class="asm-num">0</span>
+        <span class="asm-instr">lda</span> #<span class="asm-num">$FF</span>
+        <span class="asm-comment">; ...</span>
+
+        <span class="asm-comment">; Register in UMGEKEHRTER Reihenfolge wiederherstellen:</span>
+        <span class="asm-instr">pla</span>             <span class="asm-comment">; Y wiederherstellen (durch A)</span>
+        <span class="asm-instr">tay</span>
+        <span class="asm-instr">pla</span>             <span class="asm-comment">; X wiederherstellen (durch A)</span>
+        <span class="asm-instr">tax</span>
+        <span class="asm-instr">pla</span>             <span class="asm-comment">; A wiederherstellen</span>
+        <span class="asm-instr">rts</span></pre>
+
+  <h3>3.8 System- und Interrupt-Befehle</h3>
+
+  <p>
+    Diese Befehle steuern das Verhalten des Prozessors bezüglich Interrupts und des Decimal-Modus.
+    Obwohl sie einfach erscheinen, sind einige von ihnen — insbesondere SEI und CLI — in der
+    Timing-kritischen Programmierung (Stufe 7) von zentraler Bedeutung.
+  </p>
+
+  <table>
+    <thead>
+      <tr><th>Mnemonic</th><th>Funktion</th><th>Wirkung</th><th>Zyklen</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="mono">SEI</td>
+        <td>Set Interrupt Disable</td>
+        <td>I = 1 → Maskierbare IRQs werden ignoriert</td>
+        <td>2</td>
+      </tr>
+      <tr>
+        <td class="mono">CLI</td>
+        <td>Clear Interrupt Disable</td>
+        <td>I = 0 → Maskierbare IRQs werden zugelassen</td>
+        <td>2</td>
+      </tr>
+      <tr>
+        <td class="mono">SEC</td>
+        <td>Set Carry</td>
+        <td>C = 1 — vor SBC aufrufen</td>
+        <td>2</td>
+      </tr>
+      <tr>
+        <td class="mono">CLC</td>
+        <td>Clear Carry</td>
+        <td>C = 0 — vor ADC aufrufen</td>
+        <td>2</td>
+      </tr>
+      <tr>
+        <td class="mono">SED</td>
+        <td>Set Decimal Mode</td>
+        <td>D = 1 → BCD-Arithmetik (selten auf C64 verwendet)</td>
+        <td>2</td>
+      </tr>
+      <tr>
+        <td class="mono">CLD</td>
+        <td>Clear Decimal Mode</td>
+        <td>D = 0 → Normaler Binär-Modus (beim Start immer aufrufen!)</td>
+        <td>2</td>
+      </tr>
+      <tr>
+        <td class="mono">CLV</td>
+        <td>Clear oVerflow</td>
+        <td>V = 0</td>
+        <td>2</td>
+      </tr>
+      <tr>
+        <td class="mono">NOP</td>
+        <td>No Operation</td>
+        <td>Tut nichts — 2 Zyklen verbrauchen (für Timing)</td>
+        <td>2</td>
+      </tr>
+      <tr>
+        <td class="mono">BRK</td>
+        <td>Break (Software-Interrupt)</td>
+        <td>Löst Interrupt aus, B=1; nützlich als Breakpoint im Monitor</td>
+        <td>7</td>
+      </tr>
+      <tr>
+        <td class="mono">RTI</td>
+        <td>Return from Interrupt</td>
+        <td>P und PC vom Stack holen (ISR-Rückkehr)</td>
+        <td>6</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>4. Taktzyklen und Performance</h2>
+
+  <p>
+    Bei 0,985 MHz (PAL) führt der C64 knapp eine Million Taktzyklen pro Sekunde aus.
+    Jeder Befehl benötigt eine bestimmte Anzahl von Zyklen — je nach Befehl und Adressierungsart.
+    Für normales Programmieren ist dies weniger kritisch. Für Raster-IRQs (Stufe 7) und
+    Demo-Effekte (Stufe 9) ist die genaue Zyklenzahl hingegen lebenswichtig.
+  </p>
+
+  <div class="timing-grid">
+    <div class="timing-card">
+      <h4>Lade-/Speicher-Befehle</h4>
+      <table>
+        <thead><tr><th>Befehl</th><th>Zyklen</th></tr></thead>
+        <tbody>
+          <tr><td>LDA #imm</td><td>2</td></tr>
+          <tr><td>LDA zp</td><td>3</td></tr>
+          <tr><td>LDA abs</td><td>4</td></tr>
+          <tr><td>LDA abs,X (kein Page-Cross)</td><td>4</td></tr>
+          <tr><td>LDA abs,X (Page-Cross)</td><td>5</td></tr>
+          <tr><td>LDA (zp),Y (kein PC)</td><td>5</td></tr>
+          <tr><td>LDA (zp),Y (Page-Cross)</td><td>6</td></tr>
+          <tr><td>STA zp</td><td>3</td></tr>
+          <tr><td>STA abs</td><td>4</td></tr>
+          <tr><td>STA abs,X</td><td>5</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="timing-card">
+      <h4>Sprung- und Stack-Befehle</h4>
+      <table>
+        <thead><tr><th>Befehl</th><th>Zyklen</th></tr></thead>
+        <tbody>
+          <tr><td>JMP abs</td><td>3</td></tr>
+          <tr><td>JMP (ind)</td><td>5</td></tr>
+          <tr><td>JSR abs</td><td>6</td></tr>
+          <tr><td>RTS</td><td>6</td></tr>
+          <tr><td>RTI</td><td>6</td></tr>
+          <tr><td>Branch (nicht genommen)</td><td>2</td></tr>
+          <tr><td>Branch (genommen, kein PC)</td><td>3</td></tr>
+          <tr><td>Branch (genommen, PC)</td><td>4</td></tr>
+          <tr><td>PHA / PHP</td><td>3</td></tr>
+          <tr><td>PLA / PLP</td><td>4</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="box note">
+    <div class="box-title">Page-Crossing Erklärung</div>
+    Ein "Page-Cross" tritt auf, wenn eine indizierte Adressierung die 256-Byte-Grenze einer
+    Speicherseite überschreitet — zum Beispiel wenn man auf Adresse $04FF zugreift und X = 1 ist,
+    ergibt sich $0500, was eine andere "Page" ($05) als $04 ist. Der 6510 benötigt in diesem
+    Fall einen zusätzlichen Zyklus. Bei timing-kritischem Code (Raster-IRQ) muss man Pages
+    so planen, dass kein unerwartetes Page-Crossing auftritt.
+  </div>
+
+  <h2>5. Schleifen und Kontrollstrukturen</h2>
+
+  <p>
+    Mit dem Wissen über Register, Flags und Sprungbefehle können wir nun die wichtigsten
+    Kontrollstrukturen der 6510-Programmierung vorstellen. Diese Muster werden in jedem
+    C64-Programm immer wieder verwendet — sie sind das A und O der strukturierten
+    Assembler-Programmierung.
+  </p>
+
+  <h3>5.1 Zählschleifen</h3>
+
+  <pre><span class="asm-comment">; ── MUSTER 1: Aufwärtszählung, 256 Iterationen ──────────────────────</span>
+<span class="asm-comment">; X läuft von 0 bis 255 (INX bei 255 → 0, BNE springt nicht mehr)</span>
+        <span class="asm-instr">ldx</span> #<span class="asm-num">0</span>
+<span class="asm-label">loop256:</span>
+        <span class="asm-comment">; Ihr Code hier</span>
+        <span class="asm-instr">inx</span>
+        <span class="asm-instr">bne</span> loop256    <span class="asm-comment">; 256 Iterationen (X: 0→1→2→...→255→0)</span>
+
+<span class="asm-comment">; ── MUSTER 2: Countdown, N Iterationen ──────────────────────────────</span>
+<span class="asm-comment">; Effizienter als Aufwärtszählung wenn N bekannt ist</span>
+        <span class="asm-instr">ldx</span> #<span class="asm-num">40</span>         <span class="asm-comment">; 40 Iterationen (z.B. 40 Spalten)</span>
+<span class="asm-label">countdown:</span>
+        <span class="asm-comment">; Ihr Code hier</span>
+        <span class="asm-instr">dex</span>             <span class="asm-comment">; X--</span>
+        <span class="asm-instr">bne</span> countdown   <span class="asm-comment">; Springe wenn X != 0</span>
+
+<span class="asm-comment">; ── MUSTER 3: Verschachtelte Schleifen (äußere: X, innere: Y) ───────</span>
+<span class="asm-comment">; Beispiel: 25 Zeilen × 40 Spalten = 1000 Iterationen</span>
+        <span class="asm-instr">ldx</span> #<span class="asm-num">25</span>         <span class="asm-comment">; 25 Zeilen (äußere Schleife)</span>
+<span class="asm-label">outer_loop:</span>
+        <span class="asm-instr">ldy</span> #<span class="asm-num">40</span>         <span class="asm-comment">; 40 Spalten (innere Schleife) — Y bei jeder Iteration neu setzen!</span>
+<span class="asm-label">inner_loop:</span>
+        <span class="asm-comment">; Code für jede Zelle (X = Zeilennr., Y = Spaltennr.)</span>
+        <span class="asm-instr">dey</span>
+        <span class="asm-instr">bne</span> inner_loop  <span class="asm-comment">; Innere Schleife</span>
+        <span class="asm-instr">dex</span>
+        <span class="asm-instr">bne</span> outer_loop  <span class="asm-comment">; Äußere Schleife</span>
+
+<span class="asm-comment">; ── MUSTER 4: Schleife mit Abbruchbedingung in der Mitte ─────────────</span>
+<span class="asm-comment">; Suche nach Wert $FF in einem Array ab Adresse $0300</span>
+        <span class="asm-instr">ldx</span> #<span class="asm-num">0</span>
+<span class="asm-label">search_loop:</span>
+        <span class="asm-instr">lda</span> <span class="asm-num">$0300</span>,x
+        <span class="asm-instr">cmp</span> #<span class="asm-num">$FF</span>        <span class="asm-comment">; Sentinel-Wert?</span>
+        <span class="asm-instr">beq</span> found       <span class="asm-comment">; Ja → gefunden</span>
+        <span class="asm-instr">inx</span>
+        <span class="asm-instr">bne</span> search_loop <span class="asm-comment">; Weiter (maximal 256 Einträge)</span>
+<span class="asm-comment">; Nicht gefunden:</span>
+        <span class="asm-instr">lda</span> #<span class="asm-num">0</span>
+        <span class="asm-instr">rts</span>
+<span class="asm-label">found:</span>
+        <span class="asm-comment">; X enthält den Index des gefundenen Elements</span>
+        <span class="asm-instr">stx</span> <span class="asm-num">$60</span>          <span class="asm-comment">; Index speichern</span>
+        <span class="asm-instr">lda</span> #<span class="asm-num">1</span>           <span class="asm-comment">; 1 = "gefunden"</span>
+        <span class="asm-instr">rts</span></pre>
+
+  <h3>5.2 Unterprogramme und Code-Struktur</h3>
+
+  <p>
+    Gut strukturierter C64-Assembler teilt die Arbeit in kleine, überschaubare Unterprogramme
+    auf. Jedes Unterprogramm sollte eine einzige, klar definierte Aufgabe haben; es sollte
+    klar dokumentiert sein, welche Register es verändert und welche es unverändert lässt;
+    und es sollte symmetrisch mit dem Stack umgehen (gleich viele PHA und PLA).
+  </p>
+
+  <h2>6. Vollständiges Beispielprogramm — 16 Farben</h2>
+
+  <p>
+    Das folgende Programm demonstriert alle bisher gelernten Konzepte in einem vollständigen,
+    kommentierten Programm. Es zeigt alle 16 Farben des C64 als horizontale Balken auf dem
+    Bildschirm und illustriert den Einsatz von Zero-Page-Variablen, verschachtelten Schleifen
+    und Unterprogrammen.
+  </p>
+
+  <pre><span class="asm-comment">; =================================================================
+; C64 Demo: 16 Farben als horizontale Balken
+; Stufe 1 — Vollständiges Beispiel
+; Assembler: ACME
+; =================================================================</span>
+
+<span class="asm-comment">; ── Konstanten ───────────────────────────────────────────────────</span>
+SCREEN_RAM  = <span class="asm-num">$0400</span>   <span class="asm-comment">; Bildschirm-RAM (Standard)</span>
+COLOR_RAM   = <span class="asm-num">$D800</span>   <span class="asm-comment">; Color-RAM</span>
+VIC_BORDER  = <span class="asm-num">$D020</span>   <span class="asm-comment">; Rahmenfarbe</span>
+VIC_BG0     = <span class="asm-num">$D021</span>   <span class="asm-comment">; Hintergrundfarbe 0</span>
+
+<span class="asm-comment">; ── Zero-Page Variablen ($02–$FF, frei verwendbar) ───────────────</span>
+zp_color    = <span class="asm-num">$02</span>     <span class="asm-comment">; Aktuelle Farbe (0–15)</span>
+zp_row      = <span class="asm-num">$03</span>     <span class="asm-comment">; Aktuelle Zeile (0–24)</span>
+
+<span class="asm-instr">!to</span> <span class="asm-label">"farben16.prg"</span>, cbm
+
+* = <span class="asm-num">$0801</span>
+<span class="asm-comment">; BASIC-Stub: 1 SYS 2061</span>
+<span class="asm-instr">!byte</span> <span class="asm-num">$0b</span>,<span class="asm-num">$08</span>,<span class="asm-num">$01</span>,<span class="asm-num">$00</span>,<span class="asm-num">$9e</span>,<span class="asm-num">$32</span>,<span class="asm-num">$30</span>,<span class="asm-num">$36</span>,<span class="asm-num">$31</span>,<span class="asm-num">$00</span>,<span class="asm-num">$00</span>,<span class="asm-num">$00</span>
+
+* = <span class="asm-num">$080d</span>
+
+<span class="asm-label">main:</span>
+    <span class="asm-comment">; Initialisierung: Hintergrund und Rahmen schwarz</span>
+    <span class="asm-instr">lda</span> #<span class="asm-num">0</span>
+    <span class="asm-instr">sta</span> VIC_BG0
+    <span class="asm-instr">sta</span> VIC_BORDER
+
+    <span class="asm-comment">; Farb-Schleife: Zeile 0 = Farbe 0, Zeile 1 = Farbe 1, ..., Zeile 15 = Farbe 15</span>
+    <span class="asm-instr">lda</span> #<span class="asm-num">0</span>
+    <span class="asm-instr">sta</span> zp_color       <span class="asm-comment">; Farbe 0 beginnen</span>
+    <span class="asm-instr">sta</span> zp_row         <span class="asm-comment">; Zeile 0 beginnen</span>
+
+<span class="asm-label">row_loop:</span>
+    <span class="asm-comment">; Aktuelle Farbe = Zeile % 16 (da 16 Farben auf 25 Zeilen)</span>
+    <span class="asm-instr">lda</span> zp_row
+    <span class="asm-instr">and</span> #<span class="asm-num">$0F</span>           <span class="asm-comment">; Modulo 16 (nur Low-Nibble = Werte 0–15)</span>
+    <span class="asm-instr">sta</span> zp_color
+
+    <span class="asm-comment">; Unterprogramm aufrufen: Zeile mit Farbe füllen</span>
+    <span class="asm-instr">jsr</span> fill_row
+
+    <span class="asm-comment">; Nächste Zeile</span>
+    <span class="asm-instr">inc</span> zp_row
+    <span class="asm-instr">lda</span> zp_row
+    <span class="asm-instr">cmp</span> #<span class="asm-num">25</span>            <span class="asm-comment">; 25 Zeilen (0–24)?</span>
+    <span class="asm-instr">bne</span> row_loop      <span class="asm-comment">; Wenn noch nicht Zeile 25: weiter</span>
+
+    <span class="asm-instr">rts</span>               <span class="asm-comment">; Fertig — zurück zu BASIC</span>
+
+<span class="asm-comment">; ──────────────────────────────────────────────────────────────────
+; Unterprogramm: fill_row
+; Füllt die Zeile (zp_row) im Color-RAM mit Farbe (zp_color).
+; Füllt die Zeile im Screen-RAM mit Leerzeichen ($20).
+; Verändert: A, X — zp_color und zp_row bleiben unverändert.
+; ──────────────────────────────────────────────────────────────────</span>
+<span class="asm-label">fill_row:</span>
+    <span class="asm-comment">; Spalten-Offset berechnen: Zeile × 40 = Startposition im Screen-RAM</span>
+    <span class="asm-comment">; Einfache Näherung: Zeile × 40 in zwei Schritten</span>
+    <span class="asm-comment">; (Volle 16-Bit-Multiplikation in Stufe 8; hier direkte Tabelle)</span>
+    <span class="asm-instr">lda</span> zp_row         <span class="asm-comment">; Zeilennummer</span>
+    <span class="asm-instr">asl</span> a              <span class="asm-comment">; ×2</span>
+    <span class="asm-instr">asl</span> a              <span class="asm-comment">; ×4</span>
+    <span class="asm-instr">asl</span> a              <span class="asm-comment">; ×8</span>
+    <span class="asm-instr">sta</span> <span class="asm-num">$FE</span>            <span class="asm-comment">; Zwischenspeicher: Zeile × 8</span>
+    <span class="asm-instr">lda</span> zp_row
+    <span class="asm-instr">asl</span> a              <span class="asm-comment">; ×2</span>
+    <span class="asm-instr">asl</span> a              <span class="asm-comment">; ×4</span>
+    <span class="asm-instr">clc</span>
+    <span class="asm-instr">adc</span> <span class="asm-num">$FE</span>            <span class="asm-comment">; + Zeile×8 = Zeile×12 (×4+×8=×12)?</span>
+    <span class="asm-comment">; Hinweis: Zeile × 40 = Zeile × 32 + Zeile × 8</span>
+    <span class="asm-comment">; Vereinfacht für dieses Beispiel — exakte Mult. in Stufe 8</span>
+
+    <span class="asm-comment">; Screen-RAM-Zeile füllen: 40 Leerzeichen</span>
+    <span class="asm-instr">ldx</span> #<span class="asm-num">40</span>            <span class="asm-comment">; 40 Spalten</span>
+    <span class="asm-instr">lda</span> #<span class="asm-num">$20</span>           <span class="asm-comment">; Leerzeichen</span>
+<span class="asm-label">fill_scr_col:</span>
+    <span class="asm-instr">sta</span> SCREEN_RAM,x   <span class="asm-comment">; Leerzeichen schreiben</span>
+    <span class="asm-instr">dex</span>
+    <span class="asm-instr">bne</span> fill_scr_col
+
+    <span class="asm-comment">; Color-RAM-Zeile mit aktueller Farbe füllen: 40 Bytes</span>
+    <span class="asm-instr">ldx</span> #<span class="asm-num">40</span>
+    <span class="asm-instr">lda</span> zp_color       <span class="asm-comment">; Aktuelle Farbe</span>
+<span class="asm-label">fill_col_col:</span>
+    <span class="asm-instr">sta</span> COLOR_RAM,x    <span class="asm-comment">; Farbe ins Color-RAM</span>
+    <span class="asm-instr">dex</span>
+    <span class="asm-instr">bne</span> fill_col_col
+
+    <span class="asm-instr">rts</span>               <span class="asm-comment">; Zurück zum Aufrufer</span></pre>
+
+  <h2>7. Vertiefung: Sprung-Tabellen mit JMP (indirect)</h2>
+
+  <p>
+    Eine fortgeschrittene Technik, die bereits in diesem Kapitel vorgestellt werden sollte:
+    Sprung-Tabellen (Jump Tables). Sie ermöglichen es, auf Basis einer Zahl (typischerweise
+    im Akkumulator oder X-Register) verschiedene Unterprogramme aufzurufen — das 6510-Äquivalent
+    eines Switch-Case-Statements.
+  </p>
+
+  <pre><span class="asm-comment">; Sprung-Tabelle: Ruft je nach Wert in A (0–3) verschiedene Routinen auf</span>
+<span class="asm-comment">; Methode: JMP über indirekte Adressierung (JMP ($addr))</span>
+
+<span class="asm-label">dispatch:</span>
+    <span class="asm-comment">; A enthält den Selektor (0, 1, 2 oder 3)</span>
+    <span class="asm-comment">; Sprung-Vektor-Adresse berechnen: Tabelle + (A × 2)</span>
+    <span class="asm-instr">asl</span> a              <span class="asm-comment">; A × 2 (jeder Tabelleneintr. = 2 Bytes)</span>
+    <span class="asm-instr">tax</span>               <span class="asm-comment">; Als Index-Register</span>
+    <span class="asm-instr">lda</span> jump_table,x   <span class="asm-comment">; Low-Byte der Zieladresse</span>
+    <span class="asm-instr">sta</span> <span class="asm-num">$FE</span>            <span class="asm-comment">; In ZP-Pointer speichern</span>
+    <span class="asm-instr">lda</span> jump_table+<span class="asm-num">1</span>,x <span class="asm-comment">; High-Byte der Zieladresse</span>
+    <span class="asm-instr">sta</span> <span class="asm-num">$FF</span>            <span class="asm-comment">; In ZP-Pointer+1 speichern</span>
+    <span class="asm-instr">jmp</span> (<span class="asm-num">$FE</span>)          <span class="asm-comment">; Indirekter Sprung über $FE/$FF</span>
+
+<span class="asm-label">jump_table:</span>
+    <span class="asm-instr">!word</span> routine_0    <span class="asm-comment">; Eintrag 0: Adresse von routine_0</span>
+    <span class="asm-instr">!word</span> routine_1    <span class="asm-comment">; Eintrag 1: Adresse von routine_1</span>
+    <span class="asm-instr">!word</span> routine_2    <span class="asm-comment">; Eintrag 2: Adresse von routine_2</span>
+    <span class="asm-instr">!word</span> routine_3    <span class="asm-comment">; Eintrag 3: Adresse von routine_3</span>
+
+<span class="asm-label">routine_0:</span>  <span class="asm-instr">lda</span> #<span class="asm-num">0</span>  <span class="asm-instr">sta</span> <span class="asm-addr">$D020</span>  <span class="asm-instr">rts</span>   <span class="asm-comment">; Rahmen schwarz</span>
+<span class="asm-label">routine_1:</span>  <span class="asm-instr">lda</span> #<span class="asm-num">1</span>  <span class="asm-instr">sta</span> <span class="asm-addr">$D020</span>  <span class="asm-instr">rts</span>   <span class="asm-comment">; Rahmen weiß</span>
+<span class="asm-label">routine_2:</span>  <span class="asm-instr">lda</span> #<span class="asm-num">2</span>  <span class="asm-instr">sta</span> <span class="asm-addr">$D020</span>  <span class="asm-instr">rts</span>   <span class="asm-comment">; Rahmen rot</span>
+<span class="asm-label">routine_3:</span>  <span class="asm-instr">lda</span> #<span class="asm-num">6</span>  <span class="asm-instr">sta</span> <span class="asm-addr">$D020</span>  <span class="asm-instr">rts</span>   <span class="asm-comment">; Rahmen blau</span></pre>
+
+  <div class="box tip">
+    <div class="box-title">Zero-Page-Pointer</div>
+    Die Zero-Page (Adressen $00–$FF) ist die schnellste RAM-Region des C64. Zero-Page-Befehle
+    sind 1 Byte kürzer und 1 Zyklus schneller als absolute Befehle. Noch wichtiger: Nur
+    Zero-Page-Adressen können als indirekte Pointer verwendet werden (<code>LDA ($FE),Y</code>
+    oder <code>JMP ($FE)</code>). Reservieren Sie 16–32 Bytes der Zero-Page für häufig
+    verwendete Variablen und Pointer.
+  </div>
+
+  <div class="benchmark">
+    <h2>Skill-Benchmark: Stufe 1</h2>
+    <p style="color:#aac; margin-bottom:16px;">
+      Bevor Sie zu Stufe 2 weitergehen, sollten Sie alle folgenden Punkte mit Sicherheit
+      bejahen und demonstrieren können:
+    </p>
+    <ul>
+      <li>Ich kann alle sechs Register des 6510 (A, X, Y, SP, PC, P) und ihre Funktion aus dem Gedächtnis erklären</li>
+      <li>Ich kann alle sieben Flags (N, V, B, D, I, Z, C) und ihre Auslöser nennen</li>
+      <li>Ich weiß, warum CLC vor ADC und SEC vor SBC aufgerufen werden muss</li>
+      <li>Ich kann eine 16-Bit-Addition mit zwei ADC-Befehlen implementieren</li>
+      <li>Ich kann eine Schleife mit BNE und INX/DEX schreiben, die genau 256 Mal iteriert</li>
+      <li>Ich kann ein Unterprogramm mit JSR aufrufen und korrekt mit RTS zurückkehren</li>
+      <li>Ich kann A, X und Y über den Stack sichern und wiederherstellen (PHA/PLA, TAX, TXA)</li>
+      <li>Ich kann einen Sprung-Tabellen-Mechanismus mit JMP (indirect) implementieren</li>
+    </ul>
+  </div>
+
+  <div class="exercises-section">
+    <h2>Übungen — Stufe 1</h2>
+
+    <div class="exercise">
+      <div class="exercise-num">Übung 1.1 — Register-Manipulation</div>
+      <p>Schreiben Sie ein Programm, das folgende Operationen in exakter Reihenfolge ausführt,
+      ohne Zwischenzustände zu verlieren: (1) Laden Sie den Wert $AA in den Akkumulator.
+      (2) Transferieren Sie ihn nach X. (3) Laden Sie $55 in den Akkumulator. (4) Sichern Sie
+      A auf dem Stack (PHA). (5) Transferieren Sie X nach A. (6) Holen Sie den Stack-Wert
+      zurück (PLA). Am Ende: A = $55 (vom Stack), X = $AA. Überprüfen Sie mit dem VICE-Monitor
+      (<code>r</code>-Befehl).</p>
+    </div>
+
+    <div class="exercise">
+      <div class="exercise-num">Übung 1.2 — 16-Bit-Addition</div>
+      <p>Speichern Sie die Zahl 1000 (hexadezimal $03E8) als 16-Bit-Wert in der Zero-Page
+      ($20 = $E8, $21 = $03). Speichern Sie die Zahl 500 ($01F4) als zweiten Wert ($22 = $F4,
+      $23 = $01). Addieren Sie beide Zahlen mit der 16-Bit-ADC-Technik und speichern Sie das
+      Ergebnis (1500 = $05DC) in $24/$25. Verifizieren Sie das Ergebnis im VICE-Monitor mit
+      <code>m 24 25</code>.</p>
+    </div>
+
+    <div class="exercise">
+      <div class="exercise-num">Übung 1.3 — Schleife mit Abbruchbedingung</div>
+      <p>Schreiben Sie eine Schleife, die alle Bytes des Bildschirm-RAMs ($0400–$07E7)
+      auf den Wert $20 (Leerzeichen) setzt. Verwenden Sie X oder Y als Index-Register.
+      Beachten Sie: Das Bildschirm-RAM ist genau 1000 Bytes groß (40×25), was nicht
+      exakt in 256-Byte-Blöcken aufgeht. Lösung: Vier Schleifen à 250 Bytes, oder eine
+      clevere 4×256-Technik mit dem Hinweis, dass $07E8–$07FF überschrieben werden dürfen.</p>
+    </div>
+
+    <div class="exercise">
+      <div class="exercise-num">Übung 1.4 — Unterprogramm mit Parametern</div>
+      <p>Schreiben Sie ein Unterprogramm <code>set_border_color</code>, das die Rahmenfarbe
+      des VIC-II auf den Wert setzt, der im Akkumulator übergeben wird. Das Unterprogramm
+      soll: (1) A auf dem Stack sichern, (2) den Wert in $D020 schreiben, (3) A vom Stack
+      wiederherstellen, (4) mit RTS zurückkehren. Rufen Sie das Unterprogramm dreimal
+      hintereinander mit den Farben 0 (Schwarz), 6 (Blau) und 2 (Rot) auf — aber fügen Sie
+      zwischen den Aufrufen eine Verzögerungsschleife ein, damit die Farbwechsel sichtbar sind.</p>
+    </div>
+  </div>
+
+  <div class="chapter-nav">
+    <a href="stufe_00_fundament.html">
+      <span class="nav-label">Zurück</span>
+      <span class="nav-title">&larr; Stufe 0 — Das Fundament</span>
+    </a>
+    <a href="stufe_02_adressierung_speicher.html">
+      <span class="nav-label">Weiter</span>
+      <span class="nav-title">Stufe 2 — Adressierung &amp; Speicher &rarr;</span>
+    </a>
+  </div>
+</main>
+
+</body>
+</html>

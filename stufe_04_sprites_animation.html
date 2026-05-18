@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C64 Mastery — Stufe 4: Sprites &amp; Animation</title>
+<style>
+:root{--c64-blue:#0033aa;--c64-green:#00ff88;--c64-dark:#1a1a2e;--paper:#f8f6f0;--paper-dark:#ede9e0;--text:#1a1a2e;--text-light:#444466;--border:#c0b8a8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Georgia','Times New Roman',serif;font-size:17px;line-height:1.75;color:var(--text);background:var(--paper);display:grid;grid-template-columns:270px 1fr;min-height:100vh}
+.sidebar{background:var(--c64-dark);color:#ccc;position:sticky;top:0;height:100vh;overflow-y:auto;font-family:'Courier New',monospace;font-size:13px}
+.sidebar-header{background:var(--c64-blue);color:white;padding:20px 16px;text-align:center}
+.sidebar-header .logo{font-size:26px;font-weight:bold;color:var(--c64-green);letter-spacing:2px}
+.sidebar-header .sub{font-size:11px;color:#aac;margin-top:4px}
+.sidebar nav ul{list-style:none;padding:8px 0}
+.sidebar nav ul li a{display:block;padding:7px 16px;color:#99b;text-decoration:none;border-left:3px solid transparent;transition:all .2s;font-size:12.5px}
+.sidebar nav ul li a:hover,.sidebar nav ul li a.active{background:rgba(0,51,170,.3);color:var(--c64-green);border-left-color:var(--c64-green)}
+.sidebar nav ul li.section-label{padding:8px 16px 2px;font-size:10px;color:#445;text-transform:uppercase;letter-spacing:1px;margin-top:8px}
+main{max-width:860px;padding:0 56px 80px}
+.chapter-header{border-bottom:3px solid var(--c64-blue);padding:48px 0 28px;margin-bottom:40px}
+.chapter-number{font-family:'Courier New',monospace;font-size:12px;color:var(--c64-blue);text-transform:uppercase;letter-spacing:3px;font-weight:bold;margin-bottom:10px}
+.chapter-header h1{font-size:40px;font-weight:bold;color:var(--c64-dark);line-height:1.2;margin-bottom:18px}
+.chapter-meta{display:flex;gap:20px;font-family:'Courier New',monospace;font-size:13px;color:var(--text-light);flex-wrap:wrap;align-items:center}
+.badge{background:var(--c64-blue);color:white;padding:3px 10px;border-radius:12px;font-size:12px}
+.badge.green{background:#2e7d32}.badge.orange{background:#e65100}
+.objectives{background:#e3f2fd;border-left:4px solid #1565c0;border-radius:0 8px 8px 0;padding:22px 26px;margin-bottom:40px}
+.objectives h3{color:#1565c0;font-size:13px;text-transform:uppercase;letter-spacing:2px;margin-bottom:10px;font-family:'Courier New',monospace}
+.objectives ul{padding-left:20px}.objectives ul li{margin-bottom:5px}
+h2{font-size:26px;color:var(--c64-dark);border-bottom:2px solid var(--c64-blue);padding-bottom:8px;margin:44px 0 20px}
+h3{font-size:19px;color:var(--c64-blue);margin:28px 0 14px}
+h4{font-size:15px;color:var(--text);margin:20px 0 10px;font-family:'Courier New',monospace;text-transform:uppercase;letter-spacing:1px}
+p{margin-bottom:15px}ul,ol{padding-left:24px;margin-bottom:15px}li{margin-bottom:5px}
+pre{background:var(--c64-dark);color:var(--c64-green);font-family:'Courier New',monospace;font-size:13px;line-height:1.65;padding:22px;border-radius:8px;overflow-x:auto;margin:18px 0;border:1px solid #2a2a4a}
+code{font-family:'Courier New',monospace;background:#e5e0d4;padding:2px 6px;border-radius:3px;font-size:.88em;color:#8b0000}
+pre code{background:none;padding:0;color:inherit}
+table{width:100%;border-collapse:collapse;margin:18px 0;font-size:14.5px}
+thead{background:var(--c64-blue);color:white}
+thead th{padding:11px 14px;text-align:left;font-family:'Courier New',monospace;font-size:12px}
+tbody tr:nth-child(even){background:var(--paper-dark)}
+tbody td{padding:9px 14px;border-bottom:1px solid var(--border);vertical-align:top}
+tbody tr:hover{background:#dde8ff}
+.mono{font-family:'Courier New',monospace;color:#8b0000;font-weight:bold}
+.box{border-radius:0 8px 8px 0;padding:18px 22px;margin:22px 0;border-left:4px solid}
+.box .box-title{font-family:'Courier New',monospace;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px}
+.box.warning{background:#fff8e1;border-color:#f0a000}.box.warning .box-title{color:#e65100}
+.box.tip{background:#e8f5e9;border-color:#2e7d32}.box.tip .box-title{color:#1b5e20}
+.box.note{background:#e3f2fd;border-color:#1565c0}.box.note .box-title{color:#0d47a1}
+.box.important{background:#fce4ec;border-color:#c62828}.box.important .box-title{color:#b71c1c}
+.benchmark{background:linear-gradient(135deg,#001166 0%,#0033aa 100%);color:white;padding:30px;border-radius:12px;margin:44px 0}
+.benchmark h2{color:var(--c64-green);border-color:rgba(0,255,136,.3);margin-top:0;font-size:22px}
+.benchmark ul{list-style:none;padding:0}
+.benchmark ul li{padding:7px 0 7px 28px;position:relative;border-bottom:1px solid rgba(255,255,255,.1)}
+.benchmark ul li:before{content:'☐';position:absolute;left:0;color:var(--c64-green)}
+.exercises-section{border:2px solid var(--c64-blue);border-radius:12px;padding:28px;margin:44px 0}
+.exercises-section h2{color:var(--c64-blue);margin-top:0;border:none;padding:0}
+.exercise{background:var(--paper-dark);border-radius:8px;padding:18px;margin:14px 0}
+.exercise-num{font-family:'Courier New',monospace;font-size:11px;color:var(--c64-blue);font-weight:bold;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px}
+.chapter-nav{display:flex;justify-content:space-between;margin-top:56px;padding-top:28px;border-top:2px solid var(--border);gap:16px}
+.chapter-nav a{display:flex;flex-direction:column;padding:14px 22px;background:var(--c64-dark);color:white;text-decoration:none;border-radius:8px;min-width:180px;transition:background .2s}
+.chapter-nav a:hover{background:var(--c64-blue)}
+.nav-label{font-size:10px;color:#889;font-family:'Courier New',monospace;text-transform:uppercase;letter-spacing:2px;margin-bottom:4px}
+.nav-title{font-size:15px;font-weight:bold}
+</style>
+</head>
+<body>
+<nav class="sidebar">
+  <div class="sidebar-header"><div class="logo">C64</div><div class="sub">MASTERY SYSTEM</div></div>
+  <nav><ul>
+    <li><a href="index.html">&#9632; Übersicht &amp; Curriculum</a></li>
+    <li class="section-label">Grundlagen</li>
+    <li><a href="stufe_00_fundament.html">Stufe 0 — Fundament</a></li>
+    <li><a href="stufe_01_6510_assembler.html">Stufe 1 — 6510 Assembler</a></li>
+    <li><a href="stufe_02_adressierung_speicher.html">Stufe 2 — Adressierung &amp; Speicher</a></li>
+    <li class="section-label">Grafik &amp; Sound</li>
+    <li><a href="stufe_03_bildschirm_zeichen.html">Stufe 3 — VIC-II &amp; Zeichen</a></li>
+    <li><a href="stufe_04_sprites_animation.html" class="active">Stufe 4 — Sprites &amp; Animation</a></li>
+    <li><a href="stufe_05_bitmap_grafik.html">Stufe 5 — Bitmap-Grafik</a></li>
+    <li><a href="stufe_06_sid_sound.html">Stufe 6 — SID &amp; Sound</a></li>
+    <li class="section-label">Fortgeschritten</li>
+    <li><a href="stufe_07_interrupts_timing.html">Stufe 7 — Interrupts &amp; Timing</a></li>
+    <li><a href="stufe_08_optimierung.html">Stufe 8 — Optimierung</a></li>
+    <li><a href="stufe_09_demo_effekte.html">Stufe 9 — Demo-Effekte</a></li>
+    <li><a href="stufe_10_meisterschaft.html">Stufe 10 — Meisterschaft</a></li>
+  </ul></nav>
+</nav>
+
+<main>
+<div class="chapter-header">
+  <div class="chapter-number">Stufe 4 — Grafik &amp; Sound</div>
+  <h1>Sprites &amp; Animation</h1>
+  <div class="chapter-meta">
+    <span><span class="badge orange">Mittelstufe</span></span>
+    <span>&#128337; ca. 6 Stunden</span>
+    <span>Voraussetzungen: Stufen 0–3</span>
+  </div>
+</div>
+
+<div class="objectives">
+  <h3>&#127919; Lernziele dieser Stufe</h3>
+  <ul>
+    <li>Sprite-Daten im richtigen Format anlegen und im Speicher platzieren</li>
+    <li>Alle 8 Hardware-Sprites unabhängig konfigurieren (Position, Farbe, Größe)</li>
+    <li>Sprites animieren: Frame-Sequenzen, Timing, flüssige Bewegung</li>
+    <li>Joystick-Eingaben lesen und Sprites damit steuern</li>
+    <li>Hardware-Kollisionserkennung des VIC-II nutzen</li>
+    <li>Das Prinzip des Sprite-Multiplexers für mehr als 8 logische Sprites verstehen</li>
+  </ul>
+</div>
+
+<h2>1. Hardware-Sprites — Grundkonzept</h2>
+
+<p>Hardware-Sprites sind eines der faszinierendsten Features des C64. Im Gegensatz zu reiner Software-Grafik (bei der Pixel manuell ins Bitmap-RAM geschrieben werden) sind Sprites vollständig im VIC-II-Chip implementiert. Der Chip rendert sie unabhängig von der CPU, ohne Rechenzeit zu beanspruchen. Das war für 1982 revolutionär und erlaubte Spiele mit mehreren bewegten Figuren, die auf zeitgenössischen 8-Bit-Systemen ohne diese Unterstützung kaum möglich gewesen wären.</p>
+
+<p>Der C64 bietet 8 Hardware-Sprites gleichzeitig. Jeder Sprite ist 24×21 Pixel groß im Hires-Modus (oder 12×21 im Multicolor-Modus) und kann unabhängig positioniert, eingefärbt, skaliert und priorisiert werden. Die Sprite-Daten — die Pixel-Definition — liegen im RAM und werden vom VIC-II pro Frame automatisch gelesen.</p>
+
+<h3>1.1 Technische Spezifikationen</h3>
+
+<table>
+  <thead><tr><th>Eigenschaft</th><th>Hires-Sprite</th><th>Multicolor-Sprite</th></tr></thead>
+  <tbody>
+    <tr><td>Auflösung</td><td>24 × 21 Pixel</td><td>12 × 21 Pixel (doppelbreite Pixel)</td></tr>
+    <tr><td>Datengröße</td><td>63 Bytes (3 × 21 Zeilen)</td><td>63 Bytes (gleich, andere Interpretation)</td></tr>
+    <tr><td>Anzahl gleichzeitig</td><td>8</td><td>8 (auch Mix möglich)</td></tr>
+    <tr><td>Farben/Sprite</td><td>1 (+ transparent)</td><td>3 (+ transparent)</td></tr>
+    <tr><td>Maximalgröße (expanded)</td><td>48 × 42 Pixel</td><td>24 × 42 Pixel</td></tr>
+    <tr><td>X-Bereich</td><td>0–511 (sichtbar ca. 24–343)</td><td>gleich</td></tr>
+    <tr><td>Y-Bereich</td><td>0–255 (sichtbar ca. 50–250 PAL)</td><td>gleich</td></tr>
+  </tbody>
+</table>
+
+<h2>2. Sprite-Daten und das Pointer-System</h2>
+
+<h3>2.1 Sprite-Daten-Format</h3>
+
+<p>Ein Hires-Sprite besteht aus 63 Bytes: 3 Bytes pro Rasterzeile × 21 Zeilen. Das 64. Byte in jedem 64-Byte-Block wird ignoriert. Die Daten müssen an einer durch 64 teilbaren Adresse beginnen (64-Byte-Ausrichtung).</p>
+
+<p>Bit 7 des ersten Bytes einer Zeile entspricht dem linksten Pixel, Bit 0 dem rechtsten Pixel der ersten 8-Pixel-Gruppe. Gesetztes Bit = Sprite-Farbe, gelöschtes Bit = transparent.</p>
+
+<pre>
+; Beispiel: Kleines Raumschiff-Sprite (24×21)
+; Jede Kommentar-Zeile zeigt die 24-Bit-Darstellung
+
+SpaceShip:
+; Zeile  0: ........  ........  ........  = kein Pixel
+        !byte %00000000, %00000000, %00000000
+; Zeile  1: ...##...  ........  ........
+        !byte %00011000, %00000000, %00000000
+; Zeile  2: ..####..  ........  ........
+        !byte %00111100, %00000000, %00000000
+; Zeile  3: .######.  ........  ........
+        !byte %01111110, %00000000, %00000000
+; Zeile  4: ########  ########  ########  = volle Breite
+        !byte %11111111, %11111111, %11111111
+; Zeile  5: ########  ########  ########
+        !byte %11111111, %11111111, %11111111
+; Zeile  6: ##.####.  .######.  .####.##
+        !byte %11011110, %01111110, %01111011
+; Zeile  7: ########  ########  ########
+        !byte %11111111, %11111111, %11111111
+; Zeile  8: ########  ########  ########
+        !byte %11111111, %11111111, %11111111
+; Zeile  9: .######.  ########  .######.
+        !byte %01111110, %11111111, %01111110
+; Zeile 10: ..####..  .######.  ..####..
+        !byte %00111100, %01111110, %00111100
+; Zeile 11: ...##...  ..####..  ...##...
+        !byte %00011000, %00111100, %00011000
+; Zeile 12: ....#...  ..####..  ...#....
+        !byte %00001000, %00111100, %00010000
+; Zeile 13-20: Triebwerke / leer
+        !byte %00000000, %00000000, %00000000
+        !byte %00100100, %00000000, %00100100  ; Triebwerke
+        !byte %01100110, %00000000, %01100110
+        !byte %00100100, %00000000, %00100100
+        !byte %00000000, %00000000, %00000000
+        !byte %00000000, %00000000, %00000000
+        !byte %00000000, %00000000, %00000000
+        !byte %00000000, %00000000, %00000000
+        !byte 0  ; 64. Byte (ignoriert, aber nötig für Ausrichtung)
+</pre>
+
+<h3>2.2 Sprite-Pointer — Das Zeiger-System</h3>
+
+<p>Der VIC-II findet Sprite-Daten über 8 Pointer-Bytes, die am Ende des Screen-RAM liegen. Bei Standard Screen-RAM bei <code>$0400</code> liegen die Pointer bei <code>$07F8–$07FF</code>.</p>
+
+<p>Der Pointer-Wert multipliziert mit 64 ergibt die Adresse der Sprite-Daten <em>innerhalb der VIC-Bank</em>:</p>
+
+<pre>
+Sprite-Daten-Adresse (in VIC-Bank) = Pointer × 64
+
+Beispiele (VIC-Bank 0, $0000–$3FFF):
+  Pointer $0C → $0C × $40 = $0300  (im KERNAL-Bereich, nicht empfohlen!)
+  Pointer $0E → $0E × $40 = $0380  (teilweise KERNAL-Bereich)
+  Pointer $10 → $10 × $40 = $0400  (Screen-RAM Anfang! Konflikte!)
+  Pointer $1F → $1F × $40 = $07C0  (direkt vor Pointer-Area, 1 Sprite)
+  Pointer $80 → $80 × $40 = $2000  (sicherer Bereich)
+  Pointer $C0 → $C0 × $40 = $3000  (sicherer Bereich)
+</pre>
+
+<div class="box tip">
+  <div class="box-title">&#128161; Empfohlene Sprite-Datenbereiche</div>
+  <p>Für einfache Programme ohne BASIC: Sprite-Daten ab <code>$0C00</code> (Pointer <code>$30</code>). Für grössere Programme: <code>$3000</code> aufwärts (Pointer <code>$C0</code>–<code>$FF</code>) ist sicher, solange die VIC-Bank auf Bank 0 bleibt.</p>
+</div>
+
+<h2>3. Vollständige Sprite-Register-Referenz</h2>
+
+<h3>3.1 Position: X und Y</h3>
+
+<table>
+  <thead><tr><th>Register</th><th>Sprite</th><th>Inhalt</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">$D000/$D001</td><td>Sprite 0</td><td>X-Position (Bits 0–7), Y-Position</td></tr>
+    <tr><td class="mono">$D002/$D003</td><td>Sprite 1</td><td>X-Position, Y-Position</td></tr>
+    <tr><td class="mono">$D004/$D005</td><td>Sprite 2</td><td>X-Position, Y-Position</td></tr>
+    <tr><td class="mono">$D006/$D007</td><td>Sprite 3</td><td>X-Position, Y-Position</td></tr>
+    <tr><td class="mono">$D008/$D009</td><td>Sprite 4</td><td>X-Position, Y-Position</td></tr>
+    <tr><td class="mono">$D00A/$D00B</td><td>Sprite 5</td><td>X-Position, Y-Position</td></tr>
+    <tr><td class="mono">$D00C/$D00D</td><td>Sprite 6</td><td>X-Position, Y-Position</td></tr>
+    <tr><td class="mono">$D00E/$D00F</td><td>Sprite 7</td><td>X-Position, Y-Position</td></tr>
+    <tr><td class="mono">$D010</td><td>Alle</td><td>Bit 8 der X-Position (1 Bit pro Sprite)</td></tr>
+  </tbody>
+</table>
+
+<p>Da die X-Koordinate 9 Bit breit ist (Bereich 0–511), wird das 8. Bit für jeden Sprite in Register <code>$D010</code> gespeichert. Bit 0 = Sprite 0, Bit 7 = Sprite 7. Muss beim Bewegen über X=255 sorgfältig gesetzt/gelöscht werden.</p>
+
+<h3>3.2 Enable, Farbe, Größe, Priorität</h3>
+
+<table>
+  <thead><tr><th>Register</th><th>Funktion</th><th>Bemerkung</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">$D015</td><td>Sprite Enable</td><td>1 Bit pro Sprite; AND/OR für atomare Änderung</td></tr>
+    <tr><td class="mono">$D017</td><td>Sprite Y-Verdopplung</td><td>1 Bit pro Sprite (21→42 Pixel hoch)</td></tr>
+    <tr><td class="mono">$D01B</td><td>Sprite-BG-Priorität</td><td>1 = Sprite hinter Vordergrund; 0 = Sprite vor allem</td></tr>
+    <tr><td class="mono">$D01C</td><td>Multicolor-Enable</td><td>1 Bit pro Sprite; aktiviert MC-Modus für den Sprite</td></tr>
+    <tr><td class="mono">$D01D</td><td>Sprite X-Verdopplung</td><td>1 Bit pro Sprite (24→48 Pixel breit)</td></tr>
+    <tr><td class="mono">$D025</td><td>Multicolor 0 (geteilt)</td><td>Farbe für %01-Pixel aller MC-Sprites</td></tr>
+    <tr><td class="mono">$D026</td><td>Multicolor 1 (geteilt)</td><td>Farbe für %11-Pixel aller MC-Sprites</td></tr>
+    <tr><td class="mono">$D027–$D02E</td><td>Sprite-Farben 0–7</td><td>Individuelle Farbe (4 Bit); für MC: %10-Pixel</td></tr>
+  </tbody>
+</table>
+
+<h3>3.3 Kollisions-Register</h3>
+
+<table>
+  <thead><tr><th>Register</th><th>Funktion</th><th>Kritischer Hinweis</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">$D01E</td><td>Sprite-Sprite-Kollision</td><td>Jedes Bit = Sprite hat mit einem anderen kollidiert. Lesen löscht das Register sofort!</td></tr>
+    <tr><td class="mono">$D01F</td><td>Sprite-Hintergrund-Kollision</td><td>Sprite hat Vordergrund-Hintergrundpixel überlappt. Lesen löscht!</td></tr>
+  </tbody>
+</table>
+
+<h2>4. Sprites initialisieren — vollständiges Beispiel</h2>
+
+<pre>
+; =====================================================
+; Sprite-Demo: 8 Sprites, jeder mit anderer Farbe
+; Sprite-Daten bei $0C00 (Pointer $30)
+; =====================================================
+
+!to "sprites.prg", cbm
+* = $0801
+!byte $0b,$08,$01,$00,$9e,$32,$30,$36,$31,$00,$00,$00
+* = $080d
+
+main:
+        ; Bildschirm schwarz
+        lda #0 : sta $d020 : sta $d021
+
+        ; Sprite-Daten initialisieren (Stern-Form bei $0C00)
+        jsr CopyStarSprite
+
+        ; Alle 8 Sprite-Pointer setzen (alle auf denselben Datensatz $0C00)
+        lda #$30        ; $0C00 / 64 = $30
+        ldx #7
+@ptr:   sta $07f8,x
+        dex
+        bpl @ptr
+
+        ; Sprites positionieren (horizontal verteilt)
+        lda #0
+        sta $d010       ; X-MSB: alle auf unter 256
+        ldx #0
+@pos:   lda StartX,x    ; X-Position
+        sta $d000,x     ; Sprite n X
+        lda #120        ; Alle auf Y=120
+        sta $d001,x     ; Sprite n Y
+        inx
+        inx
+        cpx #16
+        bne @pos
+
+        ; Farben setzen (jeder Sprite eine andere Farbe)
+        lda #1  : sta $d027  ; Sprite 0: Weiß
+        lda #7  : sta $d028  ; Sprite 1: Gelb
+        lda #5  : sta $d029  ; Sprite 2: Grün
+        lda #3  : sta $d02a  ; Sprite 3: Cyan
+        lda #6  : sta $d02b  ; Sprite 4: Blau
+        lda #4  : sta $d02c  ; Sprite 5: Violett
+        lda #2  : sta $d02d  ; Sprite 6: Rot
+        lda #8  : sta $d02e  ; Sprite 7: Orange
+
+        ; Alle 8 Sprites aktivieren
+        lda #%11111111
+        sta $d015
+
+        ; Endlosschleife
+@loop:  jmp @loop
+
+StartX: !byte 30,65,100,135,170,205,240,275
+; Achtung: Sprite 7 X=275 > 255, X-MSB Bit 7 muss gesetzt sein!
+; Für dieses Beispiel vereinfacht (275 -> überschreitet 255)
+
+; Sternförmiges Sprite in $0C00 schreiben
+CopyStarSprite:
+        ldx #0
+@cp:    lda StarData,x
+        sta $0c00,x
+        inx
+        cpx #64
+        bne @cp
+        rts
+
+StarData:
+        !byte %00000001,%10000000,%00000000  ; Zeile 0
+        !byte %00000001,%10000000,%00000000  ; Zeile 1
+        !byte %00000001,%10000000,%00000000  ; Zeile 2
+        !byte %00000001,%10000000,%00000000  ; Zeile 3
+        !byte %00000001,%10000000,%00000000  ; Zeile 4
+        !byte %00000001,%10000000,%00000000  ; Zeile 5
+        !byte %01111111,%11111111,%11111110  ; Zeile 6 -- waagrecht
+        !byte %01111111,%11111111,%11111110  ; Zeile 7
+        !byte %00000001,%10000000,%00000000  ; Zeile 8
+        !byte %00000001,%10000000,%00000000  ; Zeile 9
+        !byte %00000001,%10000000,%00000000  ; Zeile 10
+        !byte %00000000,%00000000,%00000000  ; Zeile 11-20
+        !byte 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0
+        !byte 0,0,0, 0,0,0, 0,0,0, 0,0,0
+        !byte 0  ; 64. Byte
+</pre>
+
+<h2>5. Sprite-Animation</h2>
+
+<p>Sprite-Animation auf dem C64 erfolgt durch das Wechseln des Sprite-Pointers. Jeder Animations-Frame ist ein eigener 64-Byte-Block im Speicher. Durch Inkrementieren des Pointer-Wertes in <code>$07F8</code> (für Sprite 0) springt der VIC-II automatisch zum nächsten Frame-Block.</p>
+
+<h3>5.1 Frame-Layout im Speicher</h3>
+
+<pre>
+; 4-Frame-Animation bei $0C00:
+; Frame 0: $0C00–$0C3F (Pointer $30)
+; Frame 1: $0C40–$0C7F (Pointer $31)
+; Frame 2: $0C80–$0CBF (Pointer $32)
+; Frame 3: $0CC0–$0CFF (Pointer $33)
+
+; Animations-Steuerung
+anim_frame   = $60   ; Aktueller Frame (0–3)
+anim_timer   = $61   ; Countdown (Verzögerung zwischen Frames)
+ANIM_SPEED   = 6     ; Frames warten (6 × 50Hz ≈ 120ms pro Frame)
+FRAME_BASE   = $30   ; Basis-Pointer ($0C00 / 64 = $30)
+NUM_FRAMES   = 4
+
+UpdateAnimation:
+        dec anim_timer
+        bne @skip
+
+        lda #ANIM_SPEED
+        sta anim_timer
+
+        ; Nächsten Frame
+        inc anim_frame
+        lda anim_frame
+        cmp #NUM_FRAMES
+        bne @set_ptr
+        lda #0
+        sta anim_frame
+
+@set_ptr:
+        ; Pointer = FRAME_BASE + aktueller Frame
+        clc
+        adc #FRAME_BASE
+        sta $07f8       ; Sprite 0 Pointer aktualisieren
+
+@skip:  rts
+</pre>
+
+<h2>6. Joystick-gesteuerte Sprite-Bewegung</h2>
+
+<p>Joystick Port 2 liest man aus CIA1-Register <code>$DC00</code>. Die Bits sind invertiert: Eine gedrückte Richtung entspricht einer 0. Bit 0 = Oben, Bit 1 = Unten, Bit 2 = Links, Bit 3 = Rechts, Bit 4 = Feuerknopf.</p>
+
+<pre>
+; =====================================================
+; Sprite 0 mit Joystick-Port 2 bewegen
+; Zero-Page Variablen:
+sprite_x    = $60   ; X-Position Low
+sprite_xhi  = $61   ; X-Position Bit 8
+sprite_y    = $62   ; Y-Position
+SPEED       = 2     ; Pixel pro Frame
+X_MIN       = 24    ; Linker Bildschirmrand
+X_MAX       = 295   ; Rechter Bildschirmrand (mit X-MSB-Handling)
+Y_MIN       = 50    ; Oberer Bildschirmrand
+Y_MAX       = 230   ; Unterer Bildschirmrand
+; =====================================================
+
+MoveSprite:
+        ; Port A auf $FF (Tastatur-Scan deaktivieren für sauberes Joystick-Lesen)
+        lda #$ff
+        sta $dc00
+        lda $dc00       ; Joystick 2 lesen
+        tax             ; Wert sichern
+
+        ; --- OBEN (Bit 0): wenn 0 = gedrückt ---
+        lsr             ; Bit 0 → Carry
+        bcs @not_up
+        lda sprite_y
+        sec
+        sbc #SPEED
+        cmp #Y_MIN
+        bcs @store_y
+        lda #Y_MIN
+@store_y:
+        sta sprite_y
+        jmp @check_down
+
+@not_up:
+        ; --- UNTEN (Bit 1) ---
+@check_down:
+        txa
+        and #%00000010  ; Bit 1 isolieren
+        bne @not_down
+        lda sprite_y
+        clc
+        adc #SPEED
+        cmp #Y_MAX
+        bcc @store_y2
+        lda #Y_MAX
+@store_y2:
+        sta sprite_y
+
+@not_down:
+        ; --- LINKS (Bit 2) ---
+        txa
+        and #%00000100
+        bne @not_left
+        lda sprite_x
+        sec
+        sbc #SPEED
+        bcs @chk_min    ; Kein Unterlauf
+        lda #X_MIN      ; Auf Minimum begrenzen
+        ldx #0
+        stx sprite_xhi
+        jmp @store_x
+
+@chk_min:
+        cmp #X_MIN
+        bcs @store_x
+        lda #X_MIN
+@store_x:
+        sta sprite_x
+        ; X-MSB berechnen
+        lda sprite_xhi
+        ; Bei einfachem Decrement: X_HI kann nur 0 werden
+        lda #0
+        sta sprite_xhi
+
+@not_left:
+        ; --- RECHTS (Bit 3) ---
+        txa
+        and #%00001000
+        bne @not_right
+        lda sprite_x
+        clc
+        adc #SPEED
+        bcc @chk_max    ; Kein Überlauf
+        ; Überlauf: X-MSB setzen
+        inc sprite_xhi
+        lda #$ff        ; Maximal X
+        jmp @store_x2
+
+@chk_max:
+        ; Wenn X_HI = 0 und X < X_MAX, ok
+        sta sprite_x
+        jmp @apply_pos
+
+        lda #$ff
+@store_x2:
+        sta sprite_x
+
+@not_right:
+
+@apply_pos:
+        ; Register aktualisieren
+        lda sprite_x
+        sta $d000       ; Sprite 0 X
+        lda sprite_y
+        sta $d001       ; Sprite 0 Y
+        ; X-MSB: Bit 0 von $D010 für Sprite 0
+        lda $d010
+        and #%11111110  ; Bit 0 löschen
+        ora sprite_xhi  ; Bit 0 aus xhi (nur Bit 0 relevant)
+        sta $d010
+        rts
+</pre>
+
+<h2>7. Kollisionserkennung</h2>
+
+<h3>7.1 Sprite-Sprite-Kollision</h3>
+
+<p>Register <code>$D01E</code> enthält nach einer Kollision die Bits der beteiligten Sprites. <strong>Wichtig:</strong> Das Lesen des Registers löscht es automatisch! Daher muss der Wert nach dem Lesen gespeichert werden, wenn er mehrfach benötigt wird.</p>
+
+<pre>
+CheckAllCollisions:
+        lda $d01e       ; Kollisions-Register lesen (und löschen!)
+        beq @no_sprite_coll
+
+        ; Bits 0 und 1 gesetzt = Sprite 0 und Sprite 1 kollidiert
+        and #%00000011
+        cmp #%00000011
+        bne @no_sprite_coll
+        jsr HandlePlayerEnemyCollision
+
+@no_sprite_coll:
+        lda $d01f       ; Sprite-Hintergrund-Kollision lesen (und löschen!)
+        beq @done
+        ; Bit 0 gesetzt = Sprite 0 hat Hintergrund berührt
+        and #%00000001
+        beq @done
+        jsr HandleGroundCollision
+
+@done:  rts
+</pre>
+
+<h2>8. Multicolor-Sprites</h2>
+
+<p>Im Multicolor-Modus ist jedes Pixel 2 Bits breit, wodurch die horizontale Auflösung auf 12 Pixel halbiert wird, aber 3 Farben + transparent möglich sind:</p>
+
+<pre>
+; Multicolor-Sprite aktivieren (Sprite 0):
+lda $d01c
+ora #%00000001  ; Bit 0 = Sprite 0
+sta $d01c
+
+; Farben setzen:
+lda #7  : sta $d025  ; MC Farbe 0 (für %01 Bits) = Gelb
+lda #1  : sta $d026  ; MC Farbe 1 (für %11 Bits) = Weiß
+lda #2  : sta $d027  ; Sprite 0 Individualfarbe (für %10 Bits) = Rot
+; %00 Bits = transparent (unsichtbar)
+</pre>
+
+<h2>9. Sprite-Multiplexer — Das Konzept</h2>
+
+<p>Der C64 hat nur 8 Hardware-Sprites. Wenn ein Spiel 20 Feinde braucht, kommt man mit 8 nicht aus. Die Lösung: den Raster-Strahl des VIC-II ausnutzen. Sprites werden von oben nach unten gerendert. Sobald ein Sprite seinen letzten Pixel gezeichnet hat, kann er auf eine neue Y-Position verschoben werden. Der VIC-II rendert ihn dann erneut — an der neuen Position.</p>
+
+<pre>
+; Grundprinzip Sprite-Multiplex (2 logische Sprites mit 1 Hardware-Sprite):
+;
+; IRQ auf Y-Position von Sprite A (z.B. Y=80):
+;   → Hardware-Sprite auf A-Daten zeigen
+;   → Nächsten IRQ auf Y-Position von Sprite B setzen
+;
+; IRQ auf Y-Position von Sprite B (z.B. Y=140):
+;   → Hardware-Sprite auf B-Daten zeigen
+;   → Nächsten IRQ auf Y-Position von Sprite A setzen
+;
+; So wechseln sich A und B ab. Voraussetzung: Y-Abstand > 21 Pixel!
+
+; Dieser Multiplexer wird in Stufe 7 (Interrupts) vollständig implementiert.
+</pre>
+
+<div class="box note">
+  <div class="box-title">&#128221; Vorschau: Stufe 7</div>
+  <p>Die vollständige Implementierung eines Sprite-Multiplexers für 20+ Sprites wird in Stufe 7 (Interrupts &amp; Timing) behandelt, da dafür präzise Raster-IRQs benötigt werden.</p>
+</div>
+
+<div class="benchmark">
+  <h2>&#127942; Skill-Benchmark: Stufe 4</h2>
+  <ul>
+    <li>Sprite-Daten für ein beliebiges 24×21-Motiv als Byte-Array kodieren</li>
+    <li>Sprite-Pointer korrekt berechnen: Sprite-Adresse / 64</li>
+    <li>Alle 8 Sprites mit verschiedenen Farben und Positionen initialisieren</li>
+    <li>Joystick-Eingabe aus $DC00 lesen und Sprite damit steuern</li>
+    <li>X-MSB korrekt handhaben wenn X &gt; 255</li>
+    <li>Sprite-Sprite-Kollision aus $D01E auswerten</li>
+    <li>4-Frame-Animation mit Pointer-Wechsel implementieren</li>
+  </ul>
+</div>
+
+<div class="exercises-section">
+  <h2>&#9997; Übungen</h2>
+
+  <div class="exercise">
+    <div class="exercise-num">Übung 4.1 — Eigener Sprite</div>
+    <p>Entwerfe ein eigenes 24×21-Sprite auf Rasterpapier (z.B. ein Tier, Fahrzeug oder Symbol). Kodiere es als Byte-Array und zeige es als Sprite 0 auf dem Bildschirm an, zentriert auf Position (160, 100). Verwende eine markante Farbe.</p>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-num">Übung 4.2 — Animierter Laufzyklus</div>
+    <p>Erstelle 4 Animations-Frames für eine laufende Figur (Seitenansicht). Platziere die Frames hintereinander im Speicher und implementiere die Frame-Wechsel-Routine. Die Animation soll mit einer Geschwindigkeit von ca. 8 Frames pro Sekunde laufen.</p>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-num">Übung 4.3 — Joystick-Steuerung mit Grenzen</div>
+    <p>Implementiere eine vollständige Spieler-Steuerung: Sprite 0 wird per Joystick-Port 2 bewegt. Der Sprite soll nicht über den Bildschirmrand hinausgehen (24 ≤ X ≤ 320, 50 ≤ Y ≤ 229). Wenn Feuerknopf gedrückt wird, ändere die Sprite-Farbe.</p>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-num">Übung 4.4 — Kollisions-Demo</div>
+    <p>Positioniere 3 Sprites: Sprite 0 (Spieler) und Sprites 1+2 (Feinde, die sich per Code hin und her bewegen). Wenn Sprite 0 einen Feind berührt ($D01E), soll der Bildschirm kurz aufleuchten (Border-Farbe ändern) und ein Zähler auf dem Bildschirm inkrementiert werden.</p>
+  </div>
+</div>
+
+<nav class="chapter-nav">
+  <a href="stufe_03_bildschirm_zeichen.html">
+    <span class="nav-label">&#8592; Vorherige Stufe</span>
+    <span class="nav-title">Stufe 3: VIC-II &amp; Zeichen</span>
+  </a>
+  <a href="stufe_05_bitmap_grafik.html">
+    <span class="nav-label">Nächste Stufe &#8594;</span>
+    <span class="nav-title">Stufe 5: Bitmap-Grafik</span>
+  </a>
+</nav>
+</main>
+</body>
+</html>
