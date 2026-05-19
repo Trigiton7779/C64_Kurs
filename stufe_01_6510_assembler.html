@@ -1044,6 +1044,34 @@ tbody tr:hover { background: #dde8ff; }
 <span class="asm-label">ende_if:</span>
         <span class="asm-instr">rts</span></pre>
 
+  <h4>BIT — Bit-Test ohne Akkumulator-Zerstörung</h4>
+
+  <p>
+    <code>BIT</code> AND-verknüpft den Akkumulator mit dem Speicher-Operanden, schreibt das
+    Ergebnis aber <em>nicht</em> zurück — es setzt nur das Zero-Flag (Z=1 wenn Ergebnis=0).
+    Zusätzlich werden Bit 7 und Bit 6 des Speicher-Operanden direkt in die Flags N und V kopiert.
+    Das ist nützlich, um VIC-Register oder andere Hardware-Flags zu prüfen ohne A zu verändern.
+  </p>
+
+  <table>
+    <thead>
+      <tr><th>Mnemonic</th><th>Adressierung</th><th>Bytes</th><th>Zyklen</th><th>Flags</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>BIT $zp</code></td><td>Zeropage</td><td>2</td><td>3</td><td>N←Bit7, V←Bit6, Z=(A AND M)=0</td></tr>
+      <tr><td><code>BIT $abs</code></td><td>Absolut</td><td>3</td><td>4</td><td>N←Bit7, V←Bit6, Z=(A AND M)=0</td></tr>
+    </tbody>
+  </table>
+
+  <pre><span class="asm-comment">; VIC-II Raster-IRQ-Bit prüfen ohne A zu ändern:</span>
+        <span class="asm-instr">bit</span> <span class="asm-addr">$D019</span>       <span class="asm-comment">; Bit 7 von $D019 → Flag N; Z=1 wenn kein IRQ</span>
+        <span class="asm-instr">bpl</span> kein_irq   <span class="asm-comment">; N=0 → Bit 7 war 0 → kein IRQ</span>
+
+<span class="asm-comment">; VIC-II Bitmap-Modus-Bit prüfen:</span>
+        <span class="asm-instr">lda</span> #<span class="asm-num">%00100000</span>  <span class="asm-comment">; Maske für Bit 5 (BMM)</span>
+        <span class="asm-instr">bit</span> <span class="asm-addr">$D011</span>       <span class="asm-comment">; Z=1 wenn Bit 5 von $D011 = 0 (kein Bitmap-Modus)</span>
+        <span class="asm-instr">beq</span> kein_bitmap <span class="asm-comment">; Wenn Z=1 → Bitmap-Bit nicht gesetzt</span></pre>
+
   <h3>3.7 Stack-Operationen</h3>
 
   <p>

@@ -642,6 +642,25 @@ CopySpriteData:
 <span class="comment">; Damit ist der DMA-Overhead auf wenige Zeilen konzentriert,</span>
 <span class="comment">; und der Rest des Bildschirms hat volle 63 Zyklen (minus Bad Lines)</span></pre>
 
+    <h4>Kombinierte Zykluskosten im Überblick</h4>
+    <table>
+      <thead>
+        <tr><th>Szenario</th><th>CPU-Zyklen verfügbar</th><th>VIC-II stiehlt</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Normal (keine Bad Line, keine Sprites)</td><td>63</td><td>0</td></tr>
+        <tr><td>Bad Line (kein Sprite-DMA)</td><td>23</td><td>40</td></tr>
+        <tr><td>Normal + 1 aktiver Sprite</td><td>61</td><td>2</td></tr>
+        <tr><td>Normal + 4 aktive Sprites</td><td>55</td><td>8</td></tr>
+        <tr><td>Normal + 8 aktive Sprites</td><td>47</td><td>16</td></tr>
+        <tr><td>Bad Line + 8 aktive Sprites</td><td>23</td><td>40 (Sprite-DMA läuft in anderen VIC-Phasen)</td></tr>
+      </tbody>
+    </table>
+    <p><strong>Wichtig:</strong> Sprite-DMA und Bad-Line-Steal laufen in <em>getrennten VIC-II-Phasen</em>
+    und addieren sich <em>nicht</em>. Eine Bad Line mit 8 aktiven Sprites kostet dieselben 40 Zyklen
+    wie ohne Sprites — der Sprite-Pointer-Fetch findet in anderen Taktphasen statt und erzeugt
+    keinen zusätzlichen Overhead auf Bad Lines.</p>
+
     <h3>7.3 Refresh-Zyklen</h3>
 
     <pre><span class="comment">; Der VIC-II benötigt 5 DRAM-Refresh-Zyklen pro Zeile</span>

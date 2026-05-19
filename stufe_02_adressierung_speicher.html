@@ -881,13 +881,22 @@ bullet_y     = <span class="asm-addr">$55</span>  <span class="asm-comment">; Sc
     <tbody>
       <tr><td class="mono">$D000–$D3FF</td><td>VIC-II</td><td>1 KB</td><td>47 Register, gespiegelt alle 64 Bytes ($40). Register $D000–$D02E real vorhanden.</td></tr>
       <tr><td class="mono">$D400–$D7FF</td><td>SID</td><td>1 KB</td><td>29 Register, gespiegelt alle 32 Bytes ($20). Stimmen, Filter, Hüllkurven.</td></tr>
-      <tr><td class="mono">$D800–$DBFF</td><td>Color-RAM</td><td>1 KB</td><td>1000 Nibbles (4 Bit/Byte), parallel zum Screen-RAM. Immer sichtbar!</td></tr>
+      <tr><td class="mono">$D800–$DBFF</td><td>Color-RAM</td><td>1 KB</td><td>1000 Nibbles (4 Bit/Byte), parallel zum Screen-RAM. Immer sichtbar! ⚠️ Nur Bits 0–3 gültig — beim Lesen immer <code>AND #$0F</code> verwenden.</td></tr>
       <tr><td class="mono">$DC00–$DCFF</td><td>CIA 1</td><td>256 B</td><td>16 Register: Joystick, Tastatur, Timer A/B, IRQ-Quelle.</td></tr>
       <tr><td class="mono">$DD00–$DDFF</td><td>CIA 2</td><td>256 B</td><td>16 Register: Serieller Port, VIC-Bank-Selektion, NMI-Quelle.</td></tr>
       <tr><td class="mono">$DE00–$DEFF</td><td>I/O Expansion 1</td><td>256 B</td><td>Erweiterungs-Port Slot 1 (Cartridges, Userport-Erweiterungen).</td></tr>
       <tr><td class="mono">$DF00–$DFFF</td><td>I/O Expansion 2</td><td>256 B</td><td>Erweiterungs-Port Slot 2.</td></tr>
     </tbody>
   </table>
+
+  <div class="box warning">
+    <div class="box-title">⚠️ Color-RAM: nur 4 Bit pro Zelle gültig</div>
+    <p>Das Color-RAM ($D800–$DBFF) ist kein normales 8-Bit-RAM — jede Adresse speichert nur
+    4 Bit (Farbwerte 0–15). Die oberen 4 Bits werden beim Schreiben ignoriert. Beim Lesen
+    liefern sie undefinierte Werte (hardware-abhängig). Deshalb beim Lesen immer maskieren:</p>
+    <pre>LDA $D800     ; Farbbyte lesen
+AND #$0F      ; obere 4 Bits maskieren — Ergebnis ist 0–15</pre>
+  </div>
 
   <!-- ---- KERNAL ---- -->
   <h3>2.7 KERNAL-ROM und seine Vektoren</h3>

@@ -136,6 +136,23 @@ sta $d016
 
 <p>Bei Standard VIC-Bank 0: Bitmap entweder bei <code>$0000</code> oder <code>$2000</code>.</p>
 
+<div class="box tip">
+  <div class="box-title">$D018-Adressen sind Bank-Offsets, keine absoluten Adressen</div>
+  <p>Alle Adressen in $D018 (Screen-RAM-Pointer und Bitmap/Charset-Pointer) sind Offsets
+  <em>innerhalb</em> der aktiven VIC-II-Bank (eingestellt via CIA2 $DD00 Bits 0–1).
+  Bei Bitmap-Start +$2000 und aktiver Bank 1 ($4000–$7FFF) liegt das Bitmap absolut bei
+  $4000 + $2000 = $6000 — nicht bei der absoluten Adresse $2000.</p>
+</div>
+
+<div class="box warning">
+  <div class="box-title">⚠️ Charset-ROM nur in Bank 0 und Bank 2 verfügbar</div>
+  <p>Der eingebaute C64-Zeichensatz liegt hardwareseitig nur in VIC-Bank 0 ($0000–$3FFF)
+  und Bank 2 ($8000–$BFFF) bei den Offsets +$1000 und +$1800 als ROM bereit.
+  In Bank 1 ($4000–$7FFF) und Bank 3 ($C000–$FFFF) zeigt der VIC-II an diesen Offsets
+  normales RAM — der Zeichensatz ist <em>nicht sichtbar</em>. Wer in Bank 1 oder 3 einen
+  Textmodus mit dem Standard-Zeichensatz nutzen will, muss ihn als RAM-Kopie dorthin laden.</p>
+</div>
+
 <p>Screen-RAM bestimmt die Farben der einzelnen 8×8-Zellen:</p>
 <ul>
   <li>High-Nibble (Bits 4–7): Farbe der <em>gesetzten</em> Bits (Pixel "an")</li>
@@ -181,28 +198,24 @@ Beispiel: Pixel (100, 75)
 ; =====================================================
 
 InitHiresBitmap:
-        ; 1. Bitmap-RAM löschen (8000 Bytes bei $2000)
+        ; 1. Bitmap-RAM löschen (8000 Bytes bei $2000–$3F3F)
         lda #0
         ldx #0
-@clr:   sta $2000,x     ; Seite $20
-        sta $2100,x
-        sta $2200,x
-        sta $2300,x
-        sta $2400,x
-        sta $2500,x
-        sta $2600,x
-        sta $2700,x
-        sta $2800,x
-        sta $2900,x
-        sta $2a00,x
-        sta $2b00,x
-        sta $2c00,x
-        sta $2d00,x
-        sta $2e00,x
-        sta $2f00,x
-        ; Verbleibende 1984 Bytes (16*256=4096, 8000-4096=3904... besser per Schleife)
+@clr:   sta $2000,x : sta $2100,x : sta $2200,x : sta $2300,x
+        sta $2400,x : sta $2500,x : sta $2600,x : sta $2700,x
+        sta $2800,x : sta $2900,x : sta $2a00,x : sta $2b00,x
+        sta $2c00,x : sta $2d00,x : sta $2e00,x : sta $2f00,x
+        sta $3000,x : sta $3100,x : sta $3200,x : sta $3300,x
+        sta $3400,x : sta $3500,x : sta $3600,x : sta $3700,x
+        sta $3800,x : sta $3900,x : sta $3a00,x : sta $3b00,x
+        sta $3c00,x : sta $3d00,x : sta $3e00,x
         inx
         bne @clr
+        ; Letzte 64 Bytes ($3F00–$3F3F)
+        ldx #63
+@clr2:  sta $3f00,x
+        dex
+        bpl @clr2
 
         ; 2. Screen-RAM: Farben initialisieren (weiß auf schwarz: $10)
         ;    High-Nibble = 1 (weiß für Pixel=1), Low-Nibble = 0 (schwarz für Pixel=0)

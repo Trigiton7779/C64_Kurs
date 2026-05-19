@@ -452,7 +452,7 @@
         <td class="mn">LXA<br><small>(auch OAL, LAX imm)</small></td>
         <td class="op">$AB imm</td>
         <td>A ← X ← (A OR magic) AND imm</td>
-        <td>Ähnlich ANE — "magic" ist chipabhängig. Mit imm=$FF und gezieltem A-Vorwert auf manchen Chips wie <code>LDA #imm / TAX</code> nutzbar. Riskant auf echter Hardware.</td>
+        <td>Ähnlich ANE — "magic" ist chipabhängig: typisch $EE, $EF, $FE oder $FF (variiert zwischen 6510-Chip-Revisionen). Mit imm=$FF und A=$FF auf den meisten Chips wie <code>LDA #imm / TAX</code> nutzbar. Auf echter Hardware immer testen — Verhalten zwischen Chip-Revisionen verschieden. Riskant auf echter Hardware.</td>
         <td class="stars rel-3"><span class="star-full">★★★</span><span class="star-empty">★★</span></td>
         <td class="stars"><span class="star-full">★★</span><span class="star-empty">★★★</span></td>
       </tr>

@@ -111,6 +111,21 @@
     </ol>
 
     <p>Das Timing ist <strong>software-gesteuert auf dem C64</strong> — es gibt keinen Hardware-UART. Jede Flanke ist eine einzelne Lese/Schreib-Operation auf $DD00. Das ist der Hauptgrund für die geringe Übertragungsrate.</p>
+
+    <div class="box warning">
+      <div class="box-title">⚠️ IEC-Bus Timing-Anforderungen</div>
+      <table>
+        <thead><tr><th>Signal</th><th>Anforderung</th><th>Konsequenz bei Verletzung</th></tr></thead>
+        <tbody>
+          <tr><td>ATN-Response</td><td>&lt; 1 ms nach ATN-Low</td><td>Bus hängt (Laufwerk geht in Timeout)</td></tr>
+          <tr><td>Byte-Timeout</td><td>&lt; 512 µs zwischen Bytes</td><td>Laufwerk bricht Transfer ab</td></tr>
+          <tr><td>EOI-Erkennung</td><td>~60 µs ohne Antwort auf CLK</td><td>Laufwerk erkennt letztes Byte (EOF)</td></tr>
+        </tbody>
+      </table>
+      <p>Eigene Protokoll-Routinen müssen diese Timings einhalten.
+      Während Zeit-kritischer IEC-Übertragungen: <code>SEI</code> (IRQs sperren),
+      da ein IRQ-Handler den Timingablauf stören und den Bus in Timeout treiben kann.</p>
+    </div>
   </section>
 
   <!-- ═══════════════════════════════════════════════════════════════ -->
@@ -475,6 +490,84 @@ drive_code_end:</pre>
     <div class="box-warning">
       <div class="box-title">M-W: Nur für 1541/1571</div>
       M-W und M-E sind 1541-spezifisch. SD2IEC (SD-Karten-Laufwerk) und viele andere Emulations-Drives ignorieren sie oder verhalten sich anders. Eigenen Drive-Code immer auf echter Hardware oder in VICE mit echter 1541-Emulation testen.
+    </div>
+
+    <h3>6.3 M-W in Blöcken für größere Drive-Programme</h3>
+
+    <p>Wenn der Drive-Code länger als 32 Bytes ist, muss er in mehreren M-W-Kommandos
+    à maximal 32 Bytes hochgeladen werden. Die Zieladresse im 1541 steigt dabei jeweils
+    um 32 an:</p>
+
+    <div class="pre-wrapper">
+      <pre><span class="comment">; Allgemeiner M-W-Upload-Loop für beliebig große Drive-Programme</span>
+<span class="comment">; Voraussetzung: drive_code und drive_code_end sind definiert</span>
+
+MW_CHUNK_SIZE = 32      <span class="comment">; Maximale Bytes pro M-W-Kommando</span>
+
+upload_chunked:
+    <span class="label">lda</span> #15 : <span class="label">ldx</span> #8 : <span class="label">ldy</span> #15
+    <span class="label">jsr</span> $FFBA            <span class="comment">; SETLFS</span>
+    <span class="label">lda</span> #0 : <span class="label">ldx</span> #0 : <span class="label">ldy</span> #0
+    <span class="label">jsr</span> $FFBD            <span class="comment">; SETNAM</span>
+    <span class="label">jsr</span> $FFC0            <span class="comment">; OPEN</span>
+    <span class="label">lda</span> #15 : <span class="label">jsr</span> $FFC9  <span class="comment">; CHKOUT</span>
+
+    <span class="label">lda</span> #&lt;drive_code     <span class="comment">; Quell-Offset im C64-Speicher</span>
+    <span class="label">sta</span> src_ptr
+    <span class="label">lda</span> #&gt;drive_code
+    <span class="label">sta</span> src_ptr+1
+    <span class="label">lda</span> #&lt;$0300          <span class="comment">; Zieladresse im 1541-RAM</span>
+    <span class="label">sta</span> dst_ptr
+    <span class="label">lda</span> #&gt;$0300
+    <span class="label">sta</span> dst_ptr+1
+    <span class="label">lda</span> #drive_code_end - drive_code
+    <span class="label">sta</span> remain           <span class="comment">; Restbytes gesamt</span>
+
+.mw_chunk:
+    <span class="label">lda</span> remain
+    <span class="label">beq</span> .mw_done         <span class="comment">; Alle Bytes gesendet</span>
+    <span class="label">cmp</span> #MW_CHUNK_SIZE
+    <span class="label">bcc</span> .mw_partial      <span class="comment">; Weniger als 32 → letzter Block</span>
+    <span class="label">lda</span> #MW_CHUNK_SIZE
+.mw_partial:
+    <span class="label">sta</span> chunk_len        <span class="comment">; Aktuelle Block-Länge</span>
+
+    <span class="comment">; M-W-Header: M, -, W, dst_lo, dst_hi, chunk_len</span>
+    <span class="label">lda</span> #'M' : <span class="label">jsr</span> $FFD2
+    <span class="label">lda</span> #'-' : <span class="label">jsr</span> $FFD2
+    <span class="label">lda</span> #'W' : <span class="label">jsr</span> $FFD2
+    <span class="label">lda</span> dst_ptr : <span class="label">jsr</span> $FFD2
+    <span class="label">lda</span> dst_ptr+1 : <span class="label">jsr</span> $FFD2
+    <span class="label">lda</span> chunk_len : <span class="label">jsr</span> $FFD2
+
+    <span class="comment">; Datenbytes senden</span>
+    <span class="label">ldy</span> #0
+.mw_send:
+    <span class="label">lda</span> (src_ptr),y
+    <span class="label">jsr</span> $FFD2
+    <span class="label">iny</span>
+    <span class="label">cpy</span> chunk_len
+    <span class="label">bcc</span> .mw_send
+
+    <span class="comment">; src_ptr und dst_ptr um chunk_len vorwärts</span>
+    <span class="label">lda</span> src_ptr : <span class="label">clc</span> : <span class="label">adc</span> chunk_len : <span class="label">sta</span> src_ptr
+    <span class="label">bcc</span> .no_carry1 : <span class="label">inc</span> src_ptr+1
+.no_carry1:
+    <span class="label">lda</span> dst_ptr : <span class="label">clc</span> : <span class="label">adc</span> chunk_len : <span class="label">sta</span> dst_ptr
+    <span class="label">bcc</span> .no_carry2 : <span class="label">inc</span> dst_ptr+1
+.no_carry2:
+    <span class="label">lda</span> remain : <span class="label">sec</span> : <span class="label">sbc</span> chunk_len : <span class="label">sta</span> remain
+    <span class="label">jmp</span> .mw_chunk
+
+.mw_done:
+    <span class="label">jsr</span> $FFCC            <span class="comment">; CLRCHN</span>
+    <span class="label">lda</span> #15 : <span class="label">jsr</span> $FFC3  <span class="comment">; CLOSE</span>
+    <span class="label">rts</span>
+
+src_ptr:   !word 0      <span class="comment">; Zeiger auf Quelldaten (C64)</span>
+dst_ptr:   !word 0      <span class="comment">; Zeiger auf Zieladresse (1541)</span>
+remain:    !byte 0      <span class="comment">; Verbleibende Bytes</span>
+chunk_len: !byte 0      <span class="comment">; Aktuelle Block-Länge</span></pre>
     </div>
   </section>
 

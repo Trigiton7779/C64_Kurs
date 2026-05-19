@@ -22,7 +22,7 @@
     <div class="chapter-meta">
       <span>🎨 Fortgeschritten</span>
       <span>⏱ ca. 12 Stunden</span>
-      <span>📋 Voraussetzung: Stufen 01–08</span>
+      <span>📋 Voraussetzung: Stufen 01–08 — besonders <a href="stufe_07_interrupts_timing.html">Stufe 07</a> und <a href="stufe_08_optimierung.html">Stufe 08</a></span>
     </div>
   </header>
 
@@ -611,6 +611,18 @@ FLD_LinIRQ:
           INC FLD_Phase
 .cont:    STA $D012
           PLA : RTI</pre>
+
+    <div class="box warning">
+      <div class="box-title">⚠️ FLI/FLD im oberen Bildbereich (Rasterzeilen 0–50)</div>
+      <p>Für Rasterzeilen <strong>kleiner als 51</strong> gilt eine Einschränkung:
+      Der VIC-II hat in diesem Bereich noch keinen vollständigen Bad-Line-Zyklus abgeschlossen
+      (die erste Bad Line der sichtbaren Fläche liegt bei Rasterzeile 51). FLD/FLI-Techniken,
+      die auf präzisem YSCROLL-Timing basieren, erzeugen im Bereich Zeile 0–50 oft
+      fehlerhafte Darstellungen (falsche Farben, Glitches).</p>
+      <p><strong>Lösung:</strong> FLD/FLI-Effekte erst ab Rasterzeile 51 beginnen. Für den
+      oberen Bildbereich (wenn nötig) einen separaten Raster-IRQ mit konstantem YSCROLL
+      verwenden und den FLI-IRQ erst bei Zeile 51 aktivieren.</p>
+    </div>
 
     <h3>5.1 Open Border Trick</h3>
 
@@ -1212,6 +1224,14 @@ BitTable:   <span class="directive">!byte</span> $01,$02,$04,$08,$10,$20,$40,$80
       <p>Erstelle eine 3-Part-Demo: Part 1 = Intro mit Rasterbar-Logo + Scroller, Part 2 = Plasma-Effekt mit Musik, Part 3 = DYSP-Sprite-Welle als Outro. Jeder Part dauert 10 Sekunden, dann Überblende. Die Demo lädt automatisch ab $0801 und kehrt zum BASIC zurück wenn alle Parts durchgelaufen sind.</p>
     </div>
   </section>
+
+  <div class="box note" style="margin-bottom:0">
+    <div class="box-title">Verwandte Themen</div>
+    <ul>
+      <li><a href="stufe_07_interrupts_timing.html">Stufe 07: Interrupts &amp; Timing — Raster-IRQ, CIA-Timer</a></li>
+      <li><a href="stufe_08_optimierung.html">Stufe 08: Optimierung — Bad Lines, DMA-Kosten, Zyklenbudget</a></li>
+    </ul>
+  </div>
 
   <nav class="chapter-nav">
     <a href="stufe_08_optimierung.html">← Stufe 08: Optimierung</a>
