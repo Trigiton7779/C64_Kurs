@@ -57,8 +57,9 @@ Alle 31 HTML-Dateien (30 Root + tools/register_rechner.html) nutzen dasselbe For
 - Läuft **synchron** bei Script-Ausführung (nicht bei DOMContentLoaded), damit `.toc-link`-Elemente beim anschließenden Scroll-Spy-Init bereits im DOM sind
 
 ### Altes Format (stufe_00–07, index.html) — Altlast
-- Enthält noch inline-CSS-Block (~60–150 Zeilen) mit alten `.sidebar nav ul li a`-Regeln
-- Diese Regeln sind Dead Code (passen nicht auf neue Sidebar-Struktur) — harmlos, nicht löschen nötig
+- Enthält noch inline-CSS-Block (~60–150 Zeilen) mit alten `.sidebar nav ul li a`-Regeln → Dead Code (passen nicht auf neue Sidebar-Struktur)
+- Enthält CSS-Regeln für `.objectives` und `.exercises-section` → ebenfalls Dead Code (Klassen wurden auf `.learning-objectives` / `.exercises` migriert)
+- Alle `<section>` und `<div>`-Wrapper sind bereits auf neues Format migriert (Fix 13+14)
 - `c64-base.css` wurde per Migration **hinzugefügt** (vor dem inline `<style>`)
 
 ## CSS-Variablen (c64-base.css)
@@ -187,7 +188,7 @@ Kein Python-Script, keine 31 Dateien anfassen.
 ### Search-Index neu bauen (nach Content-Änderungen)
 ```bash
 python3 tools/build_search_index.py
-# → assets/search-index.json (aktuell ~211 Sektionen aus 29 Seiten)
+# → assets/search-index.json (aktuell ~203 Sektionen aus 29 Seiten)
 ```
 
 ### Code-Beispiele extrahieren
@@ -206,9 +207,11 @@ python3 tools/extract_examples.py
 
 ### Neue Anhang-Seite hinzufügen
 Wie neue Stufe, aber:
-- Dateiname: `anhang_X_name.html` (X = nächster Buchstabe)
+- Dateiname: `anhang_X_name.html` (X = nächster Buchstabe, aktuell K)
 - `c64-print.css` mit `media="print"` einbinden
+- `<title>C64 Mastery — Anhang X: Titel</title>` — Buchstabe im Titel angeben
 - In `sidebar.js` in der Sektion "Anhänge & Referenz" einfügen
+- `<nav class="chapter-nav">` am Ende von `</main>` einfügen; auch den Vorgänger-Anhang anpassen (seinen Vorwärts-Link aktualisieren)
 - Kein Quiz nötig
 
 ## Bekannte Quirks
