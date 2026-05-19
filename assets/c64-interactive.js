@@ -294,6 +294,211 @@
     });
   }
 
+  /* ── Scroll-Spy ───────────────────────────────────────────────── */
+  function initScrollSpy() {
+    var tocLinks = document.querySelectorAll('.toc-link[href^="#"]');
+    if (!tocLinks.length) return;
+    if (!('IntersectionObserver' in window)) return;
+
+    var sections = [];
+    tocLinks.forEach(function (a) {
+      var id = a.getAttribute('href').slice(1);
+      var el = document.getElementById(id);
+      if (el) sections.push({ el: el, a: a });
+    });
+    if (!sections.length) return;
+
+    var activeLink = null;
+
+    function setActive(link) {
+      if (link === activeLink) return;
+      if (activeLink) activeLink.classList.remove('toc-active');
+      activeLink = link;
+      if (!activeLink) return;
+      activeLink.classList.add('toc-active');
+      var sidebar = document.querySelector('.sidebar');
+      if (sidebar) {
+        var linkTop = activeLink.offsetTop;
+        var sh = sidebar.clientHeight;
+        if (linkTop < sidebar.scrollTop + 40 || linkTop > sidebar.scrollTop + sh - 60) {
+          sidebar.scrollTop = linkTop - sh / 2;
+        }
+      }
+    }
+
+    var observer = new IntersectionObserver(function (entries) {
+      var visible = [];
+      entries.forEach(function (e) { if (e.isIntersecting) visible.push(e.target); });
+      if (!visible.length) return;
+      visible.sort(function (a, b) {
+        return a.getBoundingClientRect().top - b.getBoundingClientRect().top;
+      });
+      for (var i = 0; i < sections.length; i++) {
+        if (sections[i].el === visible[0]) { setActive(sections[i].a); break; }
+      }
+    }, { rootMargin: '0px 0px -60% 0px', threshold: 0 });
+
+    sections.forEach(function (s) { observer.observe(s.el); });
+  }
+
+  /* ── Search Nav Link ──────────────────────────────────────────── */
+  function initSearchLink() {
+    if (document.querySelector('a[href="suche.html"]')) return;
+    var labels = document.querySelectorAll('.sidebar .section-label');
+    if (!labels.length) return;
+    var last = labels[labels.length - 1];
+    var nav = last.parentNode;
+
+    var aSearch = document.createElement('a');
+    aSearch.href = 'suche.html';
+    aSearch.textContent = '⌕ Suche';
+    nav.insertBefore(aSearch, last.nextSibling);
+
+    var aReg = document.createElement('a');
+    aReg.href = 'tools/register_rechner.html';
+    aReg.textContent = '⚙ Register-Rechner';
+    nav.insertBefore(aReg, aSearch.nextSibling);
+  }
+
+  /* ── Quiz System ──────────────────────────────────────────────── */
+  function loadQuizData(stufe, callback) {
+    if (typeof C64_QUIZ !== 'undefined') { callback(); return; }
+    var s = document.createElement('script');
+    s.src = 'assets/quiz-data.js';
+    s.onload = callback;
+    s.onerror = function () {};
+    document.head.appendChild(s);
+  }
+
+  function buildQuizHTML(stufe, questions) {
+    var n = questions.length;
+    var html = '<h2 class="c64-quiz-title">Wissenstest — Stufe ' + parseInt(stufe, 10) + '</h2>';
+    html += '<p class="c64-quiz-meta">' + n + ' Fragen &mdash; Teste dein Wissen aus diesem Kapitel</p>';
+
+    questions.forEach(function (q, i) {
+      html += '<div class="c64-quiz-q"' + (i > 0 ? ' style="display:none"' : '') +
+              ' data-idx="' + i + '">';
+      html += '<div class="c64-quiz-qnum">Frage ' + (i + 1) + ' von ' + n + '</div>';
+      html += '<p class="c64-quiz-question">' + q.q + '</p>';
+      html += '<ul class="c64-quiz-options">';
+      q.options.forEach(function (opt, oi) {
+        html += '<li><button class="c64-quiz-opt" data-opt="' + oi + '">' + opt + '</button></li>';
+      });
+      html += '</ul>';
+      html += '<div class="c64-quiz-explanation" style="display:none"><strong>Erklärung:</strong> ' +
+              q.explanation + '</div>';
+      html += '</div>';
+    });
+
+    html += '<div class="c64-quiz-nav">';
+    html += '<button class="c64-quiz-submit" disabled>Antwort prüfen</button>';
+    html += '<button class="c64-quiz-next" style="display:none">Nächste Frage &#x2192;</button>';
+    html += '</div>';
+    html += '<div class="c64-quiz-result" style="display:none">';
+    html += '<div class="c64-quiz-score-display"></div>';
+    html += '<button class="c64-quiz-restart">Quiz wiederholen</button>';
+    html += '</div>';
+    return html;
+  }
+
+  function bindQuizEvents(container, stufe, questions) {
+    var currentQ = 0, score = 0, selected = -1, answered = false;
+    var SCORE_KEY = 'c64_quiz_' + stufe + '_score';
+    var BEST_KEY  = 'c64_quiz_' + stufe + '_best';
+    var DONE_KEY  = 'c64_quiz_' + stufe + '_done';
+
+    function showQ(idx) {
+      container.querySelectorAll('.c64-quiz-q').forEach(function (el) { el.style.display = 'none'; });
+      var qEl = container.querySelector('.c64-quiz-q[data-idx="' + idx + '"]');
+      if (qEl) qEl.style.display = 'block';
+      selected = -1; answered = false;
+      var submit = container.querySelector('.c64-quiz-submit');
+      var next   = container.querySelector('.c64-quiz-next');
+      submit.disabled = true; submit.style.display = 'inline-block';
+      next.style.display = 'none';
+      container.querySelectorAll('.c64-quiz-opt').forEach(function (b) {
+        b.classList.remove('correct', 'wrong', 'selected'); b.disabled = false;
+      });
+      if (qEl) qEl.querySelector('.c64-quiz-explanation').style.display = 'none';
+    }
+
+    container.addEventListener('click', function (e) {
+      var t = e.target;
+
+      if (t.classList.contains('c64-quiz-opt') && !answered) {
+        container.querySelectorAll('.c64-quiz-opt').forEach(function (b) { b.classList.remove('selected'); });
+        t.classList.add('selected');
+        selected = parseInt(t.getAttribute('data-opt'), 10);
+        container.querySelector('.c64-quiz-submit').disabled = false;
+      }
+
+      if (t.classList.contains('c64-quiz-submit') && selected >= 0 && !answered) {
+        answered = true;
+        var correct = questions[currentQ].correct;
+        container.querySelectorAll('.c64-quiz-opt').forEach(function (b) {
+          b.disabled = true;
+          var o = parseInt(b.getAttribute('data-opt'), 10);
+          if (o === correct) b.classList.add('correct');
+          else if (o === selected) b.classList.add('wrong');
+        });
+        var qEl = container.querySelector('.c64-quiz-q[data-idx="' + currentQ + '"]');
+        qEl.querySelector('.c64-quiz-explanation').style.display = 'block';
+        if (selected === correct) score++;
+        t.style.display = 'none';
+        var next = container.querySelector('.c64-quiz-next');
+        next.style.display = 'inline-block';
+        next.textContent = currentQ < questions.length - 1
+          ? 'Nächste Frage →' : 'Ergebnis anzeigen';
+      }
+
+      if (t.classList.contains('c64-quiz-next')) {
+        currentQ++;
+        if (currentQ < questions.length) {
+          showQ(currentQ);
+        } else {
+          container.querySelectorAll('.c64-quiz-q').forEach(function (q) { q.style.display = 'none'; });
+          container.querySelector('.c64-quiz-nav').style.display = 'none';
+          var result = container.querySelector('.c64-quiz-result');
+          result.style.display = 'block';
+          var pct = Math.round((score / questions.length) * 100);
+          var stars = ['★☆☆☆☆', '★★☆☆☆',
+                       '★★★☆☆', '★★★★☆',
+                       '★★★★★'];
+          var si = Math.min(Math.max(score - 1, 0), 4);
+          result.querySelector('.c64-quiz-score-display').innerHTML =
+            '<div class="c64-quiz-stars">' + stars[si] + '</div>' +
+            '<div class="c64-quiz-score-text">' + score + ' von ' + questions.length +
+            ' richtig &nbsp;(' + pct + '&#x25;)</div>';
+          localStorage.setItem(SCORE_KEY, score);
+          var best = parseInt(localStorage.getItem(BEST_KEY) || '0', 10);
+          if (score > best) localStorage.setItem(BEST_KEY, score);
+          localStorage.setItem(DONE_KEY, '1');
+        }
+      }
+
+      if (t.classList.contains('c64-quiz-restart')) {
+        currentQ = 0; score = 0; selected = -1; answered = false;
+        container.querySelector('.c64-quiz-result').style.display = 'none';
+        container.querySelector('.c64-quiz-nav').style.display = 'block';
+        showQ(0);
+      }
+    });
+  }
+
+  function initQuiz() {
+    var stufe = stufeId();
+    if (!stufe || typeof C64_QUIZ === 'undefined' || !C64_QUIZ[stufe]) return;
+    var questions = C64_QUIZ[stufe];
+    var anchor = document.querySelector('#benchmark, section.benchmark, .benchmark');
+    if (!anchor) return;
+    var container = document.createElement('section');
+    container.id = 'c64-quiz';
+    container.className = 'c64-quiz-section';
+    container.innerHTML = buildQuizHTML(stufe, questions);
+    anchor.parentNode.insertBefore(container, anchor.nextSibling);
+    bindQuizEvents(container, stufe, questions);
+  }
+
   /* ── Init ─────────────────────────────────────────────────────── */
   function init() {
     initDarkMode();
@@ -301,6 +506,10 @@
     initCopyButtons();
     initProgress();
     initIndexProgress();
+    initScrollSpy();
+    initSearchLink();
+    var s = stufeId();
+    if (s) loadQuizData(s, initQuiz);
   }
 
   if (document.readyState === 'loading') {

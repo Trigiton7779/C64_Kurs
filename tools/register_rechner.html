@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>C64 Mastery — Register-Rechner</title>
+  <link rel="stylesheet" href="../assets/c64-base.css">
+  <link rel="stylesheet" href="../assets/c64-interactive.css">
+  <style>
+    /* ── Register Visualizer ────────────────────────────────────── */
+    .rrv-container { max-width: 700px; }
+
+    .rrv-selector {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 24px 0 20px;
+      flex-wrap: wrap;
+    }
+
+    .rrv-selector label {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      color: var(--text-light);
+      white-space: nowrap;
+    }
+
+    #reg-select {
+      flex: 1;
+      min-width: 260px;
+      padding: 8px 12px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      background: var(--paper-dark);
+      color: var(--text);
+      border: 2px solid var(--c64-blue);
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #reg-select:focus { outline: none; border-color: var(--c64-green); }
+
+    #reg-reset {
+      padding: 8px 16px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      background: rgba(26,63,128,0.12);
+      color: var(--c64-blue);
+      border: 1px solid rgba(26,63,128,0.35);
+      border-radius: 5px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+
+    #reg-reset:hover { background: rgba(26,63,128,0.22); }
+
+    .rrv-register {
+      display: flex;
+      gap: 3px;
+      margin: 8px 0 20px;
+      justify-content: center;
+    }
+
+    .rrv-bit-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .rrv-bit {
+      width: 58px;
+      height: 58px;
+      font-size: 22px;
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+      background: var(--c64-dark);
+      color: #3355aa;
+      border: 2px solid #222240;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.12s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+    }
+
+    .rrv-bit.set {
+      background: var(--c64-blue);
+      color: var(--c64-green);
+      border-color: var(--c64-green);
+      box-shadow: 0 0 8px rgba(0,204,102,0.3);
+    }
+
+    .rrv-bit.unused {
+      background: #111118;
+      color: #2a2a3a;
+      cursor: default;
+      border-color: #1a1a28;
+    }
+
+    .rrv-bit:hover:not(.unused) { border-color: var(--c64-green); }
+
+    .rrv-bit-num {
+      font-family: 'Courier New', monospace;
+      font-size: 10px;
+      color: #445;
+    }
+
+    .rrv-bit-name {
+      font-family: 'Courier New', monospace;
+      font-size: 9px;
+      color: #556;
+      text-align: center;
+      max-width: 58px;
+      word-break: break-all;
+      line-height: 1.2;
+    }
+
+    .rrv-display {
+      display: flex;
+      gap: 28px;
+      margin: 8px 0 16px;
+      flex-wrap: wrap;
+    }
+
+    .rrv-display-item {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      color: var(--text-light);
+    }
+
+    .rrv-display-item code {
+      font-size: 18px;
+      color: var(--c64-green);
+      background: none;
+    }
+
+    .rrv-desc {
+      background: var(--paper-dark);
+      border-left: 4px solid var(--c64-blue);
+      border-radius: 0 6px 6px 0;
+      padding: 14px 18px;
+      margin: 8px 0 16px;
+      min-height: 64px;
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text);
+      transition: border-color 0.2s;
+    }
+
+    .rrv-desc.active { border-left-color: var(--c64-green); }
+
+    .rrv-desc .desc-name {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      color: var(--c64-green);
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+
+    .rrv-asm {
+      margin: 12px 0;
+    }
+
+    .rrv-asm pre {
+      background: #1a1a2e;
+      color: #00cc66;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      padding: 14px 18px;
+      border-radius: 5px;
+      margin: 0;
+      border: 1px solid #2a2a4a;
+    }
+
+    body.dark-mode #reg-select {
+      background: #1a1a2e;
+      color: var(--text);
+      border-color: #2a3a6a;
+    }
+
+    body.dark-mode .rrv-desc { background: #1a1a2e; }
+
+    @media (max-width: 700px) {
+      .rrv-bit { width: 38px; height: 38px; font-size: 16px; }
+      .rrv-bit-name { font-size: 7px; max-width: 38px; }
+      .rrv-register { gap: 2px; }
+    }
+  </style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">■ C64 MASTERY</div>
+    Professioneller Lehrgang
+  </div>
+  <nav>
+    <div class="section-label">Curriculum</div>
+    <a href="../index.html">◈ Übersicht &amp; Lernpfad</a>
+    <a href="../stufe_00_fundament.html">00 · Fundament</a>
+    <a href="../stufe_01_6510_assembler.html">01 · 6510 &amp; Assembler</a>
+    <a href="../stufe_03_bildschirm_zeichen.html">03 · VIC-II Grundlagen</a>
+    <a href="../stufe_04_sprites_animation.html">04 · Sprites</a>
+    <a href="../stufe_06_sid_sound.html">06 · SID-Sound</a>
+    <a href="../stufe_07_interrupts_timing.html">07 · Interrupts &amp; CIA</a>
+    <a href="../stufe_16_tastatur_joystick.html">16 · Tastatur &amp; Joystick</a>
+
+    <div class="section-label">Werkzeuge</div>
+    <a href="../suche.html">⌕ Volltextsuche</a>
+    <a href="register_rechner.html" class="active">⚙ Register-Rechner</a>
+
+    <div class="section-label">Anhänge &amp; Referenz</div>
+    <a href="../anhang_vic_register.html">C · VIC-II Register</a>
+    <a href="../anhang_sid_register.html">D · SID Register</a>
+    <a href="../anhang_cia_register.html">E · CIA Register</a>
+    <a href="../anhang_kernal_routinen.html">H · KERNAL-Routinen</a>
+    <a href="../anhang_i_acme_referenz.html">I · ACME-Referenz</a>
+    <a href="../anhang_j_illegale_opcodes.html">J · Illegale Opcodes</a>
+  </nav>
+</aside>
+
+<main>
+  <header class="chapter-header">
+    <div class="chapter-number">Werkzeug</div>
+    <h1>Register-Rechner</h1>
+    <div class="chapter-meta">
+      <span>VIC-II · SID · CIA1 · CIA2</span>
+      <span>Bits klicken → Hex-Wert + ACME-Code</span>
+    </div>
+  </header>
+
+  <div class="rrv-container">
+
+    <div class="rrv-selector">
+      <label>Register:</label>
+      <select id="reg-select"></select>
+      <button id="reg-reset">↺ Zurücksetzen</button>
+    </div>
+
+    <div class="rrv-register" id="rrv-bits">
+      <!-- rendered by JS -->
+    </div>
+
+    <div class="rrv-display">
+      <div class="rrv-display-item">Hex: <code id="rrv-hex">$00</code></div>
+      <div class="rrv-display-item">Dez: <code id="rrv-dec">0</code></div>
+      <div class="rrv-display-item">Bin: <code id="rrv-bin">%00000000</code></div>
+    </div>
+
+    <div class="rrv-desc" id="rrv-desc">
+      <p style="margin:0;color:var(--text-light);font-family:'Courier New',monospace;font-size:13px;">
+        Klicke auf ein Bit um seine Bedeutung zu sehen.
+      </p>
+    </div>
+
+    <div class="rrv-asm">
+      <pre id="rrv-asm-pre">; Wähle ein Register aus</pre>
+    </div>
+
+  </div><!-- .rrv-container -->
+
+  <script>
+  /* ── Register-Daten ─────────────────────────────────────────── */
+  var REGISTERS = [
+
+    /* ── VIC-II ──────────────────────────────────────────────── */
+    {
+      chip: 'VIC-II', name: '$D011 — Control Register 1', addr: 0xD011, defaultVal: 0x1B,
+      bits: [
+        { name: 'RST8',  desc: 'Rasterzeilen-Bit 8 — MSB von $D012 Raster Compare (ermöglicht Zeilen 256–311)' },
+        { name: 'ECM',   desc: 'Extended Color Mode (ECM) — 64 Hintergrundfarben, nur im Zeichenmodus' },
+        { name: 'BMM',   desc: 'Bitmap Mode — schaltet in den Hires-Bitmap-Modus (320×200)' },
+        { name: 'DEN',   desc: 'Display Enable — 0 = Bildschirm komplett schwarz (Border bleibt)' },
+        { name: 'RSEL',  desc: 'Row Select — 1 = 25 Zeilen ($31–$F8), 0 = 24 Zeilen ($33–$FA)' },
+        { name: 'Y2',    desc: 'YSCROLL Bit 2 — vertikaler Feinscroll (0–7 Pixel)' },
+        { name: 'Y1',    desc: 'YSCROLL Bit 1 — vertikaler Feinscroll' },
+        { name: 'Y0',    desc: 'YSCROLL Bit 0 — YSCROLL = (Bit 2–0). Standard = 3 ($1B). Badlines wenn (Raster & 7) == YSCROLL' }
+      ]
+    },
+    {
+      chip: 'VIC-II', name: '$D016 — Control Register 2', addr: 0xD016, defaultVal: 0xC8,
+      bits: [
+        { name: '—',    desc: 'Ungenutzt', unused: true },
+        { name: '—',    desc: 'Ungenutzt', unused: true },
+        { name: 'RES',  desc: 'Reset-Bit — im Normalbetrieb immer 1. 0 = VIC-II-Soft-Reset (undokumentiert)' },
+        { name: 'MCM',  desc: 'Multicolor Mode — 1 = Multicolor-Zeichenmodus (4 Farben, halbe Auflösung)' },
+        { name: 'CSEL', desc: 'Column Select — 1 = 40 Spalten ($18–$D8), 0 = 38 Spalten ($1F–$D7) — nötig für H-Open-Border' },
+        { name: 'X2',   desc: 'XSCROLL Bit 2 — horizontaler Feinscroll (0–7 Pixel)' },
+        { name: 'X1',   desc: 'XSCROLL Bit 1 — horizontaler Feinscroll' },
+        { name: 'X0',   desc: 'XSCROLL Bit 0 — XSCROLL = (Bit 2–0). Für Smooth-Scroll: von 7 auf 0 dekrement, dann Zeichen-RAM verschieben' }
+      ]
+    },
+    {
+      chip: 'VIC-II', name: '$D018 — Memory Control', addr: 0xD018, defaultVal: 0x14,
+      bits: [
+        { name: 'VM13', desc: 'Screen RAM Adress-Bit 13 — Bit 3 des Screen-RAM-Offsets innerhalb der VIC-Bank' },
+        { name: 'VM12', desc: 'Screen RAM Adress-Bit 12 — Bits 13–10 zusammen: Screen-RAM-Adresse = Bits × $0400' },
+        { name: 'VM11', desc: 'Screen RAM Adress-Bit 11' },
+        { name: 'VM10', desc: 'Screen RAM Adress-Bit 10 — Standard $14 = VM[13:10]=0001 → Screen bei $0400 in Bank 0' },
+        { name: 'CB13', desc: 'Zeichensatz/Bitmap Adress-Bit 13 — Bit 3 des Zeichensatz-Offsets' },
+        { name: 'CB12', desc: 'Zeichensatz/Bitmap Adress-Bit 12 — Bits 13–11: Zeichensatz × $0800, Bitmap × $2000' },
+        { name: 'CB11', desc: 'Zeichensatz/Bitmap Adress-Bit 11 — Standard $14 = CB[13:11]=010 → Zeichensatz bei $1000' },
+        { name: '—',    desc: 'Ungenutzt', unused: true }
+      ]
+    },
+    {
+      chip: 'VIC-II', name: '$D015 — Sprite Enable', addr: 0xD015, defaultVal: 0x00,
+      bits: [
+        { name: 'SP7', desc: 'Sprite 7 aktivieren (1=an)' },
+        { name: 'SP6', desc: 'Sprite 6 aktivieren' },
+        { name: 'SP5', desc: 'Sprite 5 aktivieren' },
+        { name: 'SP4', desc: 'Sprite 4 aktivieren' },
+        { name: 'SP3', desc: 'Sprite 3 aktivieren' },
+        { name: 'SP2', desc: 'Sprite 2 aktivieren' },
+        { name: 'SP1', desc: 'Sprite 1 aktivieren' },
+        { name: 'SP0', desc: 'Sprite 0 aktivieren — Jedes Bit entspricht einem der 8 Hardware-Sprites' }
+      ]
+    },
+    {
+      chip: 'VIC-II', name: '$D020 — Rahmenfarbe', addr: 0xD020, defaultVal: 0x0E,
+      bits: [
+        { name: '—', desc: 'Ungenutzt', unused: true },
+        { name: '—', desc: 'Ungenutzt', unused: true },
+        { name: '—', desc: 'Ungenutzt', unused: true },
+        { name: '—', desc: 'Ungenutzt', unused: true },
+        { name: 'C3', desc: 'Farbwert Bit 3 — Zusammen mit Bits 2–0 ergibt sich die Rahmenfarbe (0–15)' },
+        { name: 'C2', desc: 'Farbwert Bit 2' },
+        { name: 'C1', desc: 'Farbwert Bit 1' },
+        { name: 'C0', desc: 'Farbwert Bit 0 — Farben: 0=Schwarz, 1=Weiß, 2=Rot, 3=Cyan, 4=Lila, 5=Grün, 6=Blau, 14=Hellblau' }
+      ]
+    },
+    {
+      chip: 'VIC-II', name: '$D021 — Hintergrundfarbe 0', addr: 0xD021, defaultVal: 0x06,
+      bits: [
+        { name: '—', desc: 'Ungenutzt', unused: true },
+        { name: '—', desc: 'Ungenutzt', unused: true },
+        { name: '—', desc: 'Ungenutzt', unused: true },
+        { name: '—', desc: 'Ungenutzt', unused: true },
+        { name: 'C3', desc: 'Farbwert Bit 3 — Hintergrundfarbe 0: im Textmodus der Zeichen-Hintergrund' },
+        { name: 'C2', desc: 'Farbwert Bit 2' },
+        { name: 'C1', desc: 'Farbwert Bit 1' },
+        { name: 'C0', desc: 'Farbwert Bit 0 — Im Multicolor-Modus: Farbe 00 (shared). $D022/$D023 = BG1/BG2' }
+      ]
+    },
+
+    /* ── SID ─────────────────────────────────────────────────── */
+    {
+      chip: 'SID', name: '$D404 — Stimme 1 Control', addr: 0xD404, defaultVal: 0x00,
+      bits: [
+        { name: 'NOISE', desc: 'Rauschen (Noise) — Pseudo-Zufalls-Wellenform. Ideal für Schlagzeug, Explosionen' },
+        { name: 'PULSE', desc: 'Rechteck-Wellenform (Pulse). Pulsbreite in $D402/$D403 (0–4095). $800 = 50% Pulsbreite' },
+        { name: 'SAW',   desc: 'Sägezahn-Wellenform — reich an Obertönen, gut für Bässe' },
+        { name: 'TRI',   desc: 'Dreieck-Wellenform — weichster Klang des SID' },
+        { name: 'TEST',  desc: 'Test-Bit — 1 = Oszillator zurücksetzen. Für LFSR-Reset beim Rauschen nötig' },
+        { name: 'RING',  desc: 'Ring-Modulation — Dreieck-Welle mit Stimme 3 modulieren (metallische Klänge)' },
+        { name: 'SYNC',  desc: 'Hard Sync — Oszillator wird durch Stimme 3 synchronisiert' },
+        { name: 'GATE',  desc: 'Gate — 1 = Note an (Attack→Decay→Sustain), 0 = Note aus (Release). "Note On/Off"' }
+      ]
+    },
+    {
+      chip: 'SID', name: '$D405 — Stimme 1 Attack/Decay', addr: 0xD405, defaultVal: 0x00,
+      bits: [
+        { name: 'A3', desc: 'Attack Rate Bit 3 — Attack-Zeiten: 0=$2ms, 1=$8ms, 2=$16ms, 3=$24ms, 4=$38ms' },
+        { name: 'A2', desc: 'Attack Rate Bit 2 — 5=$56ms, 6=$68ms, 7=$80ms, 8=$100ms, 9=$250ms' },
+        { name: 'A1', desc: 'Attack Rate Bit 1 — 10=$500ms, 11=$800ms, 12=$1s, 13=$3s, 14=$5s, 15=$8s' },
+        { name: 'A0', desc: 'Attack Rate Bit 0 — Bits 7–4 zusammen: Attack-Rate 0–15' },
+        { name: 'D3', desc: 'Decay Rate Bit 3 — Decay-Zeiten identisch wie Attack-Tabelle (0–15)' },
+        { name: 'D2', desc: 'Decay Rate Bit 2' },
+        { name: 'D1', desc: 'Decay Rate Bit 1' },
+        { name: 'D0', desc: 'Decay Rate Bit 0 — Bits 3–0 zusammen: Decay-Rate 0–15. Nach Decay: Sustain-Level halten' }
+      ]
+    },
+    {
+      chip: 'SID', name: '$D406 — Stimme 1 Sustain/Release', addr: 0xD406, defaultVal: 0x00,
+      bits: [
+        { name: 'S3', desc: 'Sustain Level Bit 3 — Sustain ist ein PEGEL (0–15), keine Zeit. 15=Maximum, 0=Stille' },
+        { name: 'S2', desc: 'Sustain Level Bit 2' },
+        { name: 'S1', desc: 'Sustain Level Bit 1' },
+        { name: 'S0', desc: 'Sustain Level Bit 0 — Bits 7–4: Sustain-Pegel. Gehalten bis GATE=0 gesetzt wird' },
+        { name: 'R3', desc: 'Release Rate Bit 3 — Release-Zeiten identisch wie Attack-Tabelle (0–15)' },
+        { name: 'R2', desc: 'Release Rate Bit 2' },
+        { name: 'R1', desc: 'Release Rate Bit 1' },
+        { name: 'R0', desc: 'Release Rate Bit 0 — Bits 3–0: Release-Rate. Beginnt wenn GATE=0' }
+      ]
+    },
+    {
+      chip: 'SID', name: '$D417 — Filter Routing', addr: 0xD417, defaultVal: 0x00,
+      bits: [
+        { name: 'RES3', desc: 'Filter Resonanz Bit 3 — Resonanz Q-Faktor 0–15. Höher = schärferer Filteransatz' },
+        { name: 'RES2', desc: 'Filter Resonanz Bit 2' },
+        { name: 'RES1', desc: 'Filter Resonanz Bit 1' },
+        { name: 'RES0', desc: 'Filter Resonanz Bit 0 — Bits 7–4: Resonanz 0–15' },
+        { name: 'FILT3', desc: 'Stimme 3 durch Filter routen (1=ja)' },
+        { name: 'FILT2', desc: 'Stimme 2 durch Filter routen' },
+        { name: 'FILT1', desc: 'Stimme 1 durch Filter routen' },
+        { name: 'FILTEX', desc: 'Externen Audio-Eingang durch Filter routen (USER-Port)' }
+      ]
+    },
+    {
+      chip: 'SID', name: '$D418 — Filter Mode / Volume', addr: 0xD418, defaultVal: 0x0F,
+      bits: [
+        { name: '3OFF', desc: 'Stimme 3 stumm schalten (unabhängig vom Filter) — nützlich wenn Stimme 3 nur für Ring/Sync genutzt wird' },
+        { name: 'HP',   desc: 'High-Pass Filter aktivieren — lässt hohe Frequenzen durch' },
+        { name: 'BP',   desc: 'Band-Pass Filter aktivieren — lässt nur mittlere Frequenzen durch' },
+        { name: 'LP',   desc: 'Low-Pass Filter aktivieren — lässt tiefe Frequenzen durch (weicher Klang)' },
+        { name: 'V3',   desc: 'Master-Lautstärke Bit 3 — MUSS gesetzt sein damit Ton hörbar ist!' },
+        { name: 'V2',   desc: 'Master-Lautstärke Bit 2' },
+        { name: 'V1',   desc: 'Master-Lautstärke Bit 1' },
+        { name: 'V0',   desc: 'Master-Lautstärke Bit 0 — Bits 3–0: Volume 0–15. Standard für Musik: $0F (15=Maximum)' }
+      ]
+    },
+
+    /* ── CIA1 ─────────────────────────────────────────────────── */
+    {
+      chip: 'CIA1', name: '$DC00 — Port A (Joystick 2 / Keyboard)', addr: 0xDC00, defaultVal: 0xFF,
+      bits: [
+        { name: 'K7/J', desc: 'Tastaturzeile 7 auswählen (0=aktiv). Joystick Port 2: kein eigener Bit hier' },
+        { name: 'K6/J', desc: 'Tastaturzeile 6 auswählen' },
+        { name: 'K5/J', desc: 'Tastaturzeile 5 auswählen' },
+        { name: 'K4/J', desc: 'Tastaturzeile 4 auswählen' },
+        { name: 'K3/J', desc: 'Tastaturzeile 3 auswählen — Für Joystick 2: Bit 4=Fire, 3=Right, 2=Left, 1=Down, 0=Up' },
+        { name: 'K2/J', desc: 'Tastaturzeile 2 auswählen. Joystick Port 2 Bit 2 = Left (0=gedrückt)' },
+        { name: 'K1/J', desc: 'Tastaturzeile 1 auswählen. Joystick Port 2 Bit 1 = Down (0=gedrückt)' },
+        { name: 'K0/J', desc: 'Tastaturzeile 0 auswählen. Joystick Port 2 Bit 0 = Up (0=gedrückt). Aktiv Low!' }
+      ]
+    },
+    {
+      chip: 'CIA1', name: '$DC01 — Port B (Joystick 1 / Keyboard)', addr: 0xDC01, defaultVal: 0xFF,
+      bits: [
+        { name: 'COL7', desc: 'Tastatur-Spalte 7 lesen (0=gedrückt). Joystick Port 1: kein Bit hier' },
+        { name: 'COL6', desc: 'Tastatur-Spalte 6 lesen' },
+        { name: 'COL5', desc: 'Tastatur-Spalte 5 lesen' },
+        { name: 'COL4', desc: 'Tastatur-Spalte 4 lesen' },
+        { name: 'COL3', desc: 'Tastatur-Spalte 3. Joystick Port 1 Bit 4=Fire, 3=Right, 2=Left, 1=Down, 0=Up (aktiv Low)' },
+        { name: 'COL2', desc: 'Tastatur-Spalte 2. Joystick Port 1 Bit 2 = Left (0=gedrückt)' },
+        { name: 'COL1', desc: 'Tastatur-Spalte 1. Joystick Port 1 Bit 1 = Down (0=gedrückt)' },
+        { name: 'COL0', desc: 'Tastatur-Spalte 0. Joystick Port 1 Bit 0 = Up (0=gedrückt)' }
+      ]
+    },
+    {
+      chip: 'CIA1', name: '$DC0D — ICR (Interrupt Control)', addr: 0xDC0D, defaultVal: 0x00,
+      bits: [
+        { name: 'IR',   desc: 'Beim Lesen: 1 = mindestens ein IRQ aufgetreten. Beim Schreiben: Bit 7=1→setzen, Bit 7=0→löschen' },
+        { name: '—',    desc: 'Ungenutzt', unused: true },
+        { name: '—',    desc: 'Ungenutzt', unused: true },
+        { name: 'FLG',  desc: 'FLAG-Pin Interrupt — wird beim Empfang über den seriellen Bus (IEC) gesetzt' },
+        { name: 'SP',   desc: 'Serial Port Interrupt — nach vollständigem Senden/Empfangen eines Bytes' },
+        { name: 'ALRM', desc: 'TOD Alarm Interrupt — wenn TOD-Zeit den Alarm-Wert erreicht' },
+        { name: 'TB',   desc: 'Timer B Unterlauf — IRQ wenn Timer B auf 0 zählt' },
+        { name: 'TA',   desc: 'Timer A Unterlauf — IRQ wenn Timer A auf 0 zählt. Häufigste Quelle für eigene CIA-IRQs' }
+      ]
+    },
+    {
+      chip: 'CIA1', name: '$DC0E — Control Register A (Timer A)', addr: 0xDC0E, defaultVal: 0x08,
+      bits: [
+        { name: 'TOD',  desc: 'TOD Clock Frequency — 0 = 60 Hz, 1 = 50 Hz Eingangsfrequenz für Echtzeituhr' },
+        { name: 'SPMOD',desc: 'Serial Port Mode — 0 = Eingang (empfangen), 1 = Ausgang (senden)' },
+        { name: 'INMODE',desc: 'Input Mode — 0 = Timer zählt Taktzyklen, 1 = zählt positive CNT-Flanken' },
+        { name: 'RUNMODE', desc: 'Run Mode — 0 = Continuous (läuft endlos), 1 = One-Shot (stoppt nach Unterlauf)' },
+        { name: 'LOAD', desc: 'Force Load — 1 schreiben lädt Latch sofort in Zähler (Schreibimpuls, kein Zustand)' },
+        { name: 'PBON', desc: 'PB6 Output — 1 = Timer A verbindet mit Port B Bit 6 für Timing-Ausgabe' },
+        { name: 'OUTMODE', desc: 'Output Mode — 0 = Impuls bei Unterlauf, 1 = Toggle bei Unterlauf' },
+        { name: 'START', desc: 'Timer Start/Stop — 1 = Timer läuft, 0 = Timer angehalten. SEI vor Start empfehlenswert!' }
+      ]
+    },
+
+    /* ── CIA2 ─────────────────────────────────────────────────── */
+    {
+      chip: 'CIA2', name: '$DD00 — Port A (VIC-Bank / IEC-Bus)', addr: 0xDD00, defaultVal: 0x3F,
+      bits: [
+        { name: 'SER', desc: 'Seriell-Bus DATA-Ausgang (invertiert). 0 = DATA-Leitung aktiv (Low)' },
+        { name: 'CLK', desc: 'Seriell-Bus CLK-Ausgang (invertiert). 0 = CLK-Leitung aktiv (Low)' },
+        { name: 'ATN', desc: 'Seriell-Bus ATN-Ausgang. 1 = Kein ATN, 0 = ATN aktiv (Geräteauswahl)' },
+        { name: 'VA14',desc: 'VIC-II Adressbus Bit 14 (ungenutzt in Standard-C64)' },
+        { name: '—',   desc: 'Userport / RS-232', unused: false },
+        { name: '—',   desc: 'Userport / RS-232', unused: false },
+        { name: 'VA1', desc: 'VIC-II Bank Bit 1 (INVERTIERT!) — Zusammen mit Bit 0: 11=Bank0, 10=Bank1, 01=Bank2, 00=Bank3' },
+        { name: 'VA0', desc: 'VIC-II Bank Bit 0 (INVERTIERT!) — Standard $3F = Bits 1–0 = %11 = Bank 0 ($0000–$3FFF)' }
+      ]
+    }
+
+  ];
+
+  /* ── Render Logic ────────────────────────────────────────────── */
+  var currentRegIdx = 0;
+  var currentVal = REGISTERS[0].defaultVal;
+
+  function buildSelect() {
+    var sel = document.getElementById('reg-select');
+    var chip = '';
+    var html = '';
+    REGISTERS.forEach(function (reg, i) {
+      if (reg.chip !== chip) {
+        if (chip) html += '</optgroup>';
+        chip = reg.chip;
+        html += '<optgroup label="' + chip + '">';
+      }
+      html += '<option value="' + i + '">' + reg.name + '</option>';
+    });
+    html += '</optgroup>';
+    sel.innerHTML = html;
+    sel.addEventListener('change', function () {
+      currentRegIdx = parseInt(sel.value, 10);
+      currentVal = REGISTERS[currentRegIdx].defaultVal;
+      renderBits();
+      updateDisplay();
+      clearDesc();
+    });
+  }
+
+  function renderBits() {
+    var reg = REGISTERS[currentRegIdx];
+    var container = document.getElementById('rrv-bits');
+    var html = '';
+    for (var b = 7; b >= 0; b--) {
+      var bitDef = reg.bits ? reg.bits[7 - b] : null;
+      var bitVal = (currentVal >> b) & 1;
+      var isSet  = bitVal === 1;
+      var isUnused = bitDef && bitDef.unused;
+      html += '<div class="rrv-bit-col" data-bit="' + b + '">';
+      html += '<button class="rrv-bit' +
+              (isSet    ? ' set'    : '') +
+              (isUnused ? ' unused' : '') +
+              '" data-bit="' + b + '">' + bitVal + '</button>';
+      html += '<div class="rrv-bit-num">' + b + '</div>';
+      html += '<div class="rrv-bit-name">' + (bitDef ? bitDef.name : '?') + '</div>';
+      html += '</div>';
+    }
+    container.innerHTML = html;
+
+    container.querySelectorAll('.rrv-bit:not(.unused)').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var bit = parseInt(this.getAttribute('data-bit'), 10);
+        currentVal ^= (1 << bit);
+        renderBits();
+        updateDisplay();
+        showBitDesc(bit);
+      });
+    });
+  }
+
+  function updateDisplay() {
+    var reg = REGISTERS[currentRegIdx];
+    var hex = currentVal.toString(16).toUpperCase().padStart(2, '0');
+    var bin = currentVal.toString(2).padStart(8, '0');
+    document.getElementById('rrv-hex').textContent = '$' + hex;
+    document.getElementById('rrv-dec').textContent = currentVal;
+    document.getElementById('rrv-bin').textContent = '%' + bin;
+    var addrHex = reg.addr.toString(16).toUpperCase();
+    document.getElementById('rrv-asm-pre').textContent =
+      'LDA #$' + hex + '    ; ' + reg.name + '\nSTA $' + addrHex;
+  }
+
+  function showBitDesc(bit) {
+    var reg = REGISTERS[currentRegIdx];
+    var bitDef = reg.bits ? reg.bits[7 - bit] : null;
+    var descEl = document.getElementById('rrv-desc');
+    if (!bitDef) {
+      descEl.innerHTML = '<p style="margin:0">Bit ' + bit + ' — keine Beschreibung verfügbar.</p>';
+    } else {
+      var bitVal = (currentVal >> bit) & 1;
+      descEl.innerHTML =
+        '<div class="desc-name">Bit ' + bit + ': ' + bitDef.name + ' = ' + bitVal + '</div>' +
+        '<div>' + bitDef.desc + '</div>';
+    }
+    descEl.classList.add('active');
+  }
+
+  function clearDesc() {
+    var descEl = document.getElementById('rrv-desc');
+    descEl.innerHTML = '<p style="margin:0;color:var(--text-light);font-family:\'Courier New\',monospace;font-size:13px;">Klicke auf ein Bit um seine Bedeutung zu sehen.</p>';
+    descEl.classList.remove('active');
+  }
+
+  /* ── Init ────────────────────────────────────────────────────── */
+  buildSelect();
+  renderBits();
+  updateDisplay();
+
+  document.getElementById('reg-reset').addEventListener('click', function () {
+    currentVal = REGISTERS[currentRegIdx].defaultVal;
+    renderBits();
+    updateDisplay();
+    clearDesc();
+  });
+  </script>
+
+  <script src="../assets/c64-interactive.js"></script>
+</main>
+
+</body>
+</html>
