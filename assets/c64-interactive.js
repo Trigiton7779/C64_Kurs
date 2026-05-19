@@ -168,7 +168,7 @@
     var stufe = stufeId();
     if (!stufe) return;
 
-    var items = document.querySelectorAll('.benchmark-list li, .skill-benchmark ul li');
+    var items = document.querySelectorAll('.benchmark-list li, .skill-benchmark ul li, .benchmark ul li');
     if (!items.length) return;
 
     items.forEach(function (li, idx) {

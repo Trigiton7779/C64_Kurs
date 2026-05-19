@@ -213,7 +213,7 @@ Wie neue Stufe, aber:
 
 ## Bekannte Quirks
 
-- **Benchmark-Checkboxen in stufe_00–07**: Diese Dateien verwenden `<div class="benchmark"><ul><li>` ohne `.benchmark-list`-Klasse → `initProgress()` greift nicht. Noch nicht migriert.
+- **Benchmark-HTML in stufe_00–07**: Diese Dateien verwenden `<div class="benchmark"><ul><li>` ohne `.benchmark-list`-Klasse. `initProgress()` enthält dafür explizit den Selector `.benchmark ul li` — Checkboxen funktionieren.
 - **Quiz-Keys null-padded**: `stufeId()` gibt `"07"` zurück, nicht `7`. Keys in `quiz-data.js` müssen exakt passen.
 - **tools/register_rechner.html** liegt in `tools/` → lädt `../assets/` (ein Verzeichnis höher). sidebar.js erkennt das automatisch per `location.pathname`.
 - **sidebar.js ist Single Source of Truth** für Navigation. `initSearchLink()` ist nur noch Fallback und wird durch sidebar.js praktisch immer deaktiviert (früher Return).
