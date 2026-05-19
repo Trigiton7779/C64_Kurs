@@ -202,7 +202,11 @@ tbody tr:hover { background: #dde8ff; }
     meistverkauften Heimcomputer der Geschichte. Doch während er in den Wohnzimmern der Welt stand,
     entstand in Kellern und Jugendzimmern etwas Einzigartiges: eine Demo-Szene, die die technischen
     Grenzen der Maschine immer wieder neu definierte, Effekte zeigte, die als unmöglich galten, und eine
-    Programmierkultur prägte, die bis heute lebendig ist. Intertexture, Comalight, Plush, Crest — die
+    Programmierkultur prägte, die bis heute lebendig ist.
+    <a href="https://csdb.dk/search/?stype=group&search=Intertexture" target="_blank" rel="noopener">Intertexture</a>,
+    <a href="https://csdb.dk/search/?stype=group&search=Comalight" target="_blank" rel="noopener">Comalight</a>,
+    <a href="https://csdb.dk/search/?stype=group&search=Plush" target="_blank" rel="noopener">Plush</a>,
+    <a href="https://csdb.dk/search/?stype=group&search=Crest" target="_blank" rel="noopener">Crest</a> — die
     Gruppen der C64-Demo-Szene haben Programme geschrieben, die selbst heute noch Informatiker zum Staunen
     bringen.
   </p>
@@ -242,11 +246,12 @@ tbody tr:hover { background: #dde8ff; }
   <h2>Das Curriculum im Überblick</h2>
 
   <p>
-    Das C64 Mastery System ist in drei Phasen unterteilt: <strong>Grundlagen</strong> (Stufen 0–2),
-    <strong>Grafik &amp; Sound</strong> (Stufen 3–6) und <strong>Fortgeschrittene Techniken</strong>
-    (Stufen 7–10). Jede Phase schließt mit einem Projekt ab, das das Gelernte konsolidiert. Die folgende
-    Übersicht gibt einen ersten Eindruck der Inhalte; jede Stufe ist als vollständiges Kapitel mit
-    Theorie, Code-Beispielen, Übungen und einem Skill-Benchmark ausgearbeitet.
+    Das C64 Mastery System ist in fünf Phasen unterteilt: <strong>Grundlagen</strong> (0–2),
+    <strong>Grafik &amp; Sound</strong> (3–6), <strong>Fortgeschrittene Techniken</strong> (7–10),
+    <strong>Multimedia &amp; Tools</strong> (11–13) und <strong>System-Mastery</strong> (14–17).
+    Jede Phase schließt mit einem Projekt oder einer Vertiefung ab, die das Gelernte konsolidiert.
+    Die folgende Übersicht gibt einen ersten Eindruck der Inhalte; jede Stufe ist als vollständiges
+    Kapitel mit Theorie, Code-Beispielen, Übungen und einem Skill-Benchmark ausgearbeitet.
   </p>
 
   <div class="stufen-grid">
@@ -451,20 +456,19 @@ PHASE 1: GRUNDLAGEN (Stufen 0–2)
       ▼
 [Stufe 2: Adressierung]
       │
-      ├──────────────────────────┐
-      ▼                          ▼
-PHASE 2: GRAFIK &amp; SOUND (3–6)  │
-══════════════════════════════  │
-[Stufe 3: VIC-II Text]         │
-      │                          │
-      ▼                          │
-[Stufe 4: Sprites]              │
-      │                          │
-      ▼                          │
-[Stufe 5: Bitmap]               │
-      │                          │
-      ▼                          │
-[Stufe 6: SID Sound] ◄──────────┘
+      ▼
+PHASE 2: GRAFIK &amp; SOUND (3–6)
+══════════════════════════════
+[Stufe 3: VIC-II Text]
+      │
+      ▼
+[Stufe 4: Sprites]
+      │
+      ▼
+[Stufe 5: Bitmap]
+      │
+      ▼
+[Stufe 6: SID Sound]
       │
       ▼
 PHASE 3: FORTGESCHRITTEN (7–10)
@@ -593,10 +597,10 @@ PHASE 5: SYSTEM-MASTERY (14–17)
       Enthält eingebauten Monitor/Debugger. Verfügbar für Windows, macOS, Linux.</p>
     </div>
     <div class="tool-card">
-      <div class="tool-name">ACME</div>
-      <div class="tool-type">Assembler &mdash; Empfohlen</div>
+      <div class="tool-name">ACME <span class="badge green" style="font-size:10px; vertical-align:middle; font-family:sans-serif; font-weight:normal;">Kurs-Standard</span></div>
+      <div class="tool-type">Assembler &mdash; Kurs-Standard</div>
       <p>Schneller, moderner Cross-Assembler für 6502/6510. Unterstützt Makros, Includes,
-      Pseudo-Opcodes. Kompakte Syntax, ideal für den Einstieg und für erfahrene Entwickler.</p>
+      Pseudo-Opcodes. Alle Code-Beispiele dieses Kurses sind für ACME geschrieben.</p>
     </div>
     <div class="tool-card">
       <div class="tool-name">Kick Assembler</div>
@@ -623,6 +627,12 @@ PHASE 5: SYSTEM-MASTERY (14–17)
       relevant ab Stufe 9 für die Veröffentlichung von Demos und Spielen.</p>
     </div>
   </div>
+
+  <p style="font-size:13px; color:var(--text-light); margin-top:12px; margin-bottom:0;">
+    Alle Code-Beispiele in diesem Kurs sind für <strong>ACME</strong> geschrieben.
+    Kick Assembler, CBM prg Studio und Turbo Macro Pro sind vollwertige Alternativen,
+    erfordern aber ggf. Syntax-Anpassungen.
+  </p>
 
   <h3>VICE Emulator — Schnellkonfiguration</h3>
 
@@ -692,6 +702,27 @@ acme -f cbm -o output.prg meinprogramm.asm &amp;&amp; x64sc output.prg
 
 <span class="asm-comment"># Mit Fehlerliste und Label-Export:</span>
 acme -f cbm -o output.prg --labeldump labels.txt meinprogramm.asm</pre>
+
+  <div class="box note" style="margin-top:16px;">
+    <div class="box-title">Windows: ACME in den PATH eintragen</div>
+    Damit <code>acme</code> in CMD oder PowerShell von überall aufrufbar ist, muss der Ordner mit
+    <code>acme.exe</code> in die Systemumgebungsvariable <code>PATH</code> eingetragen sein:
+    Systemsteuerung → System → Erweiterte Systemeinstellungen → Umgebungsvariablen →
+    <code>PATH</code> bearbeiten → ACME-Verzeichnis hinzufügen.
+  </div>
+
+  <div class="box tip" style="margin-top:16px;">
+    <div class="box-title">Cross-Development-Quickstart in 3 Schritten</div>
+    <ol style="margin:6px 0 6px; padding-left:20px; line-height:1.9;">
+      <li>Quellcode in beliebigem Texteditor schreiben: <code>meinprogramm.asm</code></li>
+      <li>Assemblieren: <code>acme -f cbm -o output.prg meinprogramm.asm</code></li>
+      <li>In VICE laden und starten: <code>x64sc -autostart output.prg</code></li>
+    </ol>
+    Schritte 2 &amp; 3 kombiniert:
+    <code>acme -f cbm -o output.prg meinprogramm.asm &amp;&amp; x64sc output.prg</code><br>
+    Für automatisierte Builds und IDE-Integration →
+    <a href="stufe_14_workflow_tools.html">Stufe 14: Workflow &amp; Tools</a>
+  </div>
 
   <h2>Zeitplanung und Lernempfehlungen</h2>
 
