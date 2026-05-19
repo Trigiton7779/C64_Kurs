@@ -343,7 +343,7 @@
 
   /* ── Search Nav Link ──────────────────────────────────────────── */
   function initSearchLink() {
-    if (document.querySelector('a[href="suche.html"]')) return;
+    if (document.querySelector('a[href$="suche.html"]')) return;
     var labels = document.querySelectorAll('.sidebar .section-label');
     if (!labels.length) return;
     var last = labels[labels.length - 1];

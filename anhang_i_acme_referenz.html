@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>C64 Mastery — Anhang I: ACME Assembler Referenz</title>
-  <style>
+  <link rel="stylesheet" href="assets/c64-base.css">
+<style>
     :root { --c64-blue:#1a3f80;--c64-green:#00cc66;--c64-dark:#1a1a2e;--c64-darker:#0d0d1a;--paper:#f5f4f0;--paper-dark:#eae8e2;--text:#1e1e30;--text-light:#505070;--accent:#b03000; }
     *{box-sizing:border-box;margin:0;padding:0;}
     body{font-family:'Georgia',serif;font-size:15px;line-height:1.75;color:var(--text);background:var(--paper);display:grid;grid-template-columns:270px 1fr;min-height:100vh;}
@@ -66,32 +67,7 @@
   <link rel="stylesheet" href="assets/c64-print.css" media="print">
 </head>
 <body>
-<aside class="sidebar">
-  <div class="sidebar-header"><div class="logo">■ C64 MASTERY</div>Referenz</div>
-  <nav>
-    <div class="section-label">Curriculum</div>
-    <a href="index.html">◈ Übersicht</a>
-    <a href="stufe_00_fundament.html">00 · Fundament</a>
-    <a href="stufe_01_6510_assembler.html">01 · 6510 &amp; Assembler</a>
-    <a href="stufe_14_modern_workflow.html">14 · Moderner Workflow</a>
-    <div class="section-label">Erweiterte Stufen</div>
-    <a href="stufe_13_hardware_erweiterungen.html">13 · Hardware</a>
-    <a href="stufe_15_debugging_deep_dive.html">15 · Debugging</a>
-    <a href="stufe_16_tastatur_joystick.html">16 · Tastatur &amp; Joystick</a>
-    <a href="stufe_17_floppy_fastloader.html">17 · Floppy &amp; Fastloader</a>
-    <div class="section-label">Anhänge</div>
-    <a href="anhang_opcodes.html">A · Opcode-Referenz</a>
-    <a href="anhang_speicherkarte.html">B · Speicherkarte</a>
-    <a href="anhang_vic_register.html">C · VIC-II Register</a>
-    <a href="anhang_sid_register.html">D · SID Register</a>
-    <a href="anhang_cia_register.html">E · CIA Register</a>
-    <a href="anhang_petscii.html">F · PETSCII-Tabelle</a>
-    <a href="anhang_farben.html">G · C64-Farben</a>
-    <a href="anhang_kernal_routinen.html">H · KERNAL-Routinen</a>
-    <a href="anhang_i_acme_referenz.html" class="active">I · ACME-Referenz</a>
-    <a href="anhang_j_illegale_opcodes.html">J · Illegale Opcodes</a>
-  </nav>
-</aside>
+<aside class="sidebar"></aside>
 <main>
   <div class="chapter-number">Anhang I</div>
   <h1>ACME Assembler — Vollständige Referenz</h1>
@@ -611,6 +587,7 @@ x64sc -moncommands build/mygame.vs build/mygame.prg</pre>
     <a href="index.html" style="color:var(--c64-blue);">◈ Zurück zur Übersicht</a>
   </p>
 </main>
+  <script src="assets/sidebar.js"></script>
   <script src="assets/c64-interactive.js"></script>
 </body>
 </html>
