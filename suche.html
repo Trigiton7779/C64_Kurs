@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>C64 Mastery — Volltextsuche</title>
+  <link rel="stylesheet" href="assets/c64-base.css">
+  <link rel="stylesheet" href="assets/c64-interactive.css">
+</head>
+<body>
+
+<aside class="sidebar"></aside>
+
+<main>
+  <header class="chapter-header">
+    <div class="chapter-number">Werkzeug</div>
+    <h1>Volltextsuche</h1>
+    <div class="chapter-meta">
+      <span>29 Seiten</span>
+      <span>211 Abschnitte</span>
+      <span>Stufen 00–17 + Anhänge A–J</span>
+    </div>
+  </header>
+
+  <div id="c64-search-box">
+    <input type="search"
+           id="c64-search-input"
+           placeholder="Suchbegriff eingeben — z.B. DC00, Rasterzeile, Fastloader …"
+           autocomplete="off"
+           spellcheck="false">
+    <div id="c64-search-stats"></div>
+  </div>
+
+  <div id="c64-search-results">
+    <div style="color:var(--text-light,#555);font-family:'Courier New',monospace;font-size:14px;padding:20px 0;">
+      Gib einen Begriff ein um das gesamte C64 Mastery System zu durchsuchen.
+      <br><br>
+      Beispiele: <code>$DC00</code> &nbsp;·&nbsp; <code>Raster IRQ</code> &nbsp;·&nbsp;
+      <code>Sprite Multiplexer</code> &nbsp;·&nbsp; <code>Fastloader</code> &nbsp;·&nbsp;
+      <code>SID ADSR</code>
+    </div>
+  </div>
+
+  <script src="assets/c64-search.js"></script>
+  <script src="assets/sidebar.js"></script>
+  <script src="assets/c64-interactive.js"></script>
+</main>
+
+</body>
+</html>

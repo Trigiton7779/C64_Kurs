@@ -1,30 +1,28 @@
 /* C64 Mastery System — Shared Base Styles
-   Used by stufe_08 through stufe_12.
-   Theme variables: set --theme-color, --theme-dark, --theme-light in each page's <style>. */
+   Used by all stufe pages (08–15) and appendix pages. */
 
 :root {
-  --c64-blue:    #0033aa;
+  --c64-blue:    #1a3f80;
   --c64-light-blue: #4477dd;
-  --c64-green:   #00ff88;
+  --c64-green:   #00cc66;
   --c64-dark:    #1a1a2e;
   --c64-darker:  #0d0d1a;
   --paper:       #f8f6f0;
   --paper-dark:  #ede9df;
   --text:        #1a1a2e;
   --text-light:  #444466;
-  --accent:      #cc3300;
-  --warning-bg:    #fff3cd;
-  --warning-border:#ffc107;
-  --tip-bg:        #d4edda;
-  --tip-border:    #28a745;
-  --info-bg:       #cce5ff;
-  --info-border:   #0066cc;
-  --important-bg:  #f8d7da;
-  --important-border: #dc3545;
-  /* Override these three per page */
-  --theme-color: #0033aa;
-  --theme-dark:  #001166;
-  --theme-light: #00ff88;
+  --accent:      #b03000;
+  --warning-bg:    #fdf3dc;
+  --warning-border:#c98a00;
+  --tip-bg:        #dff0e4;
+  --tip-border:    #1e8a3a;
+  --info-bg:       #dce8f8;
+  --info-border:   #1a5599;
+  --important-bg:  #f5dde0;
+  --important-border: #b02030;
+  --theme-color: #1a3f80;
+  --theme-dark:  #0d1f40;
+  --theme-light: #00cc66;
 }
 
 /* ── Reset ──────────────────────────────────────── */

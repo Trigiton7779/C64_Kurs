@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>C64 Mastery — Anhang I: ACME Assembler Referenz</title>
+  <link rel="stylesheet" href="assets/c64-base.css">
+<style>
+    :root { --c64-blue:#1a3f80;--c64-green:#00cc66;--c64-dark:#1a1a2e;--c64-darker:#0d0d1a;--paper:#f5f4f0;--paper-dark:#eae8e2;--text:#1e1e30;--text-light:#505070;--accent:#b03000; }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Georgia',serif;font-size:15px;line-height:1.75;color:var(--text);background:var(--paper);display:grid;grid-template-columns:270px 1fr;min-height:100vh;}
+    .sidebar{background:var(--c64-dark);color:#ccc;position:sticky;top:0;height:100vh;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--c64-blue) var(--c64-darker);}
+    .sidebar::-webkit-scrollbar{width:6px;}.sidebar::-webkit-scrollbar-thumb{background:var(--c64-blue);}
+    .sidebar-header{background:var(--c64-blue);padding:18px 20px;font-family:'Courier New',monospace;font-size:13px;font-weight:bold;color:white;}
+    .sidebar-header .logo{font-size:22px;margin-bottom:4px;color:var(--c64-green);}
+    .sidebar nav{padding:12px 0;}
+    .sidebar nav a{display:block;padding:7px 20px;color:#aab;text-decoration:none;font-family:'Courier New',monospace;font-size:12.5px;border-left:3px solid transparent;transition:all 0.2s;}
+    .sidebar nav a:hover{color:white;background:rgba(255,255,255,0.05);border-left-color:var(--c64-green);}
+    .sidebar nav a.active{color:var(--c64-green);border-left-color:var(--c64-green);background:rgba(0,204,102,0.07);font-weight:bold;}
+    .sidebar nav .section-label{padding:12px 20px 4px;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:#556;font-family:'Courier New',monospace;}
+    main{max-width:980px;padding:40px 48px;}
+    h1{font-size:32px;color:var(--c64-dark);margin-bottom:8px;}
+    .chapter-number{font-family:'Courier New',monospace;font-size:13px;color:var(--c64-blue);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;}
+    .chapter-meta{display:flex;gap:16px;font-family:'Courier New',monospace;font-size:12px;color:var(--text-light);margin:12px 0 28px;flex-wrap:wrap;}
+    .chapter-meta span{background:var(--paper-dark);padding:4px 10px;border-radius:3px;}
+    h2{font-size:22px;color:var(--c64-blue);margin:36px 0 14px;padding-bottom:6px;border-bottom:1px solid #d0ccc0;}
+    h3{font-size:17px;color:var(--c64-dark);margin:22px 0 10px;}
+    h4{font-size:15px;color:var(--text-light);margin:16px 0 8px;font-style:italic;}
+    p{margin-bottom:14px;}
+    ul,ol{margin:10px 0 14px 22px;}
+    li{margin-bottom:5px;}
+    strong{color:var(--c64-dark);}
+    code{font-family:'Courier New',monospace;font-size:13px;background:#e8e4da;padding:2px 5px;border-radius:3px;color:var(--accent);}
+    pre{background:var(--c64-dark);color:var(--c64-green);font-family:'Courier New',monospace;font-size:13px;line-height:1.6;padding:20px 24px;border-radius:6px;overflow-x:auto;margin:16px 0;border-left:4px solid var(--c64-blue);white-space:pre;}
+    pre .comment  {color:#6688aa;}
+    pre .directive{color:#ffcc44;}
+    pre .label    {color:#88ffcc;}
+    pre .param    {color:#ff9944;}
+    table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13.5px;}
+    thead{background:var(--c64-blue);color:white;}
+    thead th{padding:9px 10px;text-align:left;font-family:'Courier New',monospace;font-size:12px;}
+    tbody tr:nth-child(even){background:var(--paper-dark);}
+    tbody tr:hover{background:#e0dbd0;}
+    tbody td{padding:7px 10px;border-bottom:1px solid #d0ccc0;vertical-align:top;}
+    td code{font-size:12px;}
+    .box-info{background:#dce8f8;border:1px solid #1a5599;border-left:5px solid #1a5599;border-radius:6px;padding:14px 18px;margin:16px 0;}
+    .box-info strong{color:#0a3366;font-family:'Courier New',monospace;font-size:13px;display:block;margin-bottom:6px;}
+    .box-warn{background:#fdf3dc;border:1px solid #c98a00;border-left:5px solid #c98a00;border-radius:6px;padding:14px 18px;margin:16px 0;}
+    .box-warn strong{color:#7a5200;font-family:'Courier New',monospace;font-size:13px;display:block;margin-bottom:6px;}
+    .box-tip{background:#dff0e4;border:1px solid #1e8a3a;border-left:5px solid #1e8a3a;border-radius:6px;padding:14px 18px;margin:16px 0;}
+    .box-tip strong{color:#0f5a22;font-family:'Courier New',monospace;font-size:13px;display:block;margin-bottom:6px;}
+    .macro-lib{background:var(--c64-dark);color:var(--c64-green);font-family:'Courier New',monospace;font-size:12.5px;line-height:1.65;padding:24px 28px;border-radius:6px;margin:20px 0;overflow-x:auto;border:2px solid var(--c64-blue);}
+    .macro-lib .comment  {color:#6688aa;}
+    .macro-lib .directive{color:#ffcc44;}
+    .macro-lib .label    {color:#88ffcc;}
+    .macro-lib .macro-name{color:#ff9944;font-weight:bold;}
+    .dir-badge{display:inline-block;background:var(--c64-blue);color:white;font-family:'Courier New',monospace;font-size:12px;padding:1px 7px;border-radius:3px;margin:0 2px;}
+    .benchmark{background:var(--paper-dark);border:2px solid var(--c64-blue);border-radius:8px;padding:24px 28px;margin:40px 0;}
+    .benchmark h2{border:none;margin-top:0;padding:0 0 12px;}
+    .benchmark-list{list-style:none;padding:0;}
+    .benchmark-list li{padding:8px 0;border-bottom:1px solid #d0ccc0;display:flex;align-items:flex-start;gap:12px;font-size:14px;}
+    .benchmark-list li:last-child{border:none;}
+    .check{color:var(--c64-blue);font-size:18px;flex-shrink:0;line-height:1.4;}
+    @media print{.sidebar{display:none;}body{grid-template-columns:1fr;}main{max-width:100%;padding:20px;}pre{border:1px solid #999;}}
+  </style>
+  <link rel="stylesheet" href="assets/c64-interactive.css">
+  <link rel="stylesheet" href="assets/c64-print.css" media="print">
+</head>
+<body>
+<aside class="sidebar"></aside>
+<main>
+  <div class="chapter-number">Anhang I</div>
+  <h1>ACME Assembler — Vollständige Referenz</h1>
+  <div class="chapter-meta">
+    <span>Version 0.97+</span><span>6510 / 6502 / 65c02</span><span>Cross-Assembler · alle Direktiven</span>
+  </div>
+
+  <p>ACME (Any CPU Machine Assembler) ist ein freier Cross-Assembler, der auf dem PC lauffähig ist und .prg-Dateien für den C64 erzeugt. Neben dem vollständigen 6510-Befehlssatz bietet ACME ein mächtiges Direktiven-System für Datendefinition, Makros, konditionale Assemblierung und Dateieinbindung. Diese Referenz listet alle praxisrelevanten Direktiven, Ausdrücke und Kommandozeilenoptionen.</p>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <h2 id="direktiven">1. Datendefinitions-Direktiven</h2>
+
+  <h3>1.1 Zahlendaten definieren</h3>
+
+  <table>
+    <thead><tr><th>Direktive</th><th>Größe</th><th>Beschreibung</th><th>Beispiel</th></tr></thead>
+    <tbody>
+      <tr><td><code>!byte</code></td><td>1 Byte</td><td>8-Bit-Wert(e), kommagetrennt</td><td><code>!byte $00, $FF, 42</code></td></tr>
+      <tr><td><code>!word</code></td><td>2 Bytes</td><td>16-Bit, Little-Endian</td><td><code>!word $1234</code> → $34, $12</td></tr>
+      <tr><td><code>!24</code></td><td>3 Bytes</td><td>24-Bit, Little-Endian</td><td><code>!24 $123456</code></td></tr>
+      <tr><td><code>!32</code></td><td>4 Bytes</td><td>32-Bit, Little-Endian</td><td><code>!32 $12345678</code></td></tr>
+      <tr><td><code>!fill</code></td><td>N Bytes</td><td>N Bytes mit Wert (Standard: 0)</td><td><code>!fill 256, $FF</code></td></tr>
+      <tr><td><code>!align</code></td><td>variabel</td><td>Auffüllen bis alignment</td><td><code>!align $FF, 0</code> → auf 256er-Grenze</td></tr>
+    </tbody>
+  </table>
+
+  <pre><span class="comment">; Beispiele</span>
+spritedata: <span class="directive">!byte</span> $18,$3C,$7E,$FF,$FF,$FF,$7E,$3C  <span class="comment">; Sprite-Zeile</span>
+sinuswert:  <span class="directive">!word</span> sin_table_base          <span class="comment">; 16-Bit-Zeiger</span>
+padding:    <span class="directive">!fill</span> 64, 0                    <span class="comment">; 64 Nullbytes</span>
+
+<span class="comment">; Auf Page-Grenze ausrichten (wichtig für Sinus-Tabellen!)</span>
+            <span class="directive">!align</span> $FF, 0              <span class="comment">; Fülle auf nächste 256er-Grenze</span>
+sin_table:  <span class="directive">!fill</span> 256, 0               <span class="comment">; Platz für 256 Bytes — page-aligned!</span></pre>
+
+  <h3>1.2 Textdaten</h3>
+
+  <table>
+    <thead><tr><th>Direktive</th><th>Encoding</th><th>Nullterminierung</th><th>Beschreibung</th></tr></thead>
+    <tbody>
+      <tr><td><code>!text</code></td><td>ASCII</td><td>Nein</td><td>ASCII-Text as-is</td></tr>
+      <tr><td><code>!scr</code></td><td>Bildschirmcode</td><td>Nein</td><td>Konvertiert zu C64-Bildschirmcodes</td></tr>
+      <tr><td><code>!pet</code></td><td>PETSCII</td><td>Nein</td><td>PETSCII-Codes (Groß/Klein-Steuerung)</td></tr>
+      <tr><td><code>!raw</code></td><td>keine Konv.</td><td>Nein</td><td>Bytes exakt wie angegeben</td></tr>
+    </tbody>
+  </table>
+
+  <pre><span class="comment">; Text-Direktiven</span>
+msg_ascii: <span class="directive">!text</span> "HELLO WORLD"         <span class="comment">; ASCII-Codes</span>
+msg_scr:   <span class="directive">!scr</span>  "HELLO WORLD"         <span class="comment">; C64-Bildschirmcodes (H=8, E=5, ...)</span>
+msg_pet:   <span class="directive">!pet</span>  "Hello World",$0D     <span class="comment">; PETSCII + Carriage Return</span>
+
+<span class="comment">; Eigene Zeichentabelle mit !convtab</span>
+           <span class="directive">!convtab</span> pet              <span class="comment">; Ab hier: !text → PETSCII</span>
+msg_auto:  <span class="directive">!text</span> "Automatisch PETSCII"</pre>
+
+  <h3>1.3 Binäre Daten einbinden</h3>
+
+  <pre><span class="directive">!binary</span> "sprites.bin"            <span class="comment">; gesamte Datei einbinden</span>
+<span class="directive">!binary</span> "charset.bin", 2048      <span class="comment">; nur die ersten 2048 Bytes</span>
+<span class="directive">!binary</span> "music.sid", 0, $7E      <span class="comment">; SID-Datei ab Offset $7E</span>
+
+<span class="comment">; Typischer Workflow: Grafikdaten aus SpritePad/CharPad</span>
+sprites: <span class="directive">!binary</span> "assets/player.spr"   <span class="comment">; SpritePad-Export</span>
+charset: <span class="directive">!binary</span> "assets/tiles.chr"    <span class="comment">; CharPad-Export</span>
+music:   <span class="directive">!binary</span> "assets/main.sid", 0, $7E  <span class="comment">; SID ohne Header</span></pre>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <h2 id="symbole">2. Labels, Symbole und Ausdrücke</h2>
+
+  <h3>2.1 Label-Typen</h3>
+
+  <table>
+    <thead><tr><th>Typ</th><th>Syntax</th><th>Sichtbarkeit</th><th>Verwendung</th></tr></thead>
+    <tbody>
+      <tr><td>Global</td><td><code>label:</code></td><td>Gesamte Datei</td><td>Subroutinen, Daten, Sprungziele</td></tr>
+      <tr><td>Lokal</td><td><code>.local:</code></td><td>Bis zum nächsten Global-Label</td><td>Schleifen, If-Zweige innerhalb Subroutinen</td></tr>
+      <tr><td>Anonym Vorwärts</td><td><code>+</code> oder <code>++</code></td><td>Nächstes <code>+</code>-Label</td><td>Kurze Sprünge vorwärts</td></tr>
+      <tr><td>Anonym Rückwärts</td><td><code>-</code> oder <code>--</code></td><td>Vorheriges <code>-</code>-Label</td><td>Schleifen-Rücksprung</td></tr>
+      <tr><td>Konstante</td><td><code>CONST = wert</code></td><td>Global</td><td>Konfigurationsparameter</td></tr>
+    </tbody>
+  </table>
+
+  <pre><span class="comment">; Globale Labels</span>
+clear_screen:                     <span class="comment">; globales Label</span>
+    <span class="label">lda</span> #0
+    <span class="label">ldx</span> #0
+<span class="label">-</span>                                 <span class="comment">; anonymes Rückwärts-Label</span>
+    <span class="label">sta</span> $0400,x
+    <span class="label">sta</span> $D800,x
+    <span class="label">inx</span>
+    <span class="label">bne</span> -                          <span class="comment">; Schleife zurück zum nächsten '-'</span>
+    <span class="label">rts</span>
+
+<span class="comment">; Lokale Labels (bis zum nächsten globalen Label)</span>
+check_joystick:
+    <span class="label">lda</span> $DC00
+    <span class="label">and</span> #$10
+    <span class="label">bne</span> .no_fire               <span class="comment">; lokales Label</span>
+    <span class="label">jsr</span> player_shoot
+.no_fire:
+    <span class="label">rts</span>
+
+<span class="comment">; Konstanten</span>
+SCREEN   = $0400
+COLORRAM = $D800
+JOY2     = $DC00
+ROWS     = 25
+COLS     = 40</pre>
+
+  <h3>2.2 Ausdrücke und Operatoren</h3>
+
+  <table>
+    <thead><tr><th>Operator</th><th>Bedeutung</th><th>Beispiel</th></tr></thead>
+    <tbody>
+      <tr><td><code>&lt;</code></td><td>Low-Byte</td><td><code>lda #&lt;label</code></td></tr>
+      <tr><td><code>&gt;</code></td><td>High-Byte</td><td><code>lda #&gt;label</code></td></tr>
+      <tr><td><code>+, -, *, /</code></td><td>Arithmetik</td><td><code>!byte ROWS * COLS</code></td></tr>
+      <tr><td><code>%, |, ^, &amp;</code> (mod), <code>|</code>, <code>^</code>, <code>&amp;</code></td><td>Modulo, OR, XOR, AND</td><td><code>!byte value &amp; $F0</code></td></tr>
+      <tr><td><code>&lt;&lt;, &gt;&gt;</code></td><td>Bit-Shift</td><td><code>!byte 1 &lt;&lt; 4</code></td></tr>
+      <tr><td><code>label_end - label</code></td><td>Länge berechnen</td><td><code>lda #msg_end - msg</code></td></tr>
+      <tr><td><code>* </code></td><td>Aktueller PC</td><td><code>!byte * &amp; $FF</code></td></tr>
+    </tbody>
+  </table>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <h2 id="makros">3. Makros</h2>
+
+  <p>Makros ermöglichen parametrisierte, wiederverwendbare Code-Blöcke. Im Gegensatz zu Subroutinen werden Makros bei jedem Aufruf in den Code eingebettet (Inline-Expansion) — keine <code>JSR</code>/<code>RTS</code>-Overhead, aber größerer Code.</p>
+
+  <h3>3.1 Makro-Definition und Aufruf</h3>
+
+  <pre><span class="comment">; Makro-Definition: !macro name .param1, .param2 { ... }</span>
+<span class="directive">!macro</span> <span class="macro-name">set_color</span> .addr, .color {
+    <span class="label">lda</span> #<span class="param">.color</span>
+    <span class="label">sta</span> <span class="param">.addr</span>
+}
+
+<span class="comment">; Aufruf: +macroname param1, param2</span>
+    <span class="directive">+set_color</span> $D020, 0          <span class="comment">; Rahmenfarbe = schwarz</span>
+    <span class="directive">+set_color</span> $D021, 6          <span class="comment">; Hintergrundfarbe = blau</span>
+
+<span class="comment">; Makro mit Berechnungen</span>
+<span class="directive">!macro</span> <span class="macro-name">sprite_pos</span> .num, .x, .y {
+    <span class="label">lda</span> #<span class="param">.x</span> &amp; $FF
+    <span class="label">sta</span> $D000 + <span class="param">.num</span> * 2       <span class="comment">; X-Position-Register</span>
+    <span class="label">lda</span> #<span class="param">.y</span>
+    <span class="label">sta</span> $D001 + <span class="param">.num</span> * 2       <span class="comment">; Y-Position-Register</span>
+    <span class="comment">; X-MSB (Bit 9) behandeln:</span>
+    !if <span class="param">.x</span> &gt; 255 {
+        <span class="label">lda</span> $D010
+        <span class="label">ora</span> #1 &lt;&lt; <span class="param">.num</span>
+        <span class="label">sta</span> $D010
+    } else {
+        <span class="label">lda</span> $D010
+        <span class="label">and</span> #&lt;(~(1 &lt;&lt; <span class="param">.num</span>))
+        <span class="label">sta</span> $D010
+    }
+}
+
+    <span class="directive">+sprite_pos</span> 0, 160, 100     <span class="comment">; Sprite 0 auf (160, 100)</span>
+    <span class="directive">+sprite_pos</span> 1, 300, 80      <span class="comment">; Sprite 1 auf (300, 80) — X > 255!</span></pre>
+
+  <h3>3.2 Häufige Assembler-Aufgaben als Makros</h3>
+
+  <pre><span class="comment">; 16-Bit-Wert in Zero-Page laden</span>
+<span class="directive">!macro</span> <span class="macro-name">load16</span> .zp, .value {
+    <span class="label">lda</span> #&lt;<span class="param">.value</span>
+    <span class="label">sta</span> <span class="param">.zp</span>
+    <span class="label">lda</span> #&gt;<span class="param">.value</span>
+    <span class="label">sta</span> <span class="param">.zp</span> + 1
+}
+
+<span class="comment">; 16-Bit-Wert inkrementieren</span>
+<span class="directive">!macro</span> <span class="macro-name">inc16</span> .zp {
+    <span class="label">inc</span> <span class="param">.zp</span>
+    <span class="label">bne</span> +
+    <span class="label">inc</span> <span class="param">.zp</span> + 1
++
+}
+
+<span class="comment">; Register sichern und wiederherstellen</span>
+<span class="directive">!macro</span> <span class="macro-name">push_regs</span> {
+    <span class="label">pha</span>
+    <span class="label">txa</span> : <span class="label">pha</span>
+    <span class="label">tya</span> : <span class="label">pha</span>
+}
+<span class="directive">!macro</span> <span class="macro-name">pop_regs</span> {
+    <span class="label">pla</span> : <span class="label">tay</span>
+    <span class="label">pla</span> : <span class="label">tax</span>
+    <span class="label">pla</span>
+}
+
+<span class="comment">; VBlank warten</span>
+<span class="directive">!macro</span> <span class="macro-name">wait_vblank</span> {
+-   <span class="label">lda</span> $D011
+    <span class="label">bpl</span> -               <span class="comment">; warten bis Bit 7 gesetzt (Rasterzeile >= 256)</span>
+-   <span class="label">lda</span> $D011
+    <span class="label">bmi</span> -               <span class="comment">; warten bis Bit 7 wieder 0</span>
+}
+
+<span class="comment">; Verwendung:</span>
+    <span class="directive">+load16</span> $FB, my_data_table
+    <span class="directive">+wait_vblank</span>
+    <span class="directive">+push_regs</span>
+    <span class="label">jsr</span> some_subroutine
+    <span class="directive">+pop_regs</span></pre>
+
+  <div class="box-tip">
+    <strong>Makros vs. Subroutinen</strong>
+    Makros sind gut für kurze Sequenzen (2–6 Befehle) die keine Zyklen für JSR/RTS verschwenden sollen. Für Routinen die mehr als 10 Zeilen haben oder von vielen Stellen aufgerufen werden: Subroutine bevorzugen. Makros erhöhen die Codegröße proportional zur Aufrufanzahl.
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <h2 id="konditional">4. Konditionale Assemblierung</h2>
+
+  <h3>4.1 !if / !ifdef / !ifndef</h3>
+
+  <pre><span class="comment">; Einfaches !if mit optionalem else</span>
+<span class="directive">!if</span> DEBUG = 1 {
+    <span class="label">lda</span> #14              <span class="comment">; Hellblau — nur in Debug-Builds</span>
+    <span class="label">sta</span> $D020
+}
+
+<span class="comment">; PAL/NTSC-Konfiguration</span>
+PAL  = 1                 <span class="comment">; Konstante für Plattform-Auswahl</span>
+
+<span class="directive">!if</span> PAL = 1 {
+    RASTERS_PER_FRAME = 312
+    CYCLES_PER_LINE   = 63
+} else {
+    RASTERS_PER_FRAME = 263
+    CYCLES_PER_LINE   = 65
+}
+
+<span class="comment">; Zur Assemblier-Zeit mit !warn prüfen</span>
+<span class="directive">!if</span> RASTERS_PER_FRAME > 400 {
+    <span class="directive">!error</span> "Ungültiger RASTERS_PER_FRAME-Wert"
+}
+
+<span class="comment">; Label-Existenz prüfen</span>
+<span class="directive">!ifdef</span> USE_KRILL_LOADER {
+    <span class="label">jsr</span> LOADER_LOAD
+} else {
+    <span class="label">jsr</span> kernal_load_file
+}
+
+<span class="comment">; !ifndef: wenn Label NICHT definiert</span>
+<span class="directive">!ifndef</span> MUSIC_ADDR {
+    MUSIC_ADDR = $E000   <span class="comment">; Standard-Wert wenn nicht gesetzt</span>
+}</pre>
+
+  <h3>4.2 Build-Konfiguration mit Konstanten</h3>
+
+  <pre><span class="comment">; config.asm — einmal definieren, überall !source einbinden</span>
+DEBUG        = 0         <span class="comment">; 1 = Debug-Ausgaben aktiv</span>
+PAL          = 1         <span class="comment">; 0 = NTSC</span>
+USE_FASTLOAD = 1         <span class="comment">; 0 = KERNAL-Load</span>
+LEVELS       = 8         <span class="comment">; Anzahl Spiellevels</span>
+MUSIC_TRACKS = 3         <span class="comment">; Anzahl Musikstücke</span>
+
+<span class="comment">; In main.asm:</span>
+<span class="directive">!source</span> "config.asm"
+<span class="directive">!if</span> DEBUG = 1 { <span class="directive">!warn</span> "Debug-Build aktiv!" }
+<span class="directive">!if</span> USE_FASTLOAD = 1 { <span class="directive">!source</span> "krill/loader.asm" }
+
+<span class="comment">; !warn gibt Meldung zur Assemblierzeit aus (kein Fehler)</span>
+<span class="directive">!warn</span> "Assemblierung für PAL, ", RASTERS_PER_FRAME, " Rasterzeilen"</pre>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <h2 id="schleifen">5. Schleifen und PC-Kontrolle</h2>
+
+  <h3>5.1 !for — Schleifen zur Assemblierzeit</h3>
+
+  <pre><span class="comment">; !for var, count { ... } — count Iterationen, var = 0..count-1</span>
+
+<span class="comment">; Sinus-Tabelle generieren (256 Werte, Amplitude ±127)</span>
+<span class="comment">; ACME unterstützt sin(), cos() als eingebaute Funktionen</span>
+sin_table:
+<span class="directive">!for</span> i, 256 {
+    <span class="directive">!byte</span> &lt;(sin(i * 3.14159265 * 2 / 256) * 127 + 128)
+}
+
+<span class="comment">; Lookup-Tabelle: Quadrate 0–255</span>
+sqr_table:
+<span class="directive">!for</span> i, 256 {
+    <span class="directive">!byte</span> &lt;(i * i / 256)
+}
+
+<span class="comment">; Sprite-Daten für 8 identische Sprites generieren</span>
+sprite_pointers:
+<span class="directive">!for</span> i, 8 {
+    <span class="directive">!byte</span> (sprite_data - $0000) / 64   <span class="comment">; Sprite-Pointer</span>
+}
+
+<span class="comment">; Code unrollen: 8× denselben Befehl ohne Schleife</span>
+<span class="directive">!for</span> i, 8 {
+    <span class="directive">!byte</span> $95, $00 + i   <span class="comment">; STA $00+i,X als Rohdaten (Beispiel)</span>
+}</pre>
+
+  <h3>5.2 !pseudopc — Code für anderen Speicherort assemblieren</h3>
+
+  <pre><span class="comment">; !pseudopc addr { ... } — Code wird so assembliert als wäre er bei 'addr',
+; liegt aber an der aktuellen Assemblierposition (wichtig für Relozierung)</span>
+
+<span class="comment">; Drive-Code für 1541: wird an PC-Position gespeichert,
+; aber so assembliert als würde er im 1541-RAM bei $0300 laufen</span>
+drive_code_start:
+<span class="directive">!pseudopc</span> $0300 {
+drive_entry:
+    <span class="label">lda</span> #$05            <span class="comment">; 1541-RAM wird adressiert</span>
+    <span class="label">sta</span> $1C05           <span class="comment">; 1541-VIA-Register (nur in 1541 gültig!)</span>
+    <span class="label">rts</span>
+}
+drive_code_end:
+DRIVE_CODE_LEN = drive_code_end - drive_code_start
+
+<span class="comment">; Code in ZP-Puffer laden und von dort ausführen</span>
+zp_temp = $FA
+zp_routine_start:
+<span class="directive">!pseudopc</span> zp_temp {
+    <span class="label">inc</span> $D020           <span class="comment">; Rahmenfarbe blinken — wird in ZP als selbst-modifizierender Code laufen</span>
+    <span class="label">rts</span>
+}
+zp_routine_end:
+
+<span class="comment">; Lade-Sequenz: Code aus ROM/ROM-Image in ZP kopieren</span>
+copy_to_zp:
+    <span class="label">ldx</span> #zp_routine_end - zp_routine_start - 1
+-   <span class="label">lda</span> zp_routine_start,x
+    <span class="label">sta</span> zp_temp,x
+    <span class="label">dex</span>
+    <span class="label">bpl</span> -
+    <span class="label">jsr</span> zp_temp         <span class="comment">; Code jetzt in ZP ausführen</span>
+    <span class="label">rts</span></pre>
+
+  <h3>5.3 !to und Mehrfach-Output</h3>
+
+  <pre><span class="comment">; Output-Datei festlegen (normalerweise über Kommandozeile)</span>
+<span class="directive">!to</span> "mygame.prg", cbm    <span class="comment">; CBM-Format (2-Byte-Adress-Header)</span>
+<span class="directive">!to</span> "data.bin", plain    <span class="comment">; kein Header, reine Binärdaten</span>
+
+<span class="comment">; Startadresse setzen</span>
+* = $0801                <span class="comment">; BASIC-Startadresse</span>
+<span class="directive">!byte</span> $0B,$08,$01,$00,$9E,$32,$30,$36,$31,$00,$00,$00
+                         <span class="comment">; BASIC-Stub "10 SYS 2049" ($0801)</span>
+* = $080D
+    <span class="comment">; eigentlicher Code ab hier</span></pre>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <h2 id="include">6. Dateien einbinden</h2>
+
+  <pre><span class="comment">; Quellcode einbinden (wird vollständig assembliert)</span>
+<span class="directive">!source</span> "config.asm"
+<span class="directive">!source</span> "macros.asm"
+<span class="directive">!source</span> "sprites.asm"
+
+<span class="comment">; Typische Projektstruktur mit !source</span>
+<span class="comment">; main.asm:</span>
+* = $0801
+<span class="directive">!source</span> "src/basic_stub.asm"
+
+* = $1000
+<span class="directive">!source</span> "src/init.asm"
+<span class="directive">!source</span> "src/irq.asm"
+<span class="directive">!source</span> "src/game_loop.asm"
+<span class="directive">!source</span> "src/player.asm"
+<span class="directive">!source</span> "src/enemies.asm"
+<span class="directive">!source</span> "src/sound.asm"
+
+* = $A000
+<span class="directive">!source</span> "src/level_data.asm"
+
+* = $E000
+<span class="directive">!binary</span> "assets/music.sid", 0, $7E
+
+<span class="comment">; Hinweis: !source sucht relativ zur assemblierenden Datei.
+; Absolute Pfade sind möglich, aber nicht portabel.</span></pre>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <h2 id="befehlszeile">7. Kommandozeile</h2>
+
+  <table>
+    <thead><tr><th>Option</th><th>Bedeutung</th><th>Beispiel</th></tr></thead>
+    <tbody>
+      <tr><td><code>--cpu 6510</code></td><td>CPU-Typ (6510, 6502, 65c02, ...)</td><td><code>acme --cpu 6510</code></td></tr>
+      <tr><td><code>--outfile file</code></td><td>Ausgabedatei (überschreibt !to)</td><td><code>-o mygame.prg</code></td></tr>
+      <tr><td><code>--format fmt</code></td><td>cbm (Standard), plain, apple</td><td><code>--format cbm</code></td></tr>
+      <tr><td><code>--setpc addr</code></td><td>Startadresse setzen</td><td><code>--setpc 0x1000</code></td></tr>
+      <tr><td><code>--labeldump file</code></td><td>Label-Map ausgeben (für Debugger)</td><td><code>--labeldump labels.txt</code></td></tr>
+      <tr><td><code>--symbollist file</code></td><td>Symbole als VICE-kompatible Liste</td><td><code>--symbollist syms.vs</code></td></tr>
+      <tr><td><code>--depfile file</code></td><td>Dependency-File für Make</td><td><code>--depfile build/deps.mk</code></td></tr>
+      <tr><td><code>--maxerrors N</code></td><td>Abbrechen nach N Fehlern</td><td><code>--maxerrors 5</code></td></tr>
+      <tr><td><code>-D sym=val</code></td><td>Konstante von außen definieren</td><td><code>-D DEBUG=1</code></td></tr>
+      <tr><td><code>-v</code></td><td>Verbose: mehr Ausgaben</td><td><code>acme -v main.asm</code></td></tr>
+    </tbody>
+  </table>
+
+  <pre><span class="comment">; Vollständiger Build-Befehl:</span>
+acme --cpu 6510 \
+     --format cbm \
+     --outfile build/mygame.prg \
+     --labeldump build/labels.txt \
+     --symbollist build/mygame.vs \
+     --depfile build/deps.mk \
+     -D PAL=1 \
+     -D DEBUG=0 \
+     src/main.asm
+
+<span class="comment">; VICE mit Symbol-Liste starten (für Debugging):</span>
+x64sc -moncommands build/mygame.vs build/mygame.prg</pre>
+
+  <h3>7.1 Typische Fehlermeldungen</h3>
+
+  <table>
+    <thead><tr><th>Fehler</th><th>Ursache</th><th>Lösung</th></tr></thead>
+    <tbody>
+      <tr><td>Symbol not defined</td><td>Label wird verwendet bevor es definiert ist</td><td>Zweiter Pass nötig; oder Label als ZP-Konstante vorab definieren</td></tr>
+      <tr><td>Value not yet defined</td><td>Vorwärts-Referenz in !byte/!word</td><td>Datendefinitionen hinter Labels platzieren oder <code>!word 0</code> als Platzhalter</td></tr>
+      <tr><td>Branch too far</td><td>BEQ/BNE etc. — Ziel > 127 Bytes entfernt</td><td>JMP einsetzen oder Code umstrukturieren</td></tr>
+      <tr><td>Address out of range</td><td>Zero-Page-Befehl mit Adresse &gt; $FF</td><td>Absolute Adressierung erzwingen: <code>lda $0100</code> statt <code>lda $00+100</code></td></tr>
+      <tr><td>Syntax error</td><td>Ungültige Direktive oder Ausdruck</td><td>ACME-Handbuch prüfen; Tippfehler in Direktiven-Namen</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <h2 id="macro-library">8. Vollständige Makro-Bibliothek</h2>
+
+  <p>Diese Makro-Sammlung kann direkt per <code>!source "macros.asm"</code> in jedes Projekt eingebunden werden:</p>
+
+  <div class="macro-lib">
+<span class="comment">; macros.asm — C64 ACME Makro-Bibliothek
+; Verwendung: !source "macros.asm"</span>
+
+<span class="comment">; ─── 16-Bit-Operationen ──────────────────────────────────────</span>
+<span class="directive">!macro</span> <span class="macro-name">load16</span> .zp, .val {
+    lda #&lt;<span class="param">.val</span> : sta <span class="param">.zp</span>
+    lda #&gt;<span class="param">.val</span> : sta <span class="param">.zp</span>+1
+}
+<span class="directive">!macro</span> <span class="macro-name">store16</span> .zp, .addr {
+    lda <span class="param">.zp</span>   : sta <span class="param">.addr</span>
+    lda <span class="param">.zp</span>+1 : sta <span class="param">.addr</span>+1
+}
+<span class="directive">!macro</span> <span class="macro-name">inc16</span> .zp {
+    inc <span class="param">.zp</span> : bne + : inc <span class="param">.zp</span>+1
++
+}
+<span class="directive">!macro</span> <span class="macro-name">dec16</span> .zp {
+    lda <span class="param">.zp</span> : bne + : dec <span class="param">.zp</span>+1
++   dec <span class="param">.zp</span>
+}
+
+<span class="comment">; ─── Register ────────────────────────────────────────────────</span>
+<span class="directive">!macro</span> <span class="macro-name">push_regs</span> { pha : txa : pha : tya : pha }
+<span class="directive">!macro</span> <span class="macro-name">pop_regs</span>  { pla : tay : pla : tax : pla }
+
+<span class="comment">; ─── Video ───────────────────────────────────────────────────</span>
+<span class="directive">!macro</span> <span class="macro-name">wait_vblank</span> {
+-   lda $D011 : bpl -      <span class="comment">; warte auf Rasterzeile >= 256</span>
+-   lda $D011 : bmi -      <span class="comment">; warte auf Rasterzeile < 256</span>
+}
+<span class="directive">!macro</span> <span class="macro-name">set_raster</span> .line {
+    lda $D011
+    !if .line > 255 { ora #$80 } else { and #$7F }
+    sta $D011
+    lda #&lt;<span class="param">.line</span> : sta $D012
+}
+<span class="directive">!macro</span> <span class="macro-name">set_border</span> .color { lda #<span class="param">.color</span> : sta $D020 }
+<span class="directive">!macro</span> <span class="macro-name">set_bg</span>     .color { lda #<span class="param">.color</span> : sta $D021 }
+
+<span class="comment">; ─── Sprites ─────────────────────────────────────────────────</span>
+<span class="directive">!macro</span> <span class="macro-name">sprite_on</span>  .num { lda $D015 : ora  #1&lt;&lt;<span class="param">.num</span> : sta $D015 }
+<span class="directive">!macro</span> <span class="macro-name">sprite_off</span> .num { lda $D015 : and #~(1&lt;&lt;<span class="param">.num</span>) : sta $D015 }
+<span class="directive">!macro</span> <span class="macro-name">set_sprite_ptr</span> .num, .frame {
+    lda #(<span class="param">.frame</span> - $0000) / 64
+    sta $07F8 + <span class="param">.num</span>
+}
+
+<span class="comment">; ─── Arithmetik ──────────────────────────────────────────────</span>
+<span class="directive">!macro</span> <span class="macro-name">mul2</span> { asl }
+<span class="directive">!macro</span> <span class="macro-name">div2</span> { lsr }
+<span class="directive">!macro</span> <span class="macro-name">clamp_byte</span> .max {
+    cmp #<span class="param">.max</span>+1 : bcc + : lda #<span class="param">.max</span>
++
+}
+
+<span class="comment">; ─── Timing ──────────────────────────────────────────────────</span>
+<span class="directive">!macro</span> <span class="macro-name">nop2</span>  { nop : nop }
+<span class="directive">!macro</span> <span class="macro-name">nop4</span>  { nop : nop : nop : nop }
+<span class="directive">!macro</span> <span class="macro-name">delay</span> .cycles {
+    <span class="comment">; .cycles muss gerade sein (jedes NOP = 2 Zyklen)</span>
+    !for i, <span class="param">.cycles</span>/2 { nop }
+}
+
+<span class="comment">; ─── Tabellen-Generierung zur Assemblierzeit ─────────────────</span>
+<span class="comment">; Verwendung: !align $FF,0 : sin_table: !for i,256 { !byte &lt;(sin(i*2*3.14159/256)*127+128) }</span>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <div class="benchmark">
+    <h2>Skill-Benchmark: ACME-Referenz</h2>
+    <ul class="benchmark-list">
+      <li><span class="check">☐</span>Du definierst Byte-Arrays, Wörter und Text-Strings mit den passenden ACME-Direktiven</li>
+      <li><span class="check">☐</span>Du bindest externe Binärdateien (Sprites, SID-Musik) mit !binary korrekt ein</li>
+      <li><span class="check">☐</span>Du nutzt globale Labels, lokale .labels und anonyme +/- Sprünge situationsgerecht</li>
+      <li><span class="check">☐</span>Du schreibst ein parametrisiertes Makro mit mindestens 2 Parametern und rufst es auf</li>
+      <li><span class="check">☐</span>Du verwendest !if PAL/!if NTSC für plattformübergreifenden Code mit build-time Konfiguration</li>
+      <li><span class="check">☐</span>Du generierst eine Sinus-Tabelle mit !for und der eingebauten sin()-Funktion</li>
+      <li><span class="check">☐</span>Du nutzt !pseudopc um Drive-Code für die 1541 zu assemblieren</li>
+      <li><span class="check">☐</span>Du baust ein Makefile das ACME mit --depfile und --symbollist aufruft</li>
+    </ul>
+  </div>
+
+  <p style="margin-top:32px;text-align:center;font-family:'Courier New',monospace;font-size:13px;color:var(--text-light);">
+    ← <a href="anhang_kernal_routinen.html" style="color:var(--c64-blue);">H · KERNAL-Routinen</a>
+    &nbsp;&nbsp;|&nbsp;&nbsp;
+    <a href="index.html" style="color:var(--c64-blue);">◈ Zurück zur Übersicht</a>
+  </p>
+
+  <nav class="chapter-nav">
+    <a href="anhang_kernal_routinen.html">← Anhang H: KERNAL-Routinen</a>
+    <a href="anhang_j_illegale_opcodes.html">Anhang J: Illegale Opcodes →</a>
+  </nav>
+</main>
+  <script src="assets/sidebar.js"></script>
+  <script src="assets/c64-interactive.js"></script>
+</body>
+</html>

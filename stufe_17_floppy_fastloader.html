@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>C64 Mastery — Stufe 17: Floppy &amp; Fastloader</title>
+  <link rel="stylesheet" href="assets/c64-base.css">
+  <style>
+    .timing-diagram {
+      background: #0a0a14; color: #aaccff;
+      font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.8;
+      padding: 18px 22px; border-radius: 6px;
+      border-left: 4px solid var(--theme-color); margin: 20px 0; overflow-x: auto;
+    }
+    .timing-diagram .sig-high { color: #00cc66; }
+    .timing-diagram .sig-low  { color: #cc3300; }
+    .timing-diagram .label    { color: #ffcc44; font-weight: bold; }
+    .drive-box {
+      background: var(--paper-dark); border: 2px solid var(--theme-color);
+      border-radius: 8px; padding: 20px 24px; margin: 20px 0;
+    }
+    .drive-box h4 { color: var(--theme-color); margin: 0 0 10px; font-family: 'Courier New', monospace; font-style: normal; }
+    .speed-bar {
+      height: 20px; border-radius: 3px; margin: 6px 0;
+      display: flex; align-items: center; padding: 0 8px;
+      font-family: 'Courier New', monospace; font-size: 12px; color: white;
+    }
+    .speed-kernal  { background: #993300; width: 15%; }
+    .speed-krill   { background: #336633; width: 55%; }
+    .speed-burst   { background: #003399; width: 100%; }
+    .speed-label   { color: var(--text); font-family: 'Courier New', monospace; font-size: 12px; margin: 4px 0 0; }
+    .iec-diagram {
+      font-family: 'Courier New', monospace; font-size: 13px;
+      background: var(--paper-dark); padding: 16px 20px; border-radius: 6px;
+      margin: 16px 0; border-left: 3px solid var(--theme-color);
+    }
+    body.dark-mode .drive-box  { background: #1e1e36; }
+    body.dark-mode .iec-diagram{ background: #1a1a2e; }
+    body.dark-mode .speed-label{ color: var(--text); }
+  </style>
+  <link rel="stylesheet" href="assets/c64-interactive.css">
+</head>
+<body>
+
+<aside class="sidebar"></aside>
+
+<main>
+  <header class="chapter-header">
+    <div class="chapter-number">Stufe 17 — Disk-I/O</div>
+    <h1>Floppy &amp; Fastloader</h1>
+    <div class="chapter-meta">
+      <span>★★★ Experten-Niveau</span>
+      <span>⏱ ca. 12–15 Stunden</span>
+      <span>📋 Voraussetzung: Stufen 07, 10, 11</span>
+    </div>
+  </header>
+
+  <section class="learning-objectives">
+    <h3>Lernziele dieser Stufe</h3>
+    <ul>
+      <li>Den IEC-Seriell-Bus und seine Architektur verstehen</li>
+      <li>Dateien mit KERNAL-Routinen zuverlässig laden und speichern</li>
+      <li>DOS-Kommandos für Dateioperationen und Direktzugriff beherrschen</li>
+      <li>Das D64-Dateiformat und die 1541-Disk-Struktur kennen</li>
+      <li>Die technischen Gründe für die langsame Standard-Übertragung erklären</li>
+      <li>Krill's Loader in ein eigenes Projekt integrieren</li>
+      <li>Das Prinzip eines Software-Fastloaders verstehen und implementieren</li>
+      <li>Ein mehrteiliges Spiel mit Lade-Screen und Fortschrittsanzeige realisieren</li>
+    </ul>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section id="iec-bus">
+    <h2>1. Der IEC-Seriell-Bus</h2>
+
+    <p>Der C64 kommuniziert mit Laufwerken (und Druckern) über den <strong>IEC-Bus</strong> (International Electrotechnical Commission) — eine serielle Datenleitung mit drei aktiven Signalen, alle auf dem CIA2-Chip ($DD00).</p>
+
+    <div class="iec-diagram">
+      <strong>CIA2 $DD00 — IEC-Bus-Leitungen:</strong><br><br>
+      Bit 7: DATA IN  (Lesen, ob Data-Leitung Low ist)<br>
+      Bit 6: CLK IN   (Lesen, ob Clock-Leitung Low ist)<br>
+      Bit 5: DATA OUT (0 schreiben → Leitung auf Low ziehen)<br>
+      Bit 4: CLK OUT  (0 schreiben → Leitung auf Low ziehen)<br>
+      Bit 3: ATN OUT  (Attention — Geräteauswahl/Kommando-Start)<br>
+      Bit 0–1: VIC-II Bank-Select (Bits invertiert)
+    </div>
+
+    <p>Alle drei Signale sind <strong>Open-Collector mit Pull-Up</strong>: Mehrere Geräte können die Leitung auf Low ziehen, niemand kann sie aktiv auf High treiben — High entsteht, wenn niemand zieht. Daher "wired AND".</p>
+
+    <h3>1.1 Bustopologie</h3>
+
+    <p>Am IEC-Bus können bis zu 15 Geräte mit eigenen Gerätenummern (8–15) hängen. Die 1541 Floppy hat Standard-Adresse 8. Drucker typischerweise Adresse 4. Der C64 als Controller sendet ATN um ein Gerät anzusprechen.</p>
+
+    <table>
+      <thead><tr><th>Signal</th><th>Leitung</th><th>Protokoll-Rolle</th></tr></thead>
+      <tbody>
+        <tr><td>ATN</td><td>Attention</td><td>C64 zieht ATN auf Low um Kommando zu senden (Geräteadresse, Sekundäradresse)</td></tr>
+        <tr><td>CLK</td><td>Clock</td><td>Sender steuert Clock: Low = bereit, High = Bit liegt an</td></tr>
+        <tr><td>DATA</td><td>Daten</td><td>Empfänger bestätigt Empfang; Bit-Übertragung auf DATA</td></tr>
+      </tbody>
+    </table>
+
+    <h3>1.2 Serielles Protokoll — Bit für Bit</h3>
+
+    <p>Ein Byte überträgt der IEC-Bus in 8 einzelnen Bit-Schritten, LSB zuerst. Pro Bit:</p>
+    <ol>
+      <li>Sender zieht CLK auf Low (Bit liegt an)</li>
+      <li>Sender setzt DATA auf den Bit-Wert</li>
+      <li>Sender lässt CLK High (Takt-Flanke: Empfänger sampelt DATA)</li>
+      <li>Empfänger signalisiert Bereitschaft über DATA</li>
+    </ol>
+
+    <p>Das Timing ist <strong>software-gesteuert auf dem C64</strong> — es gibt keinen Hardware-UART. Jede Flanke ist eine einzelne Lese/Schreib-Operation auf $DD00. Das ist der Hauptgrund für die geringe Übertragungsrate.</p>
+
+    <div class="box warning">
+      <div class="box-title">⚠️ IEC-Bus Timing-Anforderungen</div>
+      <table>
+        <thead><tr><th>Signal</th><th>Anforderung</th><th>Konsequenz bei Verletzung</th></tr></thead>
+        <tbody>
+          <tr><td>ATN-Response</td><td>&lt; 1 ms nach ATN-Low</td><td>Bus hängt (Laufwerk geht in Timeout)</td></tr>
+          <tr><td>Byte-Timeout</td><td>&lt; 512 µs zwischen Bytes</td><td>Laufwerk bricht Transfer ab</td></tr>
+          <tr><td>EOI-Erkennung</td><td>~60 µs ohne Antwort auf CLK</td><td>Laufwerk erkennt letztes Byte (EOF)</td></tr>
+        </tbody>
+      </table>
+      <p>Eigene Protokoll-Routinen müssen diese Timings einhalten.
+      Während Zeit-kritischer IEC-Übertragungen: <code>SEI</code> (IRQs sperren),
+      da ein IRQ-Handler den Timingablauf stören und den Bus in Timeout treiben kann.</p>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section id="kernal-zugriff">
+    <h2>2. Standard KERNAL-Disk-Zugriff</h2>
+
+    <p>Der einfachste Weg zu Disk-I/O ist über die KERNAL-Routinen. Die typische Sequenz für einen Datei-Load:</p>
+
+    <div class="pre-wrapper">
+      <pre><span class="comment">; ─── Robuste KERNAL-Laderoutine ────────────────────────────────
+; Lädt eine Datei von Disk ins RAM
+; Parameter: filename_ptr/$FB (Low/High), filename_len/$FD,
+;            load_addr/$FE/$FF (Zieladresse — ignoriert wenn Sekundäradresse=1)
+; Rückgabe: Carry clear = OK, Carry set = Fehler in A</span>
+
+kernal_load_file:
+    <span class="comment">; 1. SETLFS: Logische Dateinummer, Gerätenummer, Sekundäradresse</span>
+    <span class="label">lda</span> #1               <span class="comment">; Logische Dateinummer (1–255)</span>
+    <span class="label">ldx</span> #8               <span class="comment">; Gerätenummer (8 = erste Floppy)</span>
+    <span class="label">ldy</span> #0               <span class="comment">; Sekundäradresse 0 = Ladeadresse aus Datei-Header</span>
+    <span class="label">jsr</span> $FFBA            <span class="comment">; SETLFS</span>
+
+    <span class="comment">; 2. SETNAM: Dateiname</span>
+    <span class="label">lda</span> $FD              <span class="comment">; Dateinamen-Länge</span>
+    <span class="label">ldx</span> $FB              <span class="comment">; Namens-Adresse Low</span>
+    <span class="label">ldy</span> $FC              <span class="comment">; Namens-Adresse High</span>
+    <span class="label">jsr</span> $FFBD            <span class="comment">; SETNAM</span>
+
+    <span class="comment">; 3. LOAD: Datei laden</span>
+    <span class="label">lda</span> #0               <span class="comment">; 0=LOAD (1=VERIFY)</span>
+    <span class="label">ldx</span> $FE              <span class="comment">; Zieladresse Low (nur wenn SA=1)</span>
+    <span class="label">ldy</span> $FF              <span class="comment">; Zieladresse High</span>
+    <span class="label">jsr</span> $FFD5            <span class="comment">; LOAD</span>
+
+    <span class="comment">; 4. Fehlerprüfung</span>
+    <span class="label">bcs</span> .load_error      <span class="comment">; Carry set = KERNAL-Fehler</span>
+    <span class="label">jsr</span> $FFB7            <span class="comment">; READST — Status-Byte lesen</span>
+    <span class="label">and</span> #$BF             <span class="comment">; Bit 6 (EOI) ist normal, ignorieren</span>
+    <span class="label">beq</span> .load_ok         <span class="comment">; Status 0 = alles gut</span>
+
+.load_error:
+    <span class="label">sec</span>                  <span class="comment">; Fehler signalisieren</span>
+    <span class="label">rts</span>
+.load_ok:
+    <span class="label">clc</span>
+    <span class="label">rts</span>
+
+<span class="comment">; Hilfsmakro: Dateiname als String-Literal übergeben</span>
+<span class="comment">; Verwendung:</span>
+<span class="comment">;   lda #&lt;levelname : sta $FB</span>
+<span class="comment">;   lda #&gt;levelname : sta $FC</span>
+<span class="comment">;   lda #levelname_end-levelname : sta $FD</span>
+<span class="comment">;   jsr kernal_load_file</span>
+levelname:      !text "LEVEL1"
+levelname_end:</pre>
+    </div>
+
+    <h3>2.1 Datei speichern mit SAVE</h3>
+
+    <div class="pre-wrapper">
+      <pre><span class="comment">; SAVE: Speicherbereich auf Disk schreiben
+; $FB/$FC = Startadresse, $AE/$AF = Endadresse+1</span>
+kernal_save_file:
+    <span class="label">lda</span> #1
+    <span class="label">ldx</span> #8
+    <span class="label">ldy</span> #1               <span class="comment">; SA=1: Zieladresse aus X/Y-Register</span>
+    <span class="label">jsr</span> $FFBA            <span class="comment">; SETLFS</span>
+    <span class="label">lda</span> #savename_end - savename
+    <span class="label">ldx</span> #&lt;savename
+    <span class="label">ldy</span> #&gt;savename
+    <span class="label">jsr</span> $FFBD            <span class="comment">; SETNAM</span>
+
+    <span class="label">lda</span> #&lt;$C000          <span class="comment">; Zeiger auf Startadresse (als ZP-Adresse übergeben!)</span>
+    <span class="label">sta</span> $FB
+    <span class="label">lda</span> #&gt;$C000
+    <span class="label">sta</span> $FC
+    <span class="label">lda</span> $FB              <span class="comment">; SAVE erwartet ZP-Adresse der Startadresse in A</span>
+    <span class="label">ldx</span> #&lt;$CFFF          <span class="comment">; Endadresse+1 Low</span>
+    <span class="label">ldy</span> #&gt;$CFFF          <span class="comment">; Endadresse+1 High</span>
+    <span class="label">jsr</span> $FFD8            <span class="comment">; SAVE</span>
+    <span class="label">rts</span>
+savename: !text "SAVEGAME"
+savename_end:</pre>
+    </div>
+
+    <div class="box-warning">
+      <div class="box-title">Achtung: KERNAL-ROM muss eingeblendet sein</div>
+      KERNAL-Routinen sind nur erreichbar wenn das KERNAL-ROM bei $E000–$FFFF eingeblendet ist (<code>$01 = $37</code>, Standardzustand). Wer das Banking verändert hat, muss vor KERNAL-Calls <code>lda #$37 / sta $01</code> aufrufen und danach wiederherstellen.
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section id="dos-kommandos">
+    <h2>3. DOS-Kommandos</h2>
+
+    <p>Über den <strong>Kommandokanal 15</strong> können DOS-Befehle direkt an das Laufwerk gesendet werden: Dateien löschen, umbenennen, Disk formatieren, Direktzugriff auf Tracks und Sektoren.</p>
+
+    <div class="pre-wrapper">
+      <pre><span class="comment">; DOS-Kommando senden (Kanal 15 = Kommandokanal)
+; cmd_ptr/$FB/$FC = Zeiger auf Kommando-String
+; cmd_len/$FD = Länge</span>
+send_dos_cmd:
+    <span class="label">lda</span> #15              <span class="comment">; Logische Dateinummer 15</span>
+    <span class="label">ldx</span> #8               <span class="comment">; Gerätenummer</span>
+    <span class="label">ldy</span> #15              <span class="comment">; Sekundäradresse 15 = Kommandokanal</span>
+    <span class="label">jsr</span> $FFBA            <span class="comment">; SETLFS</span>
+    <span class="label">lda</span> $FD              <span class="comment">; Kommandolänge</span>
+    <span class="label">ldx</span> $FB
+    <span class="label">ldy</span> $FC
+    <span class="label">jsr</span> $FFBD            <span class="comment">; SETNAM (Kommando ist der "Dateiname")</span>
+    <span class="label">jsr</span> $FFC0            <span class="comment">; OPEN (sendet Kommando)</span>
+    <span class="label">lda</span> #15
+    <span class="label">jsr</span> $FFC3            <span class="comment">; CLOSE</span>
+    <span class="label">rts</span>
+
+<span class="comment">; Datei löschen: "S0:DATEINAME"</span>
+dos_delete:
+    !text "S0:LEVEL1"
+dos_delete_end:
+
+<span class="comment">; Datei umbenennen: "R0:NEUNAME=ALTNAME"</span>
+dos_rename:
+    !text "R0:LEVEL2=LEVEL1"
+dos_rename_end:
+
+<span class="comment">; Disk formatieren (mit ID): "N0:DISKNAME,ID"  — VORSICHT!</span>
+dos_format:
+    !text "N0:MY DISK,MD"
+dos_format_end:
+
+<span class="comment">; Fehlerkanal lesen — nach kritischen Operationen immer prüfen</span>
+read_error_channel:
+    <span class="label">lda</span> #15
+    <span class="label">ldx</span> #8
+    <span class="label">ldy</span> #15
+    <span class="label">jsr</span> $FFBA
+    <span class="label">jsr</span> $FFBD            <span class="comment">; SETNAM mit Länge 0 (kein Name)</span>
+    <span class="label">jsr</span> $FFC0            <span class="comment">; OPEN — liest Fehlerkanal</span>
+    <span class="label">lda</span> #15
+    <span class="label">jsr</span> $FFC6            <span class="comment">; CHKIN — Input auf Kanal 15 umlenken</span>
+    <span class="comment">; Jetzt per CHRIN ($FFCF) Fehlerstring lesen bis CR</span>
+    <span class="label">ldx</span> #0
+.read_loop:
+    <span class="label">jsr</span> $FFCF            <span class="comment">; CHRIN — ein Byte lesen</span>
+    <span class="label">cmp</span> #$0D             <span class="comment">; CR = Ende des Fehlerstrings</span>
+    <span class="label">beq</span> .done
+    <span class="label">sta</span> error_buf,x
+    <span class="label">inx</span>
+    <span class="label">bne</span> .read_loop
+.done:
+    <span class="label">lda</span> #0
+    <span class="label">sta</span> error_buf,x      <span class="comment">; String null-terminieren</span>
+    <span class="label">jsr</span> $FFCC            <span class="comment">; CLRCHN</span>
+    <span class="label">lda</span> #15
+    <span class="label">jsr</span> $FFC3            <span class="comment">; CLOSE</span>
+    <span class="label">rts</span>
+error_buf: !fill 40, 0</pre>
+    </div>
+
+    <h3>3.1 Direktzugriff auf Track/Sektor</h3>
+
+    <p>Für fortgeschrittene Anwendungen (eigenes Dateiformat, Direktlesung) kann man einzelne Sektoren per <strong>Pufferkommando</strong> lesen:</p>
+
+    <div class="pre-wrapper">
+      <pre><span class="comment">; Sektor direkt lesen via Puffer-Kanal (U1)
+; track = Track (1–35), sector = Sektor (0–20 je nach Track)</span>
+read_sector:
+    <span class="comment">; 1. Pufferkanal öffnen (SA=2)</span>
+    <span class="label">lda</span> #2 : <span class="label">ldx</span> #8 : <span class="label">ldy</span> #2
+    <span class="label">jsr</span> $FFBA
+    <span class="label">lda</span> #0 : <span class="label">ldx</span> #0 : <span class="label">ldy</span> #0
+    <span class="label">jsr</span> $FFBD            <span class="comment">; kein Name</span>
+    <span class="label">jsr</span> $FFC0            <span class="comment">; OPEN</span>
+
+    <span class="comment">; 2. U1-Kommando: "U1:2 0 18 1" (Kanal, Drive, Track, Sektor)</span>
+    <span class="label">lda</span> #u1cmd_end - u1cmd
+    <span class="label">ldx</span> #&lt;u1cmd : <span class="label">ldy</span> #&gt;u1cmd
+    <span class="label">jsr</span> $FFBD
+    <span class="comment">; ... (SETLFS 15/8/15, OPEN, CLOSE wie in send_dos_cmd)</span>
+
+    <span class="comment">; 3. Pufferkanal lesen: 256 Bytes = 1 Sektor</span>
+    <span class="label">lda</span> #2
+    <span class="label">jsr</span> $FFC6            <span class="comment">; CHKIN — Kanal 2 als Input</span>
+    <span class="label">ldx</span> #0
+.read256:
+    <span class="label">jsr</span> $FFCF            <span class="comment">; CHRIN</span>
+    <span class="label">sta</span> sector_buffer,x
+    <span class="label">inx</span>
+    <span class="label">bne</span> .read256
+    <span class="label">jsr</span> $FFCC            <span class="comment">; CLRCHN</span>
+    <span class="label">lda</span> #2 : <span class="label">jsr</span> $FFC3   <span class="comment">; CLOSE</span>
+    <span class="label">rts</span>
+
+u1cmd: !text "U1:2 0 18 1"    <span class="comment">; Track 18, Sektor 1 (Directory)</span>
+u1cmd_end:
+sector_buffer: !fill 256, 0</pre>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section id="d64-format">
+    <h2>4. Das D64-Dateiformat</h2>
+
+    <p>Eine Standard-1541-Diskette hat <strong>35 Tracks</strong> mit je 17–21 Sektoren, abhängig von der Zone (Track-Gruppe). Jeder Sektor enthält genau <strong>256 Bytes</strong>. Das ergibt 664 Sektoren = 170.496 Bytes Gesamtkapazität (von denen 664 = 166 KB nutzbar sind, nach Overhead).</p>
+
+    <h3>4.1 Track/Sektor-Struktur</h3>
+
+    <table>
+      <thead><tr><th>Zone</th><th>Tracks</th><th>Sektoren/Track</th><th>Geschwindigkeit</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>1–17</td><td>21</td><td>Schnellste (äußerste Spur)</td></tr>
+        <tr><td>2</td><td>18–24</td><td>19</td><td>—</td></tr>
+        <tr><td>3</td><td>25–30</td><td>18</td><td>—</td></tr>
+        <tr><td>4</td><td>31–35</td><td>17</td><td>Langsamste (innerste Spur)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>4.2 Spezielle Tracks</h3>
+
+    <table>
+      <thead><tr><th>Track</th><th>Inhalt</th></tr></thead>
+      <tbody>
+        <tr><td>18, Sektor 0</td><td><strong>BAM</strong> (Block Availability Map): Belegungsbitmap aller Sektoren + Disk-Name + ID</td></tr>
+        <tr><td>18, Sektor 1+</td><td><strong>Directory</strong>: Dateiverzeichnis, 8 Einträge à 32 Bytes pro Sektor</td></tr>
+        <tr><td>Alle anderen</td><td>Dateidaten — als verkettete Liste von Sektoren</td></tr>
+      </tbody>
+    </table>
+
+    <h3>4.3 Sektor-Verkettung</h3>
+
+    <p>Jeder Daten-Sektor beginnt mit zwei "Link"-Bytes:</p>
+    <ul>
+      <li><strong>Byte 0</strong>: Track des nächsten Sektors (0 = letzter Sektor)</li>
+      <li><strong>Byte 1</strong>: Sektor des nächsten Sektors (oder Anzahl gültiger Bytes wenn letzter)</li>
+      <li><strong>Bytes 2–255</strong>: Nutzdaten (254 Bytes)</li>
+    </ul>
+
+    <p>Ein File lässt sich also als verkettete Liste lesen: BAM → Directory-Eintrag → erster Sektor → nächster Sektor → … → letzter Sektor (Track-Link = 0).</p>
+
+    <h3>4.4 D64-Datei-Layout auf dem PC</h3>
+
+    <p>Eine .d64-Datei ist ein lineares Image: Track 1 Sektor 0, Track 1 Sektor 1, …, Track 1 Sektor 20, Track 2 Sektor 0, … — in der Reihenfolge der Zones. Gesamtgröße: 174.848 Bytes (35 Tracks, Standard ohne Error-Map).</p>
+
+    <div class="pre-wrapper">
+      <pre><span class="comment">; D64-Offset-Berechnung für Track/Sektor (auf dem PC/Host)
+; track: 1–35, sector: 0–20
+; Offset = (Summe aller Sektoren in Tracks 1..track-1) * 256 + sector * 256</span>
+track_offsets:
+    !word 0        <span class="comment">; Track 1 (Zone 1: 21 Sektoren)</span>
+    !word 5376     <span class="comment">; Track 2</span>
+    <span class="comment">; ... bis Track 35</span>
+    <span class="comment">; Track 18 (Directory) beginnt bei Offset 107520 ($1A400)</span></pre>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section id="warum-langsam">
+    <h2>5. Warum der Standard-Load so langsam ist</h2>
+
+    <p>Ein einfaches KERNAL-LOAD dauert oft 5–10 Sekunden für 10 KB. Die Ursache ist eine Kombination aus Protokoll-Overhead und einem Timing-Bug im Original-KERNAL:</p>
+
+    <h3>5.1 Das Bit-Rauschen-Problem (1984)</h3>
+
+    <p>Das serielle Protokoll des IEC-Bus wurde für den VC-20 entwickelt, der eine Hardware-Serielle hatte. Beim C64 fehlt diese Hardware — der Bus wird vollständig in Software emuliert. Der ursprüngliche C64-KERNAL hatte zudem einen <strong>Timing-Bug</strong>: Aus Kompatibilitätsgründen mit dem CBM-8032-Bus-Timing wurde das seriell implementierte Protokoll auf <strong>~300 Bit/s effektiv gedrosselt</strong>, obwohl ~3.000 Bit/s möglich wären.</p>
+
+    <p>Das ergibt sich aus:</p>
+    <ul>
+      <li>1 Byte = 8 Bits, davon jedes Bit ca. 70–100 µs Übertragungszeit</li>
+      <li>Plus Handshake-Zyklen zwischen jedem Byte</li>
+      <li>Plus 1541-interne Verarbeitung (~2 ms pro Sektor-Header-Read)</li>
+      <li><strong>Effektivrate: ~350–400 Bytes/Sekunde</strong></li>
+    </ul>
+
+    <div class="drive-box">
+      <h4>Übertragungsraten im Vergleich</h4>
+      <div class="speed-label">Standard KERNAL (~350 B/s)</div>
+      <div class="speed-bar speed-kernal">~350 B/s</div>
+      <div class="speed-label">Krill's Loader (~3.500 B/s)</div>
+      <div class="speed-bar speed-krill">~3.500 B/s (10× schneller)</div>
+      <div class="speed-label">Burst-Protokoll / Parallel (~16.000 B/s)</div>
+      <div class="speed-bar speed-burst">~16.000 B/s (Hardware-Kabel)</div>
+    </div>
+
+    <h3>5.2 Warum Software-Fastloader möglich ist</h3>
+
+    <p>Die 1541 hat eine eigene <strong>6502-CPU</strong> mit 1 MHz. Normaler KERNAL-Code läuft nur auf dem C64 — das Laufwerk führt eigene ROM-Firmware aus. Ein Software-Fastloader überträgt via <strong>M-W (Memory Write)</strong> neuen Drive-Code ins Laufwerk-RAM und lässt diesen dort ausführen. Der neue Code kann das Protokoll auf 8 Bit parallel (wenn Parallelkabel vorhanden) oder zeitoptimiertes 2-Bit seriell umschalten.</p>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section id="fastloader-konzept">
+    <h2>6. Fastloader-Konzept</h2>
+
+    <h3>6.1 Zwei Ansätze</h3>
+
+    <p><strong>Ansatz 1 — Protokoll-Optimierung (Software-only):</strong><br>
+    Neuer Drive-Code sendet Bytes mit präzisem Timing über die existierenden IEC-Leitungen. Kein Hardware-Eingriff nötig. Die 1541 sendet 2 Bits gleichzeitig (CLK + DATA) statt 1 — doppelte Datenrate. Mit optimalem Timing 8–10× so schnell wie Standard.</p>
+
+    <p><strong>Ansatz 2 — Parallel-Übertragung (Hardware):</strong><br>
+    Zusätzliches Kabel zwischen 1541 User-Port und C64 User-Port überträgt 8 Bits simultan. Das Laufwerk hält 8 Datenbits auf eigene Ausgänge, ein Handshake-Signal löst das Lesen aus. Theoretisches Maximum: ~16 KB/s. Benötigt Hardware-Modifikation an Laufwerk und Kabel.</p>
+
+    <h3>6.2 Drive-Code hochladen mit M-W</h3>
+
+    <p>Der DOS-Kommandokanal nimmt nicht nur Disk-Kommandos entgegen, sondern auch direkte Speicherzugriffe über M-W (Memory Write) und M-E (Memory Execute):</p>
+
+    <div class="pre-wrapper">
+      <pre><span class="comment">; Drive-Code in die 1541 hochladen
+; Der Code landet im 1541-RAM ab Adresse $0300 (freier RAM-Bereich)
+; M-W Format: "M-W" + Low + High + Länge + Daten</span>
+
+upload_drive_code:
+    <span class="comment">; Kommandokanal öffnen</span>
+    <span class="label">lda</span> #15 : <span class="label">ldx</span> #8 : <span class="label">ldy</span> #15
+    <span class="label">jsr</span> $FFBA
+    <span class="label">lda</span> #0 : <span class="label">ldx</span> #0 : <span class="label">ldy</span> #0
+    <span class="label">jsr</span> $FFBD
+    <span class="label">jsr</span> $FFC0            <span class="comment">; OPEN</span>
+
+    <span class="label">lda</span> #15
+    <span class="label">jsr</span> $FFC9            <span class="comment">; CHKOUT — Kanal 15 als Output</span>
+
+    <span class="comment">; M-W-Header senden: "M-W" + Adresse Low/High + Länge</span>
+    <span class="label">lda</span> #'M' : <span class="label">jsr</span> $FFD2
+    <span class="label">lda</span> #'-' : <span class="label">jsr</span> $FFD2
+    <span class="label">lda</span> #'W' : <span class="label">jsr</span> $FFD2
+    <span class="label">lda</span> #&lt;$0300           <span class="comment">; 1541-Zieladresse Low</span>
+    <span class="label">jsr</span> $FFD2
+    <span class="label">lda</span> #&gt;$0300           <span class="comment">; 1541-Zieladresse High</span>
+    <span class="label">jsr</span> $FFD2
+    <span class="label">lda</span> #drive_code_end - drive_code
+    <span class="label">jsr</span> $FFD2            <span class="comment">; Länge (max. 32 Bytes pro M-W-Kommando!)</span>
+
+    <span class="comment">; Drive-Code-Bytes senden</span>
+    <span class="label">ldx</span> #0
+.send_loop:
+    <span class="label">lda</span> drive_code,x
+    <span class="label">jsr</span> $FFD2            <span class="comment">; CHROUT</span>
+    <span class="label">inx</span>
+    <span class="label">cpx</span> #drive_code_end - drive_code
+    <span class="label">bcc</span> .send_loop
+
+    <span class="label">jsr</span> $FFCC            <span class="comment">; CLRCHN</span>
+    <span class="label">lda</span> #15 : <span class="label">jsr</span> $FFC3  <span class="comment">; CLOSE</span>
+    <span class="label">rts</span>
+
+<span class="comment">; M-E: Drive-Code ausführen</span>
+<span class="comment">; "M-E" + Adresse Low/High (ohne Längenbyte!)</span>
+execute_drive_code:
+    <span class="comment">; Gleiches Schema: SETLFS/OPEN/CHKOUT, dann senden:</span>
+    <span class="comment">; 'M', '-', 'E', &lt;$0300, &gt;$0300, CLRCHN, CLOSE</span>
+    <span class="label">rts</span>
+
+<span class="comment">; Hinweis: M-W überträgt max. 32 Bytes pro Kommando.
+; Für größere Drive-Programme: mehrere M-W mit ansteigender Zieladresse.</span>
+
+drive_code:
+    <span class="comment">; Hier liegt der 1541-6502-Assembler-Code</span>
+    <span class="comment">; (auf dem C64 als Datenbytes abgelegt — nicht direkt ausführbar)</span>
+    !byte $EA, $EA, $60  <span class="comment">; Beispiel: 2× NOP + RTS</span>
+drive_code_end:</pre>
+    </div>
+
+    <div class="box-warning">
+      <div class="box-title">M-W: Nur für 1541/1571</div>
+      M-W und M-E sind 1541-spezifisch. SD2IEC (SD-Karten-Laufwerk) und viele andere Emulations-Drives ignorieren sie oder verhalten sich anders. Eigenen Drive-Code immer auf echter Hardware oder in VICE mit echter 1541-Emulation testen.
+    </div>
+
+    <h3>6.3 M-W in Blöcken für größere Drive-Programme</h3>
+
+    <p>Wenn der Drive-Code länger als 32 Bytes ist, muss er in mehreren M-W-Kommandos
+    à maximal 32 Bytes hochgeladen werden. Die Zieladresse im 1541 steigt dabei jeweils
+    um 32 an:</p>
+
+    <div class="pre-wrapper">
+      <pre><span class="comment">; Allgemeiner M-W-Upload-Loop für beliebig große Drive-Programme</span>
+<span class="comment">; Voraussetzung: drive_code und drive_code_end sind definiert</span>
+
+MW_CHUNK_SIZE = 32      <span class="comment">; Maximale Bytes pro M-W-Kommando</span>
+
+upload_chunked:
+    <span class="label">lda</span> #15 : <span class="label">ldx</span> #8 : <span class="label">ldy</span> #15
+    <span class="label">jsr</span> $FFBA            <span class="comment">; SETLFS</span>
+    <span class="label">lda</span> #0 : <span class="label">ldx</span> #0 : <span class="label">ldy</span> #0
+    <span class="label">jsr</span> $FFBD            <span class="comment">; SETNAM</span>
+    <span class="label">jsr</span> $FFC0            <span class="comment">; OPEN</span>
+    <span class="label">lda</span> #15 : <span class="label">jsr</span> $FFC9  <span class="comment">; CHKOUT</span>
+
+    <span class="label">lda</span> #&lt;drive_code     <span class="comment">; Quell-Offset im C64-Speicher</span>
+    <span class="label">sta</span> src_ptr
+    <span class="label">lda</span> #&gt;drive_code
+    <span class="label">sta</span> src_ptr+1
+    <span class="label">lda</span> #&lt;$0300          <span class="comment">; Zieladresse im 1541-RAM</span>
+    <span class="label">sta</span> dst_ptr
+    <span class="label">lda</span> #&gt;$0300
+    <span class="label">sta</span> dst_ptr+1
+    <span class="label">lda</span> #drive_code_end - drive_code
+    <span class="label">sta</span> remain           <span class="comment">; Restbytes gesamt</span>
+
+.mw_chunk:
+    <span class="label">lda</span> remain
+    <span class="label">beq</span> .mw_done         <span class="comment">; Alle Bytes gesendet</span>
+    <span class="label">cmp</span> #MW_CHUNK_SIZE
+    <span class="label">bcc</span> .mw_partial      <span class="comment">; Weniger als 32 → letzter Block</span>
+    <span class="label">lda</span> #MW_CHUNK_SIZE
+.mw_partial:
+    <span class="label">sta</span> chunk_len        <span class="comment">; Aktuelle Block-Länge</span>
+
+    <span class="comment">; M-W-Header: M, -, W, dst_lo, dst_hi, chunk_len</span>
+    <span class="label">lda</span> #'M' : <span class="label">jsr</span> $FFD2
+    <span class="label">lda</span> #'-' : <span class="label">jsr</span> $FFD2
+    <span class="label">lda</span> #'W' : <span class="label">jsr</span> $FFD2
+    <span class="label">lda</span> dst_ptr : <span class="label">jsr</span> $FFD2
+    <span class="label">lda</span> dst_ptr+1 : <span class="label">jsr</span> $FFD2
+    <span class="label">lda</span> chunk_len : <span class="label">jsr</span> $FFD2
+
+    <span class="comment">; Datenbytes senden</span>
+    <span class="label">ldy</span> #0
+.mw_send:
+    <span class="label">lda</span> (src_ptr),y
+    <span class="label">jsr</span> $FFD2
+    <span class="label">iny</span>
+    <span class="label">cpy</span> chunk_len
+    <span class="label">bcc</span> .mw_send
+
+    <span class="comment">; src_ptr und dst_ptr um chunk_len vorwärts</span>
+    <span class="label">lda</span> src_ptr : <span class="label">clc</span> : <span class="label">adc</span> chunk_len : <span class="label">sta</span> src_ptr
+    <span class="label">bcc</span> .no_carry1 : <span class="label">inc</span> src_ptr+1
+.no_carry1:
+    <span class="label">lda</span> dst_ptr : <span class="label">clc</span> : <span class="label">adc</span> chunk_len : <span class="label">sta</span> dst_ptr
+    <span class="label">bcc</span> .no_carry2 : <span class="label">inc</span> dst_ptr+1
+.no_carry2:
+    <span class="label">lda</span> remain : <span class="label">sec</span> : <span class="label">sbc</span> chunk_len : <span class="label">sta</span> remain
+    <span class="label">jmp</span> .mw_chunk
+
+.mw_done:
+    <span class="label">jsr</span> $FFCC            <span class="comment">; CLRCHN</span>
+    <span class="label">lda</span> #15 : <span class="label">jsr</span> $FFC3  <span class="comment">; CLOSE</span>
+    <span class="label">rts</span>
+
+src_ptr:   !word 0      <span class="comment">; Zeiger auf Quelldaten (C64)</span>
+dst_ptr:   !word 0      <span class="comment">; Zeiger auf Zieladresse (1541)</span>
+remain:    !byte 0      <span class="comment">; Verbleibende Bytes</span>
+chunk_len: !byte 0      <span class="comment">; Aktuelle Block-Länge</span></pre>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section id="fertige-fastloader">
+    <h2>7. Fertige Fastloader integrieren</h2>
+
+    <p>In der Praxis schreibt man keinen eigenen Fastloader von Grund auf — stattdessen integriert man eine bewährte Lösung. Die bekannteste für C64-Homebrew und Demo-Szene:</p>
+
+    <h3>7.1 Krill's Loader</h3>
+
+    <p>Krill's Loader ist ein <strong>Software-Fastloader ohne Hardware-Anforderungen</strong> — funktioniert auf jeder 1541/1571/1581 und auf SD2IEC mit entsprechender Firmware. Eigenschaften:</p>
+
+    <ul>
+      <li>~8–10× schneller als KERNAL (ca. 3.500 B/s)</li>
+      <li>Kein User-Port-Kabel nötig</li>
+      <li>Kompatibel mit 1541, 1571, 1581, SD2IEC</li>
+      <li>Optionaler Raster-IRQ-freundlicher Betrieb (läuft teilweise im Hintergrund)</li>
+      <li>Quellcode frei verfügbar (ACME-Assembler)</li>
+      <li>Aktiv gewartet: unterstützt PAL und NTSC automatisch</li>
+    </ul>
+
+    <h3>7.2 Krill's Loader integrieren</h3>
+
+    <div class="pre-wrapper">
+      <pre><span class="comment">; ─── Krill's Loader Integration (vereinfacht) ──────────────────
+; Voraussetzung: Krill's Loader Quellcode im Projekt-Verzeichnis
+; Source: https://csdb.dk/release/?id=&lt;krill-loader-id&gt;
+;
+; 1. Loader-Code einbinden</span>
+!source "krills_loader/loader.asm"
+
+<span class="comment">; Krill's Loader belegt typischerweise ~$0200 Bytes unter der Zieladresse
+; und einige Zero-Page-Adressen. Genau im loader.asm prüfen!</span>
+
+<span class="comment">; 2. Loader initialisieren (einmalig beim Programmstart)</span>
+init_loader:
+    <span class="label">jsr</span> LOADER_INSTALL    <span class="comment">; Drive-Code hochladen + Loader aktivieren</span>
+    <span class="comment">; Gibt zurück wenn Drive bereit ist</span>
+    <span class="comment">; Fehler: Carry set wenn kein Laufwerk gefunden</span>
+    <span class="label">bcs</span> .no_drive
+    <span class="label">rts</span>
+.no_drive:
+    <span class="comment">; Fallback: KERNAL-Load verwenden</span>
+    <span class="label">rts</span>
+
+<span class="comment">; 3. Datei laden</span>
+<span class="comment">; Parameter: A = Dateinummer (aus Datei-Index), X/Y = Zieladresse</span>
+load_with_krill:
+    <span class="label">ldx</span> #&lt;$4000           <span class="comment">; Zieladresse Low</span>
+    <span class="label">ldy</span> #&gt;$4000           <span class="comment">; Zieladresse High</span>
+    <span class="label">lda</span> #1               <span class="comment">; Datei-Index (1-basiert, aus Disk-Directory-Reihenfolge)</span>
+    <span class="label">jsr</span> LOADER_LOAD      <span class="comment">; Krill's Load-Routine</span>
+    <span class="comment">; Carry clear = OK, Carry set = Fehler</span>
+    <span class="comment">; X/Y enthalten Endadresse+1 nach dem Laden</span>
+    <span class="label">rts</span>
+
+<span class="comment">; 4. Fortschritts-Callback (optional)
+; Krill's Loader ruft eine Callback-Routine während des Ladens auf.
+; Ideal für Lade-Bildschirm / Fortschrittsbalken.</span>
+krill_progress_cb:
+    <span class="comment">; A = Anzahl geladener Blöcke (0 bis max)</span>
+    <span class="comment">; Routine muss alle Register erhalten (kein Clobber)</span>
+    <span class="label">pha</span>
+    <span class="label">jsr</span> update_progress_bar
+    <span class="label">pla</span>
+    <span class="label">rts</span></pre>
+    </div>
+
+    <h3>7.3 Disk-Verzeichnis für Krill's Loader</h3>
+
+    <p>Krill's Loader adressiert Dateien über ihre <strong>Position im Disk-Directory</strong> (Index 1, 2, 3, …). Beim Erstellen der D64-Datei müssen Dateien daher in der Reihenfolge angelegt werden, in der sie geladen werden:</p>
+
+    <div class="pre-wrapper">
+      <pre><span class="comment">; Disk erstellen mit c1541 (Makefile-Beispiel):
+; Reihenfolge bestimmt Krill-Datei-Index!</span>
+
+# Makefile-Snippet
+mygame.d64: loader.prg main.prg level1.prg level2.prg gfx.prg music.prg
+    c1541 -format "mygame,mg" d64 $@ \
+        -write loader.prg  LOADER  \
+        -write main.prg    MAIN    \
+        -write level1.prg  LEVEL1  \
+        -write level2.prg  LEVEL2  \
+        -write gfx.prg     GFX     \
+        -write music.prg   MUSIC
+
+<span class="comment">; Krill-Indices:
+; 1 = LOADER (wird automatisch gestartet)
+; 2 = MAIN   → lda #2 / jsr LOADER_LOAD
+; 3 = LEVEL1 → lda #3 / jsr LOADER_LOAD
+; ...</span></pre>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section id="eigener-fastloader">
+    <h2>8. Eigenen Fastloader verstehen und schreiben</h2>
+
+    <p>Um einen eigenen Fastloader zu verstehen, bauen wir einen minimierten 2-Bit-Software-Fastloader. Dieser überträgt 2 Bits gleichzeitig (ein Bit auf CLK, ein Bit auf DATA), was die Übertragungsrate theoretisch verdoppelt.</p>
+
+    <h3>8.1 Protokoll-Design</h3>
+
+    <div class="timing-diagram">
+      <span class="label">C64 empfängt 1 Byte (8 Bits, 4 Schritte à 2 Bits):</span><br><br>
+      <span class="label">1541:</span> CLK=<span class="sig-high">H</span> DATA=<span class="sig-high">H</span>  → Bereit-Signal<br>
+      <span class="label"> C64:</span> liest ATN=<span class="sig-low">L</span>             → bestätigt Empfangsbereitschaft<br><br>
+      <span class="label">1541:</span> setzt CLK=<span class="sig-low">Bit1</span> DATA=<span class="sig-low">Bit0</span>  → Bits 0+1 gleichzeitig<br>
+      <span class="label"> C64:</span> liest $DD00, maskiert CLK+DATA  → 2 Bits extrahiert<br><br>
+      <span class="label">1541:</span> setzt CLK=<span class="sig-low">Bit3</span> DATA=<span class="sig-low">Bit2</span>  → Bits 2+3<br>
+      <span class="label"> C64:</span> liest $DD00                    → 2 Bits extrahiert<br><br>
+      <span class="label">... (4 Schritte für 8 Bits) ...</span><br><br>
+      <span class="label">1541:</span> CLK=<span class="sig-high">H</span> DATA=<span class="sig-high">H</span>  → nächstes Byte bereit
+    </div>
+
+    <h3>8.2 C64-Empfänger-Code (vereinfacht)</h3>
+
+    <div class="pre-wrapper">
+      <pre><span class="comment">; Mini-Fastloader: 2-Bit-Empfang von 1541
+; Dieses Beispiel zeigt das Prinzip — echter Fastloader benötigt
+; genaues Timing, PAL/NTSC-Kompensation und Fehlerbehandlung</span>
+
+<span class="comment">; CIA2-Bit-Masken</span>
+IEC_CLK_IN  = %01000000   <span class="comment">; $DD00 Bit 6: CLK von Laufwerk</span>
+IEC_DAT_IN  = %10000000   <span class="comment">; $DD00 Bit 7: DATA von Laufwerk</span>
+IEC_CLK_OUT = %00010000   <span class="comment">; $DD00 Bit 4: CLK an Laufwerk</span>
+IEC_ATN     = %00001000   <span class="comment">; $DD00 Bit 3: ATN</span>
+
+<span class="comment">; Ein Byte empfangen (stark vereinfacht)</span>
+receive_byte:
+    <span class="label">sei</span>                  <span class="comment">; IRQ sperren — Timing kritisch!</span>
+
+    <span class="comment">; Warten bis 1541 Bereit-Signal sendet (CLK + DATA = High)</span>
+.wait_ready:
+    <span class="label">lda</span> $DD00
+    <span class="label">and</span> #(IEC_CLK_IN | IEC_DAT_IN)
+    <span class="label">cmp</span> #(IEC_CLK_IN | IEC_DAT_IN)
+    <span class="label">bne</span> .wait_ready
+
+    <span class="label">lda</span> #0
+    <span class="label">sta</span> $03              <span class="comment">; Akkumulator für Byte-Aufbau</span>
+
+    <span class="comment">; 4 Mal: 2 Bits gleichzeitig lesen</span>
+    <span class="label">ldx</span> #4
+.receive_pair:
+    <span class="comment">; Warten bis CLK auf Low geht (Bit liegt an)</span>
+.wait_clk_low:
+    <span class="label">bit</span> $DD00
+    <span class="label">bvs</span> .wait_clk_low   <span class="comment">; Bit 6 (CLK IN) = 1 → noch High</span>
+
+    <span class="comment">; DATA-Bit lesen (Bit 7)</span>
+    <span class="label">lda</span> $DD00
+    <span class="label">and</span> #IEC_DAT_IN
+    <span class="label">clc</span>
+    <span class="label">ror</span>                  <span class="comment">; DATA-Bit in Carry</span>
+    <span class="label">ror</span> $03              <span class="comment">; in Empfangsbyte schieben</span>
+    <span class="comment">; CLK-Bit (Bit 6) lesen und schieben</span>
+    <span class="label">lda</span> $DD00
+    <span class="label">and</span> #IEC_CLK_IN
+    <span class="label">clc</span>
+    <span class="label">ror</span>
+    <span class="label">ror</span>
+    <span class="label">ror</span> $03
+
+    <span class="comment">; Warten bis CLK wieder High (Bit-Ende)</span>
+.wait_clk_high:
+    <span class="label">bit</span> $DD00
+    <span class="label">bvc</span> .wait_clk_high   <span class="comment">; Bit 6 = 0 → noch Low</span>
+
+    <span class="label">dex</span>
+    <span class="label">bne</span> .receive_pair
+
+    <span class="label">cli</span>
+    <span class="label">lda</span> $03              <span class="comment">; Empfangenes Byte in A</span>
+    <span class="label">rts</span>
+
+<span class="comment">; Wichtig: Der Drive-Code (6502-Code FÜR die 1541) muss separat
+; in ACME für CPU-Adressraum der 1541 assembliert und dann
+; als Datenbytes im C64-Code eingebettet werden.</span></pre>
+    </div>
+
+    <div class="box-info">
+      <div class="box-title">Drive-Code — Ein separates Programm</div>
+      Der Drive-Code ist echtes 6502-Assembler-Programm, das auf der CPU der 1541 läuft. Es greift auf Register der 1541 zu (z.B. $1800 für VIA-Port des User-Ports, $1C0C für GCR-Track-Puffer). Ein vollständiger Fastloader besteht aus zwei Assemblier-Schritten: C64-Code und 1541-Code — letzterer wird als Byte-Array in den C64-Code eingebettet.
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section id="praxis-walkthrough">
+    <h2>9. Praxis: Mehrteiliges Spiel mit Fastloader</h2>
+
+    <p>Ein typisches Mehrteil-Spiel auf C64-Disk hat folgende Lade-Strategie:</p>
+
+    <ol>
+      <li><strong>LOADER</strong> (erstes File, startet automatisch): Installiert Krill's Loader, zeigt Lade-Screen</li>
+      <li><strong>MAIN</strong>: Spielkern, Grafik-Routinen, Sprite-Daten, Musik-Player</li>
+      <li><strong>LEVEL1–8</strong>: Tilemap + Feind-Daten pro Level (100–500 Bytes je)</li>
+      <li><strong>MUSIC</strong>: SID-Musikdaten (1–5 KB)</li>
+    </ol>
+
+    <h3>9.1 Loader-Einstieg mit Fortschrittsanzeige</h3>
+
+    <div class="pre-wrapper">
+      <pre><span class="comment">; ─── loader.asm — Wird zuerst von Disk gestartet ───────────────</span>
+
+*= $0801                 <span class="comment">; BASIC-Startadresse</span>
+!byte $0B,$08,$01,$00,$9E,$32,$30,$36,$31,$00,$00,$00
+                         <span class="comment">; BASIC-Stub: 10 SYS 2061</span>
+
+*= $080D
+    <span class="label">jsr</span> init_screen       <span class="comment">; Schwarzer Hintergrund, Lade-Screen aufbauen</span>
+    <span class="label">jsr</span> LOADER_INSTALL    <span class="comment">; Krill's Loader einrichten</span>
+    <span class="label">bcs</span> .fallback_kernal
+
+    <span class="comment">; MAIN laden (Datei-Index 2 auf Disk)</span>
+    <span class="label">ldx</span> #&lt;$1000
+    <span class="label">ldy</span> #&gt;$1000
+    <span class="label">lda</span> #2               <span class="comment">; MAIN.PRG</span>
+    <span class="label">jsr</span> LOADER_LOAD
+    <span class="label">bcs</span> .load_error
+
+    <span class="comment">; MUSIC laden</span>
+    <span class="label">ldx</span> #&lt;$E000
+    <span class="label">ldy</span> #&gt;$E000
+    <span class="label">lda</span> #6               <span class="comment">; MUSIC.PRG</span>
+    <span class="label">jsr</span> LOADER_LOAD
+    <span class="label">bcs</span> .load_error
+
+    <span class="comment">; Kontrolle an MAIN übergeben</span>
+    <span class="label">jmp</span> $1000
+
+.fallback_kernal:
+    <span class="comment">; KERNAL-Fallback wenn Krill's fehlschlägt</span>
+    <span class="label">jsr</span> kernal_load_main
+    <span class="label">jmp</span> $1000
+
+.load_error:
+    <span class="comment">; Fehlermeldung anzeigen (z.B. "LOAD ERROR")</span>
+    <span class="label">jmp</span> *                <span class="comment">; Einfrieren</span>
+
+<span class="comment">; Fortschrittsbalken-Update (Krill's Callback)</span>
+update_progress_bar:
+    <span class="comment">; A = geladene Blöcke (jeder Block = 254 Bytes)</span>
+    <span class="comment">; Balken in Bildschirmzeile 12: $04C0 + Offset</span>
+    <span class="label">pha</span>
+    <span class="label">cmp</span> #38              <span class="comment">; Max 38 Zeichen breit</span>
+    <span class="label">bcs</span> .full
+    <span class="label">tax</span>
+    <span class="label">lda</span> #$A0             <span class="comment">; Gefülltes Quadrat (Bildschirmcode)</span>
+.bar_loop:
+    <span class="label">sta</span> $04C0,x          <span class="comment">; Bildschirmspeicher Zeile 12</span>
+    <span class="label">dex</span>
+    <span class="label">bpl</span> .bar_loop
+.full:
+    <span class="label">pla</span>
+    <span class="label">rts</span></pre>
+    </div>
+
+    <h3>9.2 Level-Streaming während des Spiels</h3>
+
+    <div class="pre-wrapper">
+      <pre><span class="comment">; Level laden während das Spiel läuft (zwischen Spieler-Tod und Respawn)
+; Krill's Loader ist noch aktiv — erneuter LOADER_INSTALL nicht nötig!</span>
+
+current_level = $C0      <span class="comment">; 0-basierter Level-Index</span>
+
+load_next_level:
+    <span class="comment">; Level-Daten-Index auf Disk: Levels starten bei Datei-Index 3</span>
+    <span class="label">lda</span> current_level
+    <span class="label">clc</span>
+    <span class="label">adc</span> #3               <span class="comment">; Krill-Index (3=Level0, 4=Level1, ...)</span>
+    <span class="label">ldx</span> #&lt;level_data_ptr
+    <span class="label">ldy</span> #&gt;level_data_ptr
+    <span class="label">jsr</span> LOADER_LOAD
+
+    <span class="comment">; Zeige kurze "LEVEL N STARTING"-Meldung während Laden</span>
+    <span class="comment">; (Krill ruft progress_cb auf, kann dort auch Text-Update machen)</span>
+    <span class="label">rts</span>
+
+level_data_ptr = $5000   <span class="comment">; Festes RAM-Ziel für Level-Daten</span></pre>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section id="benchmark" class="benchmark">
+    <h2>Skill-Benchmark: Stufe 17</h2>
+    <ul class="benchmark-list">
+      <li>Du erklärst die drei IEC-Bus-Signale (ATN, CLK, DATA) und ihre Open-Collector-Funktion</li>
+      <li>Du implementierst eine vollständige KERNAL-Laderoutine mit SETLFS→SETNAM→LOAD und READST-Fehlerprüfung</li>
+      <li>Du sendest ein DOS-Kommando über Kanal 15 (z.B. "S0:DATEINAME") und liest den Fehlerkanal aus</li>
+      <li>Du erklärst das D64-Format: Tracks, Sektoren, BAM bei Track 18, Sektor-Verkettung</li>
+      <li>Du erklärst warum der Standard-KERNAL-Load nur ~350 B/s erreicht</li>
+      <li>Du beschreibst das M-W/M-E-Prinzip für das Hochladen von Drive-Code in die 1541</li>
+      <li>Du integrierst Krill's Loader in ein bestehendes Projekt (Initialisierung + LOADER_LOAD-Aufruf)</li>
+      <li>Du baust einen Lade-Screen mit Fortschrittsanzeige, der mit Krill's Callback-Funktion aktualisiert wird</li>
+    </ul>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section class="exercises">
+    <h2>Übungsaufgaben</h2>
+
+    <div class="exercise-item">
+      <h4>Übung 17.1 — KERNAL-Load mit Fehlerbehandlung</h4>
+      <p>Schreibe eine robuste <code>load_file</code>-Subroutine die: (1) eine Datei per KERNAL lädt, (2) READST nach dem Laden prüft, (3) den DOS-Fehlerkanal (Kanal 15) ausliest und als Zeichenkette im RAM speichert, (4) bei Fehler eine Fehlermeldung im Bildschirmspeicher ausgibt. Teste mit einer existierenden Datei, einer nicht-existierenden Datei, und einer Disk ohne Laufwerk (Gerätenummer 9).</p>
+    </div>
+
+    <div class="exercise-item">
+      <h4>Übung 17.2 — Disk-Directory einlesen</h4>
+      <p>Öffne das Disk-Directory ("$") als Datei (SETLFS/SETNAM/OPEN/CHKIN), lese alle Einträge und zeige Dateiname und Blockgröße im Bildschirmspeicher an. Stoppe das Lesen beim ersten EOI oder Fehler. Formatiere die Ausgabe wie das BASIC-<code>LOAD"$"</code> Directory-Listing. Bonus: Sortiere die Einträge alphabetisch im RAM, dann anzeigen.</p>
+    </div>
+
+    <div class="exercise-item">
+      <h4>Übung 17.3 — Krill's Loader mit Lade-Screen</h4>
+      <p>Erstelle ein Mini-Projekt mit zwei Dateien auf einer D64: (1) ein Loader-PRG der Krill's Loader installiert und eine zweite Datei lädt, (2) das Hauptprogramm mit einem einfachen Effekt. Implementiere eine Fortschrittsanzeige: Während des Ladens füllt sich ein Balken in Bildschirmzeile 24. Teste in VICE mit echter 1541-Emulation (True Drive Emulation aktiviert) um die tatsächliche Ladezeit zu sehen.</p>
+    </div>
+
+    <div class="exercise-item">
+      <h4>Übung 17.4 — D64-Analyse auf dem PC</h4>
+      <p>Schreibe ein Python-Skript das eine .d64-Datei öffnet und ausgibt: (1) Disk-Name und ID aus dem BAM (Track 18, Sektor 0), (2) alle Directory-Einträge (Dateiname, Typ, Blockgröße), (3) welche Tracks/Sektoren belegt sind (aus der BAM-Bitmap). Teste mit der D64 aus deinem C64-Mastery-Projekt (<code>beispiele/</code>-Verzeichnis).</p>
+    </div>
+  </section>
+
+  <nav class="chapter-nav">
+    <a href="stufe_16_tastatur_joystick.html">← Stufe 16: Tastatur &amp; Joystick</a>
+    <a href="anhang_opcodes.html">Anhang A: Opcode-Referenz →</a>
+  </nav>
+</main>
+
+  <script src="assets/sidebar.js"></script>
+  <script src="assets/c64-interactive.js"></script>
+</body>
+</html>

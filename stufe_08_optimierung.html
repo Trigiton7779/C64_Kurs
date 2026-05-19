@@ -3,57 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>C64 Mastery — Stufe 8: Optimierung & Profitechniken</title>
+  <title>C64 Mastery — Stufe 8: Optimierung &amp; Profitechniken</title>
   <link rel="stylesheet" href="assets/c64-base.css">
   <link rel="stylesheet" href="assets/c64-interactive.css">
 </head>
 <body>
 
-<aside class="sidebar">
-  <div class="sidebar-header">
-    <div class="logo">■ C64 MASTERY</div>
-    Professioneller Lehrgang
-  </div>
-  <nav>
-    <div class="section-label">Curriculum</div>
-    <a href="index.html">◈ Übersicht & Lernpfad</a>
-    <a href="stufe_00_fundament.html">00 · Fundament</a>
-    <a href="stufe_01_6510_assembler.html">01 · 6510 &amp; Assembler</a>
-    <a href="stufe_02_adressierung_speicher.html">02 · Adressierung &amp; Speicher</a>
-    <a href="stufe_03_bildschirm_zeichen.html">03 · Bildschirm &amp; Zeichen</a>
-    <a href="stufe_04_sprites_animation.html">04 · Sprites &amp; Animation</a>
-    <a href="stufe_05_bitmap_grafik.html">05 · Bitmap-Grafik</a>
-    <a href="stufe_06_sid_sound.html">06 · SID-Sound</a>
-    <a href="stufe_07_interrupts_timing.html">07 · Interrupts &amp; Timing</a>
-    <a href="stufe_08_optimierung.html" class="active">08 · Optimierung</a>
-    <a href="stufe_09_demo_effekte.html">09 · Demo-Effekte</a>
-    <a href="stufe_10_meisterschaft.html">10 · Meisterschaft</a>
-
-    <div class="section-label">Workflow &amp; Release</div>
-    <a href="stufe_11_spielentwicklung_workflow.html">11 · Spielentwicklung</a>
-    <a href="stufe_12_demo_entwicklung_workflow.html">12 · Demo-Workflow</a>
-
-    <div class="section-label">Erweiterte Stufen</div>
-    <a href="stufe_13_hardware_erweiterungen.html">13 · Hardware-Erweiterungen</a>
-    <a href="stufe_14_modern_workflow.html">14 · Moderner Workflow</a>
-    <a href="stufe_15_debugging_deep_dive.html">15 · Deep Debugging</a>
-
-    <div class="section-label">Anhänge &amp; Referenz</div>
-    <a href="anhang_kernal_routinen.html">H · KERNAL-Routinen</a>
-
-    <div class="section-label">Diese Seite</div>
-    <a href="#timing" class="toc-link">1. Cycle Counting</a>
-    <a href="#zeropage" class="toc-link">2. Zero Page Strategie</a>
-    <a href="#loops" class="toc-link">3. Loop-Optimierung</a>
-    <a href="#lut" class="toc-link">4. Lookup-Tabellen</a>
-    <a href="#selfmod" class="toc-link">5. Selbstmodifiz. Code</a>
-    <a href="#undoc" class="toc-link">6. Undokumentierte Ops</a>
-    <a href="#dma" class="toc-link">7. DMA &amp; Bad Lines</a>
-    <a href="#stack" class="toc-link">8. Stack-Tricks</a>
-    <a href="#benchmark" class="toc-link">Skill-Benchmark</a>
-    <a href="#exercises" class="toc-link">Übungen</a>
-  </nav>
-</aside>
+<aside class="sidebar"></aside>
 
 <main>
   <header class="chapter-header">
@@ -686,6 +642,25 @@ CopySpriteData:
 <span class="comment">; Damit ist der DMA-Overhead auf wenige Zeilen konzentriert,</span>
 <span class="comment">; und der Rest des Bildschirms hat volle 63 Zyklen (minus Bad Lines)</span></pre>
 
+    <h4>Kombinierte Zykluskosten im Überblick</h4>
+    <table>
+      <thead>
+        <tr><th>Szenario</th><th>CPU-Zyklen verfügbar</th><th>VIC-II stiehlt</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Normal (keine Bad Line, keine Sprites)</td><td>63</td><td>0</td></tr>
+        <tr><td>Bad Line (kein Sprite-DMA)</td><td>23</td><td>40</td></tr>
+        <tr><td>Normal + 1 aktiver Sprite</td><td>61</td><td>2</td></tr>
+        <tr><td>Normal + 4 aktive Sprites</td><td>55</td><td>8</td></tr>
+        <tr><td>Normal + 8 aktive Sprites</td><td>47</td><td>16</td></tr>
+        <tr><td>Bad Line + 8 aktive Sprites</td><td>23</td><td>40 (Sprite-DMA läuft in anderen VIC-Phasen)</td></tr>
+      </tbody>
+    </table>
+    <p><strong>Wichtig:</strong> Sprite-DMA und Bad-Line-Steal laufen in <em>getrennten VIC-II-Phasen</em>
+    und addieren sich <em>nicht</em>. Eine Bad Line mit 8 aktiven Sprites kostet dieselben 40 Zyklen
+    wie ohne Sprites — der Sprite-Pointer-Fetch findet in anderen Taktphasen statt und erzeugt
+    keinen zusätzlichen Overhead auf Bad Lines.</p>
+
     <h3>7.3 Refresh-Zyklen</h3>
 
     <pre><span class="comment">; Der VIC-II benötigt 5 DRAM-Refresh-Zyklen pro Zeile</span>
@@ -850,6 +825,7 @@ DoubleA:  ASL  : RTS       <span class="comment">; 2+6=8 Zyklen für den Aufruf<
   </nav>
 </main>
 
+  <script src="assets/sidebar.js"></script>
   <script src="assets/c64-interactive.js"></script>
 </body>
 </html>

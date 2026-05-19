@@ -3,10 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Stufe 2 — Adressierungsarten &amp; Speicherarchitektur | C64 Mastery System</title>
+<title>C64 Mastery — Stufe 2: Adressierungsarten &amp; Speicherarchitektur</title>
+<link rel="stylesheet" href="assets/c64-base.css">
 <style>
 :root {
-    --c64-blue: #0033aa; --c64-light-blue: #4466cc; --c64-green: #00ff88;
+    --c64-blue: #1a3f80; --c64-light-blue: #4466cc; --c64-green: #00cc66;
     --c64-dark: #1a1a2e; --paper: #f8f6f0; --paper-dark: #ede9e0;
     --text: #1a1a2e; --text-light: #444466; --border: #c0b8a8;
 }
@@ -51,7 +52,7 @@ tbody tr:hover { background: #dde8ff; }
 .box.tip { background: #e8f5e9; border-color: #2e7d32; } .box.tip .box-title { color: #1b5e20; }
 .box.note { background: #e3f2fd; border-color: #1565c0; } .box.note .box-title { color: #0d47a1; }
 .box.important { background: #fce4ec; border-color: #c62828; } .box.important .box-title { color: #b71c1c; }
-.benchmark { background: linear-gradient(135deg, #001166 0%, #0033aa 100%); color: white; padding: 30px; border-radius: 12px; margin: 44px 0; }
+.benchmark { background: linear-gradient(135deg, #001166 0%, #1a3f80 100%); color: white; padding: 30px; border-radius: 12px; margin: 44px 0; }
 .benchmark h2 { color: var(--c64-green); border-color: rgba(0,255,136,0.3); margin-top: 0; font-size: 22px; }
 .benchmark ul { list-style: none; padding: 0; }
 .benchmark ul li { padding: 7px 0 7px 28px; position: relative; border-bottom: 1px solid rgba(255,255,255,0.1); }
@@ -80,35 +81,7 @@ tbody tr:hover { background: #dde8ff; }
 </head>
 <body>
 
-<nav class="sidebar">
-  <div class="sidebar-header"><div class="logo">C64</div><div class="sub">MASTERY SYSTEM</div></div>
-  <nav><ul>
-    <li><a href="index.html">&#9632; Übersicht &amp; Curriculum</a></li>
-    <li class="section-label">Grundlagen</li>
-    <li><a href="stufe_00_fundament.html">Stufe 0 — Fundament</a></li>
-    <li><a href="stufe_01_6510_assembler.html">Stufe 1 — 6510 Assembler</a></li>
-    <li><a href="stufe_02_adressierung_speicher.html" class="active">Stufe 2 — Adressierung &amp; Speicher</a></li>
-    <li class="section-label">Grafik &amp; Sound</li>
-    <li><a href="stufe_03_bildschirm_zeichen.html">Stufe 3 — VIC-II &amp; Zeichen</a></li>
-    <li><a href="stufe_04_sprites_animation.html">Stufe 4 — Sprites &amp; Animation</a></li>
-    <li><a href="stufe_05_bitmap_grafik.html">Stufe 5 — Bitmap-Grafik</a></li>
-    <li><a href="stufe_06_sid_sound.html">Stufe 6 — SID &amp; Sound</a></li>
-    <li class="section-label">Fortgeschritten</li>
-    <li><a href="stufe_07_interrupts_timing.html">Stufe 7 — Interrupts &amp; Timing</a></li>
-    <li><a href="stufe_08_optimierung.html">Stufe 8 — Optimierung</a></li>
-    <li><a href="stufe_09_demo_effekte.html">Stufe 9 — Demo-Effekte</a></li>
-    <li><a href="stufe_10_meisterschaft.html">Stufe 10 — Meisterschaft</a></li>
-      <li class="section-label">Workflow &amp; Release</li>
-      <li><a href="stufe_11_spielentwicklung_workflow.html">Stufe 11 — Spielentwicklung</a></li>
-      <li><a href="stufe_12_demo_entwicklung_workflow.html">Stufe 12 — Demo-Workflow</a></li>
-      <li class="section-label">Erweiterte Stufen</li>
-      <li><a href="stufe_13_hardware_erweiterungen.html">Stufe 13 — Hardware-Erweiterungen</a></li>
-      <li><a href="stufe_14_modern_workflow.html">Stufe 14 — Moderner Workflow</a></li>
-      <li><a href="stufe_15_debugging_deep_dive.html">Stufe 15 — Deep Debugging</a></li>
-      <li class="section-label">Anhänge &amp; Referenz</li>
-      <li><a href="anhang_kernal_routinen.html">H — KERNAL-Routinen</a></li>
-  </ul></nav>
-</nav>
+<aside class="sidebar"></aside>
 
 <main>
   <div class="chapter-header">
@@ -122,7 +95,7 @@ tbody tr:hover { background: #dde8ff; }
     </div>
   </div>
 
-  <div class="objectives">
+  <section class="learning-objectives">
     <h3>Lernziele dieses Kapitels</h3>
     <ul>
       <li>Alle 13 Adressierungsarten des 6510 vollständig verstehen und korrekt anwenden</li>
@@ -132,7 +105,7 @@ tbody tr:hover { background: #dde8ff; }
       <li>Pointer-basierte Programmierung mit indirekten Adressierungsarten realisieren</li>
       <li>Page-Crossing-Penalties identifizieren und in der Praxis vermeiden</li>
     </ul>
-  </div>
+  </section>
 
   <!-- ============================================================ -->
   <h2>Abschnitt 1: Adressierungsarten — Das Fundament der Maschinenprogrammierung</h2>
@@ -908,13 +881,22 @@ bullet_y     = <span class="asm-addr">$55</span>  <span class="asm-comment">; Sc
     <tbody>
       <tr><td class="mono">$D000–$D3FF</td><td>VIC-II</td><td>1 KB</td><td>47 Register, gespiegelt alle 64 Bytes ($40). Register $D000–$D02E real vorhanden.</td></tr>
       <tr><td class="mono">$D400–$D7FF</td><td>SID</td><td>1 KB</td><td>29 Register, gespiegelt alle 32 Bytes ($20). Stimmen, Filter, Hüllkurven.</td></tr>
-      <tr><td class="mono">$D800–$DBFF</td><td>Color-RAM</td><td>1 KB</td><td>1000 Nibbles (4 Bit/Byte), parallel zum Screen-RAM. Immer sichtbar!</td></tr>
+      <tr><td class="mono">$D800–$DBFF</td><td>Color-RAM</td><td>1 KB</td><td>1000 Nibbles (4 Bit/Byte), parallel zum Screen-RAM. Immer sichtbar! ⚠️ Nur Bits 0–3 gültig — beim Lesen immer <code>AND #$0F</code> verwenden.</td></tr>
       <tr><td class="mono">$DC00–$DCFF</td><td>CIA 1</td><td>256 B</td><td>16 Register: Joystick, Tastatur, Timer A/B, IRQ-Quelle.</td></tr>
       <tr><td class="mono">$DD00–$DDFF</td><td>CIA 2</td><td>256 B</td><td>16 Register: Serieller Port, VIC-Bank-Selektion, NMI-Quelle.</td></tr>
       <tr><td class="mono">$DE00–$DEFF</td><td>I/O Expansion 1</td><td>256 B</td><td>Erweiterungs-Port Slot 1 (Cartridges, Userport-Erweiterungen).</td></tr>
       <tr><td class="mono">$DF00–$DFFF</td><td>I/O Expansion 2</td><td>256 B</td><td>Erweiterungs-Port Slot 2.</td></tr>
     </tbody>
   </table>
+
+  <div class="box warning">
+    <div class="box-title">⚠️ Color-RAM: nur 4 Bit pro Zelle gültig</div>
+    <p>Das Color-RAM ($D800–$DBFF) ist kein normales 8-Bit-RAM — jede Adresse speichert nur
+    4 Bit (Farbwerte 0–15). Die oberen 4 Bits werden beim Schreiben ignoriert. Beim Lesen
+    liefern sie undefinierte Werte (hardware-abhängig). Deshalb beim Lesen immer maskieren:</p>
+    <pre>LDA $D800     ; Farbbyte lesen
+AND #$0F      ; obere 4 Bits maskieren — Ergebnis ist 0–15</pre>
+  </div>
 
   <!-- ---- KERNAL ---- -->
   <h3>2.7 KERNAL-ROM und seine Vektoren</h3>
@@ -982,66 +964,8 @@ bullet_y     = <span class="asm-addr">$55</span>  <span class="asm-comment">; Sc
   </div>
 
   <!-- ============================================================ -->
-  <div class="exercises-section">
-    <h2>Praktische Übungen — Stufe 2</h2>
-
-    <div class="exercise">
-      <div class="exercise-num">Übung 2-A — Adressierungsarten-Klassifikation</div>
-      <strong>Aufgabe:</strong> Klassifizieren Sie die folgenden 15 Assembler-Zeilen nach Adressierungsart,
-      Byte-Länge und Zyklenanzahl. Schreiben Sie auch die Effektive Adresse auf, wo relevant.
-      <pre><span class="asm-instr">LDA</span> <span class="asm-num">#$FF</span>     <span class="asm-comment">; 1. ___</span>
-<span class="asm-instr">STA</span> <span class="asm-addr">$0400</span>   <span class="asm-comment">; 2. ___</span>
-<span class="asm-instr">INX</span>          <span class="asm-comment">; 3. ___</span>
-<span class="asm-instr">LDA</span> <span class="asm-addr">$20,X</span>   <span class="asm-comment">; 4. ___ (wenn X=$05, Eff.Addr=?)</span>
-<span class="asm-instr">JMP</span> (<span class="asm-addr">$4000</span>) <span class="asm-comment">; 5. ___</span>
-<span class="asm-instr">LDA</span> (<span class="asm-addr">$FB</span>),Y <span class="asm-comment">; 6. ___</span>
-<span class="asm-instr">BNE</span> -<span class="asm-num">5</span>      <span class="asm-comment">; 7. ___</span>
-<span class="asm-instr">ASL A</span>        <span class="asm-comment">; 8. ___</span>
-<span class="asm-instr">LDA</span> <span class="asm-addr">$C000,Y</span> <span class="asm-comment">; 9. ___ (Page-Crossing wenn Y=?)</span>
-<span class="asm-instr">STX</span> <span class="asm-addr">$50,Y</span>   <span class="asm-comment">; 10. ___</span>
-<span class="asm-instr">LDA</span> (<span class="asm-addr">$20</span>,X)  <span class="asm-comment">; 11. ___</span>
-<span class="asm-instr">RTS</span>          <span class="asm-comment">; 12. ___</span>
-<span class="asm-instr">LDA</span> <span class="asm-addr">$D800,X</span> <span class="asm-comment">; 13. ___</span>
-<span class="asm-instr">CMP</span> <span class="asm-num">#0</span>      <span class="asm-comment">; 14. ___</span>
-<span class="asm-instr">LDA</span> <span class="asm-addr">$FC</span>     <span class="asm-comment">; 15. ___</span></pre>
-    </div>
-
-    <div class="exercise">
-      <div class="exercise-num">Übung 2-B — Pointer-Programm: Speicher kopieren</div>
-      <strong>Aufgabe:</strong> Schreiben Sie eine Subroutine <code>MemCopy</code>, die einen beliebig
-      großen Speicherblock von Quelle nach Ziel kopiert. Verwenden Sie (Indirect),Y für den Zugriff.
-      Eingabe-Schnittstelle:
-      <ul>
-        <li><code>$FB/$FC</code> = Quell-Adresse (16-Bit)</li>
-        <li><code>$FD/$FE</code> = Ziel-Adresse (16-Bit)</li>
-        <li><code>$F9/$FA</code> = Byte-Anzahl (16-Bit, 1–65535)</li>
-      </ul>
-      Hinweis: Y kann nur 0–255 iterieren — für mehr als 256 Bytes müssen die Zeiger aktualisiert werden.
-    </div>
-
-    <div class="exercise">
-      <div class="exercise-num">Übung 2-C — Banking-Demo</div>
-      <strong>Aufgabe:</strong> Schreiben Sie ein Programm, das folgendes demonstriert:
-      <ol>
-        <li>BASIC-ROM ausblenden ($A000–$BFFF ist jetzt RAM)</li>
-        <li>Eigenen Text in den Shadow-RAM-Bereich bei $A000 schreiben</li>
-        <li>BASIC-ROM wieder einblenden — der geschriebene Text ist nicht mehr lesbar</li>
-        <li>BASIC-ROM wieder ausblenden — der Text ist wieder da!</li>
-      </ol>
-      Dokumentieren Sie, warum das Shadow-RAM den Inhalt behält.
-    </div>
-
-    <div class="exercise">
-      <div class="exercise-num">Übung 2-D — VIC-Banking Experiement</div>
-      <strong>Aufgabe:</strong> Verschieben Sie den Screen-RAM an eine andere Position:
-      <ol>
-        <li>Screen-RAM nach $0800 verlegen (VIC-Bank 0, Offset $0800)</li>
-        <li>$D018 entsprechend setzen</li>
-        <li>Text in den neuen Screen-RAM bei $0800 schreiben</li>
-        <li>Erklären Sie, warum der alte Inhalt bei $0400 nicht mehr sichtbar ist</li>
-      </ol>
-    </div>
-  </div>
+  <section class="exercises">
+  </section>
 
   <div class="chapter-nav">
     <a href="stufe_01_6510_assembler.html">
@@ -1055,6 +979,7 @@ bullet_y     = <span class="asm-addr">$55</span>  <span class="asm-comment">; Sc
   </div>
 
 </main>
+  <script src="assets/sidebar.js"></script>
   <script src="assets/c64-interactive.js"></script>
 </body>
 </html>

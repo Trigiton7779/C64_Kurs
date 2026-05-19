@@ -3,11 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>C64 Mastery — Anhang: 6510 Opcode-Referenz</title>
-  <style>
+  <title>C64 Mastery — Anhang A: 6510 Opcode-Referenz</title>
+  <link rel="stylesheet" href="assets/c64-base.css">
+<style>
     :root {
-      --c64-blue: #0033aa;
-      --c64-green: #00ff88;
+      --c64-blue: #1a3f80;
+      --c64-green: #00cc66;
       --c64-dark: #1a1a2e;
       --c64-darker: #0d0d1a;
       --paper: #f8f6f0;
@@ -165,43 +166,7 @@
 </head>
 <body>
 
-<aside class="sidebar">
-  <div class="sidebar-header">
-    <div class="logo">■ C64 MASTERY</div>
-    Referenz
-  </div>
-  <nav>
-    <div class="section-label">Curriculum</div>
-    <a href="index.html">◈ Übersicht</a>
-    <a href="stufe_00_fundament.html">00 · Fundament</a>
-    <a href="stufe_01_6510_assembler.html">01 · 6510 &amp; Assembler</a>
-    <a href="stufe_02_adressierung_speicher.html">02 · Adressierung</a>
-    <a href="stufe_03_bildschirm_zeichen.html">03 · VIC-II Zeichen</a>
-    <a href="stufe_04_sprites_animation.html">04 · Sprites</a>
-    <a href="stufe_05_bitmap_grafik.html">05 · Bitmap</a>
-    <a href="stufe_06_sid_sound.html">06 · SID-Sound</a>
-    <a href="stufe_07_interrupts_timing.html">07 · Interrupts</a>
-    <a href="stufe_08_optimierung.html">08 · Optimierung</a>
-    <a href="stufe_09_demo_effekte.html">09 · Demo-Effekte</a>
-    <a href="stufe_10_meisterschaft.html">10 · Meisterschaft</a>
-    <div class="section-label">Workflow &amp; Release</div>
-    <a href="stufe_11_spielentwicklung_workflow.html">11 · Spiel-Workflow</a>
-    <a href="stufe_12_demo_entwicklung_workflow.html">12 · Demo-Workflow</a>
-    <div class="section-label">Erweiterte Stufen</div>
-    <a href="stufe_13_hardware_erweiterungen.html">13 · Hardware-Erweiterungen</a>
-    <a href="stufe_14_modern_workflow.html">14 · Moderner Workflow</a>
-    <a href="stufe_15_debugging_deep_dive.html">15 · Deep Debugging</a>
-    <div class="section-label">Anhänge</div>
-    <a href="anhang_opcodes.html" class="active">Opcode-Referenz</a>
-    <a href="anhang_speicherkarte.html">Speicherkarte</a>
-    <a href="anhang_vic_register.html">VIC-II Register</a>
-    <a href="anhang_sid_register.html">SID Register</a>
-    <a href="anhang_cia_register.html">CIA Register</a>
-    <a href="anhang_petscii.html">PETSCII-Tabelle</a>
-    <a href="anhang_farben.html">C64-Farben</a>
-    <a href="anhang_kernal_routinen.html">KERNAL-Routinen</a>
-  </nav>
-</aside>
+<aside class="sidebar"></aside>
 
 <main>
   <div class="chapter-number">Anhang A</div>
@@ -279,6 +244,11 @@
     </tbody>
   </table>
   <div class="no-results" id="noResults">Keine Opcodes gefunden. Suchbegriff ändern oder Filter zurücksetzen.</div>
+
+  <nav class="chapter-nav">
+    <a href="index.html">← Übersicht</a>
+    <a href="anhang_speicherkarte.html">Anhang B: Speicherkarte →</a>
+  </nav>
 </main>
 
 <script>
@@ -378,7 +348,7 @@ const opcodes = [
   ["ARITH","CPX","Abs","$EC",3,"4","* - - - - - * *","Vergleiche X absolut"],
   ["ARITH","CPY","Imm #","$C0",2,"2","* - - - - - * *","Vergleiche Y mit Wert"],
   ["ARITH","CPY","ZP","$C4",2,"3","* - - - - - * *","Vergleiche Y mit ZP"],
-  ["ARITH","CPY","$CC",3,"4","* - - - - - * *","Vergleiche Y absolut"],
+  ["ARITH","CPY","Abs","$CC",3,"4","* - - - - - * *","Vergleiche Y absolut"],
   // Logik
   ["LOGIC","AND","Imm #","$29",2,"2","* - - - - - * -","A = A AND Wert"],
   ["LOGIC","AND","ZP","$25",2,"3","* - - - - - * -","A = A AND ZP"],
@@ -567,6 +537,7 @@ function sortTable(col) {
 
 buildTable();
 </script>
+  <script src="assets/sidebar.js"></script>
   <script src="assets/c64-interactive.js"></script>
 </body>
 </html>

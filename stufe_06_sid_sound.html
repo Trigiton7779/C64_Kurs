@@ -4,8 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>C64 Mastery — Stufe 6: SID &amp; Klangsynthese</title>
+<link rel="stylesheet" href="assets/c64-base.css">
 <style>
-:root{--c64-blue:#0033aa;--c64-green:#00ff88;--c64-dark:#1a1a2e;--paper:#f8f6f0;--paper-dark:#ede9e0;--text:#1a1a2e;--text-light:#444466;--border:#c0b8a8}
+:root{--c64-blue:#1a3f80;--c64-green:#00cc66;--c64-dark:#1a1a2e;--paper:#f8f6f0;--paper-dark:#ede9e0;--text:#1a1a2e;--text-light:#444466;--border:#c0b8a8}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Georgia','Times New Roman',serif;font-size:17px;line-height:1.75;color:var(--text);background:var(--paper);display:grid;grid-template-columns:270px 1fr;min-height:100vh}
 .sidebar{background:var(--c64-dark);color:#ccc;position:sticky;top:0;height:100vh;overflow-y:auto;font-family:'Courier New',monospace;font-size:13px}
@@ -46,7 +47,7 @@ tbody tr:hover{background:#dde8ff}
 .box.tip{background:#e8f5e9;border-color:#2e7d32}.box.tip .box-title{color:#1b5e20}
 .box.note{background:#e3f2fd;border-color:#1565c0}.box.note .box-title{color:#0d47a1}
 .box.important{background:#fce4ec;border-color:#c62828}.box.important .box-title{color:#b71c1c}
-.benchmark{background:linear-gradient(135deg,#001166 0%,#0033aa 100%);color:white;padding:30px;border-radius:12px;margin:44px 0}
+.benchmark{background:linear-gradient(135deg,#001166 0%,#1a3f80 100%);color:white;padding:30px;border-radius:12px;margin:44px 0}
 .benchmark h2{color:var(--c64-green);border-color:rgba(0,255,136,.3);margin-top:0;font-size:22px}
 .benchmark ul{list-style:none;padding:0}
 .benchmark ul li{padding:7px 0 7px 28px;position:relative;border-bottom:1px solid rgba(255,255,255,.1)}
@@ -65,35 +66,7 @@ tbody tr:hover{background:#dde8ff}
   <link rel="stylesheet" href="assets/c64-interactive.css">
 </head>
 <body>
-<nav class="sidebar">
-  <div class="sidebar-header"><div class="logo">C64</div><div class="sub">MASTERY SYSTEM</div></div>
-  <nav><ul>
-    <li><a href="index.html">&#9632; Übersicht &amp; Curriculum</a></li>
-    <li class="section-label">Grundlagen</li>
-    <li><a href="stufe_00_fundament.html">Stufe 0 — Fundament</a></li>
-    <li><a href="stufe_01_6510_assembler.html">Stufe 1 — 6510 Assembler</a></li>
-    <li><a href="stufe_02_adressierung_speicher.html">Stufe 2 — Adressierung &amp; Speicher</a></li>
-    <li class="section-label">Grafik &amp; Sound</li>
-    <li><a href="stufe_03_bildschirm_zeichen.html">Stufe 3 — VIC-II &amp; Zeichen</a></li>
-    <li><a href="stufe_04_sprites_animation.html">Stufe 4 — Sprites &amp; Animation</a></li>
-    <li><a href="stufe_05_bitmap_grafik.html">Stufe 5 — Bitmap-Grafik</a></li>
-    <li><a href="stufe_06_sid_sound.html" class="active">Stufe 6 — SID &amp; Sound</a></li>
-    <li class="section-label">Fortgeschritten</li>
-    <li><a href="stufe_07_interrupts_timing.html">Stufe 7 — Interrupts &amp; Timing</a></li>
-    <li><a href="stufe_08_optimierung.html">Stufe 8 — Optimierung</a></li>
-    <li><a href="stufe_09_demo_effekte.html">Stufe 9 — Demo-Effekte</a></li>
-    <li><a href="stufe_10_meisterschaft.html">Stufe 10 — Meisterschaft</a></li>
-      <li class="section-label">Workflow &amp; Release</li>
-      <li><a href="stufe_11_spielentwicklung_workflow.html">Stufe 11 — Spielentwicklung</a></li>
-      <li><a href="stufe_12_demo_entwicklung_workflow.html">Stufe 12 — Demo-Workflow</a></li>
-      <li class="section-label">Erweiterte Stufen</li>
-      <li><a href="stufe_13_hardware_erweiterungen.html">Stufe 13 — Hardware-Erweiterungen</a></li>
-      <li><a href="stufe_14_modern_workflow.html">Stufe 14 — Moderner Workflow</a></li>
-      <li><a href="stufe_15_debugging_deep_dive.html">Stufe 15 — Deep Debugging</a></li>
-      <li class="section-label">Anhänge &amp; Referenz</li>
-      <li><a href="anhang_kernal_routinen.html">H — KERNAL-Routinen</a></li>
-  </ul></nav>
-</nav>
+<aside class="sidebar"></aside>
 
 <main>
 <div class="chapter-header">
@@ -106,7 +79,7 @@ tbody tr:hover{background:#dde8ff}
   </div>
 </div>
 
-<div class="objectives">
+<section class="learning-objectives">
   <h3>&#127919; Lernziele dieser Stufe</h3>
   <ul>
     <li>Die vollständige SID-Register-Map kennen und alle 3 Stimmen konfigurieren</li>
@@ -117,7 +90,7 @@ tbody tr:hover{background:#dde8ff}
     <li>Einen einfachen 3-stimmigen Musikplayer programmieren</li>
     <li>Voice 3 als LFO für Vibrato-Effekte einsetzen</li>
   </ul>
-</div>
+</section>
 
 <h2>1. Der SID — Seele des C64-Klangs</h2>
 
@@ -192,13 +165,13 @@ tbody tr:hover{background:#dde8ff}
 <pre>
 Frequenzregister = (Fout × 16777216) / Fclock
 
-PAL-Systemtakt:  Fclock = 985.248 Hz
-NTSC-Systemtakt: Fclock = 1.022.727 Hz
+PAL-Systemtakt:  Fclock = 985248 Hz
+NTSC-Systemtakt: Fclock = 1022727 Hz
 
 Beispiele (PAL):
-  C4 (261,63 Hz): Reg = 261,63 × 16777216 / 985248 = 4452 = $1164
-  A4 (440,00 Hz): Reg = 440,00 × 16777216 / 985248 = 7484 = $1D3C
-  C5 (523,25 Hz): Reg = 523,25 × 16777216 / 985248 = 8905 = $22C9
+  C4 (261,63 Hz): Reg = 261,63 × 16777216 / 985248 = 4455 = $1167
+  A4 (440,00 Hz): Reg = 440,00 × 16777216 / 985248 = 7493 = $1D45
+  C5 (523,25 Hz): Reg = 523,25 × 16777216 / 985248 = 8910 = $22CE
 </pre>
 
 <h3>3.2 Vollständige Noten-Tabelle (PAL)</h3>
@@ -216,7 +189,7 @@ NoteTabLo:
   ; Oktave 3
   !byte $35,$6f,$ac,$f0,$41,$94,$ea,$4c,$b5,$25,$9b,$1a
   ; Oktave 4 (mittlere Lage)
-  !byte $6a,$de,$58,$de,$82,$28,$d4,$97,$69,$4a,$35,$33
+  !byte $67,$70,$89,$b2,$ed,$4b,$9c,$13,$a0,$45,$02,$da
   ; Oktave 5
   !byte $d4,$bc,$af,$bc,$04,$4f,$a8,$2d,$d2,$94,$6a,$66
   ; Oktave 6
@@ -230,7 +203,7 @@ NoteTabHi:
   ; Oktave 3
   !byte $09,$0a,$0b,$0b,$0d,$0e,$0f,$11,$12,$14,$15,$17
   ; Oktave 4
-  !byte $11,$13,$16,$18,$1b,$1e,$22,$26,$2b,$30,$35,$3b  ; (Beispielwerte)
+  !byte $11,$12,$13,$14,$15,$17,$18,$1a,$1b,$1d,$1f,$20
   ; Oktave 5
   !byte $22,$26,$2c,$30,$36,$3c,$44,$4c,$56,$60,$6a,$76
   ; Oktave 6
@@ -316,8 +289,8 @@ PlayNote_C4:
         lda #$09        ; Sustain=0, Release=9
         sta $d406
 
-        ; Frequenz: C4 ≈ $1164 (PAL)
-        lda #$64        ; Frequenz Low
+        ; Frequenz: C4 ≈ $1167 (PAL)
+        lda #$67        ; Frequenz Low
         sta $d400
         lda #$11        ; Frequenz High
         sta $d401
@@ -556,25 +529,8 @@ Melody:
   </ul>
 </div>
 
-<div class="exercises-section">
-  <h2>&#9997; Übungen</h2>
-  <div class="exercise">
-    <div class="exercise-num">Übung 6.1 — Tonleiter</div>
-    <p>Spiele alle 12 Halbtonschritte einer Oktave (C4 bis B4) nacheinander ab. Jede Note soll 0,5 Sekunden klingen, mit einer 0,1-Sekunden-Pause dazwischen. Verwende Sägezahnwelle mit einem Piano-artigen ADSR.</p>
-  </div>
-  <div class="exercise">
-    <div class="exercise-num">Übung 6.2 — Drum-Machine</div>
-    <p>Programmiere ein 8-Beat-Muster mit Bassdrum, Snare und Hi-Hat auf den drei Voices. Verwende einen 50-Hz-Timer-IRQ (nach Stufe 7 nachholen, falls noch nicht bekannt: einfache Verzögerungsschleife). Beat-Muster: BD auf 1+3, Snare auf 2+4, Hi-Hat auf alle 8.</p>
-  </div>
-  <div class="exercise">
-    <div class="exercise-num">Übung 6.3 — PWM-Synthese</div>
-    <p>Implementiere einen Lead-Sound mit Pulse-Width-Modulation: Pulsbreite geht per Schleife von $100 bis $F00 und zurück. Die Modulationsgeschwindigkeit soll durch eine Variable einstellbar sein.</p>
-  </div>
-  <div class="exercise">
-    <div class="exercise-num">Übung 6.4 — Kleines Lied</div>
-    <p>Erweitere den Musik-Player auf 2 Stimmen. Implementiere "Alle meine Entchen" oder "Twinkle Twinkle" als Melodie auf Voice 1, mit einem einfachen Bassbegleitung auf Voice 2 (Root-Note des Akkords, eine Oktave tiefer).</p>
-  </div>
-</div>
+<section class="exercises">
+</section>
 
 <nav class="chapter-nav">
   <a href="stufe_05_bitmap_grafik.html">
@@ -587,6 +543,7 @@ Melody:
   </a>
 </nav>
 </main>
+  <script src="assets/sidebar.js"></script>
   <script src="assets/c64-interactive.js"></script>
 </body>
 </html>

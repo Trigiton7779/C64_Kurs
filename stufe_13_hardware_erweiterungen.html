@@ -4,291 +4,39 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>C64 Mastery — Stufe 13: Hardware-Erweiterungen</title>
+  <link rel="stylesheet" href="assets/c64-base.css">
   <style>
-    :root {
-      --c64-blue: #0033aa;
-      --c64-light-blue: #4477dd;
-      --c64-green: #00ff88;
-      --c64-dark: #1a1a2e;
-      --c64-darker: #0d0d1a;
-      --paper: #f8f6f0;
-      --paper-dark: #ede9df;
-      --text: #1a1a2e;
-      --text-light: #444466;
-      --accent: #cc3300;
-      --gold: #cc8800;
-      --hardware: #884400;
-      --hardware-light: #cc7700;
-      --warning-bg: #fff3cd;
-      --warning-border: #ffc107;
-      --tip-bg: #d4edda;
-      --tip-border: #28a745;
-      --info-bg: #cce5ff;
-      --info-border: #0066cc;
-      --important-bg: #f8d7da;
-      --important-border: #dc3545;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Georgia', 'Times New Roman', serif;
-      font-size: 16px;
-      line-height: 1.75;
-      color: var(--text);
-      background: var(--paper);
-      display: grid;
-      grid-template-columns: 270px 1fr;
-      min-height: 100vh;
-    }
-    .sidebar {
-      background: var(--c64-dark);
-      color: #ccc;
-      padding: 0;
-      position: sticky;
-      top: 0;
-      height: 100vh;
-      overflow-y: auto;
-      scrollbar-width: thin;
-      scrollbar-color: var(--hardware) var(--c64-darker);
-    }
-    .sidebar::-webkit-scrollbar { width: 6px; }
-    .sidebar::-webkit-scrollbar-track { background: var(--c64-darker); }
-    .sidebar::-webkit-scrollbar-thumb { background: var(--hardware); }
-    .sidebar-header {
-      background: var(--hardware);
-      padding: 18px 20px;
-      font-family: 'Courier New', monospace;
-      font-size: 13px;
-      font-weight: bold;
-      color: white;
-      letter-spacing: 0.5px;
-    }
-    .sidebar-header .logo { font-size: 22px; margin-bottom: 4px; color: #ffcc66; }
-    .sidebar nav { padding: 12px 0; }
-    .sidebar nav a {
-      display: block;
-      padding: 7px 20px;
-      color: #aab;
-      text-decoration: none;
-      font-family: 'Courier New', monospace;
-      font-size: 12.5px;
-      border-left: 3px solid transparent;
-      transition: all 0.2s;
-    }
-    .sidebar nav a:hover { color: white; background: rgba(255,255,255,0.05); border-left-color: #ffcc66; }
-    .sidebar nav a.active { color: #ffcc66; border-left-color: #ffcc66; background: rgba(255,204,102,0.08); font-weight: bold; }
-    .sidebar nav .section-label {
-      padding: 12px 20px 4px;
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      color: #556;
-      font-family: 'Courier New', monospace;
-    }
-    .sidebar nav .toc-link { padding: 5px 20px 5px 32px; font-size: 11.5px; color: #778; }
-    main { max-width: 860px; padding: 48px 56px; }
-    .chapter-header {
-      border-bottom: 3px solid var(--hardware);
-      padding-bottom: 28px;
-      margin-bottom: 40px;
-    }
-    .chapter-number {
-      font-family: 'Courier New', monospace;
-      font-size: 13px;
-      color: var(--hardware);
-      font-weight: bold;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      margin-bottom: 10px;
-    }
-    h1 { font-size: 32px; color: var(--c64-dark); line-height: 1.2; margin-bottom: 14px; }
-    .chapter-meta { display: flex; gap: 24px; font-size: 14px; color: var(--text-light); flex-wrap: wrap; }
-    .chapter-meta span { font-family: 'Courier New', monospace; }
-    h2 {
-      font-size: 22px;
-      color: var(--hardware);
-      margin: 48px 0 20px;
-      padding-bottom: 8px;
-      border-bottom: 2px solid var(--hardware);
-    }
-    h3 { font-size: 17px; color: var(--c64-dark); margin: 28px 0 12px; }
-    h4 { font-size: 15px; color: var(--text-light); margin: 20px 0 8px; }
-    p { margin-bottom: 16px; }
-    ul, ol { margin: 0 0 16px 24px; }
-    li { margin-bottom: 6px; }
-    code {
-      font-family: 'Courier New', monospace;
-      font-size: 14px;
-      background: var(--paper-dark);
-      padding: 1px 5px;
-      border-radius: 3px;
-      color: var(--hardware);
-    }
-    pre {
-      background: var(--c64-dark);
-      color: #e8e8d0;
-      font-family: 'Courier New', monospace;
-      font-size: 13.5px;
-      line-height: 1.55;
-      padding: 20px 24px;
-      border-radius: 6px;
-      border-left: 4px solid var(--hardware);
-      overflow-x: auto;
-      margin: 20px 0;
-      max-height: 420px;
-      overflow-y: auto;
-    }
-    pre .comment { color: #7799aa; }
-    pre .label { color: #ffcc44; font-weight: bold; }
-    pre .directive { color: #ff99cc; }
-    pre .number { color: #aaddff; }
     pre .instr { color: #88ffcc; }
-    pre .reg { color: #ffaa44; }
-    table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
-    thead th { background: var(--hardware); color: white; padding: 10px 12px; text-align: left; font-family: 'Courier New', monospace; font-size: 13px; }
-    tbody td { padding: 8px 12px; border-bottom: 1px solid #ddd; vertical-align: top; }
-    tbody tr:nth-child(even) { background: var(--paper-dark); }
-    tbody td:first-child { font-family: 'Courier New', monospace; color: var(--hardware); font-weight: bold; }
-    .learning-objectives {
-      background: linear-gradient(135deg, #fff8f0, #fff3e0);
-      border: 1px solid var(--hardware-light);
-      border-left: 5px solid var(--hardware);
-      border-radius: 6px;
-      padding: 24px 28px;
-      margin-bottom: 40px;
-    }
-    .learning-objectives h3 { color: var(--hardware); margin: 0 0 14px; font-size: 15px; text-transform: uppercase; letter-spacing: 1px; }
-    .learning-objectives ul { margin-left: 20px; }
-    .learning-objectives li { margin-bottom: 7px; font-size: 15px; }
-    .box-tip { background: var(--tip-bg); border-left: 4px solid var(--tip-border); border-radius: 4px; padding: 14px 18px; margin: 20px 0; }
-    .box-tip::before { content: "💡 Tipp: "; font-weight: bold; color: #155724; }
-    .box-warning { background: var(--warning-bg); border-left: 4px solid var(--warning-border); border-radius: 4px; padding: 14px 18px; margin: 20px 0; }
-    .box-warning::before { content: "⚠ Achtung: "; font-weight: bold; color: #856404; }
-    .box-info { background: var(--info-bg); border-left: 4px solid var(--info-border); border-radius: 4px; padding: 14px 18px; margin: 20px 0; }
-    .box-info::before { content: "ℹ Info: "; font-weight: bold; color: #004085; }
-    .box-important { background: var(--important-bg); border-left: 4px solid var(--important-border); border-radius: 4px; padding: 14px 18px; margin: 20px 0; }
-    .box-important::before { content: "🔴 Wichtig: "; font-weight: bold; color: #721c24; }
-    .register-table { margin: 20px 0; }
-    .register-table thead th { background: #5c2d00; }
+    pre .reg   { color: #ffaa44; }
+    .register-table thead th { background: var(--theme-dark); }
     .reu-diagram {
-      background: var(--c64-dark);
-      color: #ffcc88;
-      font-family: 'Courier New', monospace;
-      font-size: 13px;
-      padding: 18px 22px;
-      border-radius: 6px;
-      border-left: 4px solid var(--hardware);
-      margin: 20px 0;
-      white-space: pre;
-      line-height: 1.5;
+      background: var(--c64-dark); color: #e0cca0;
+      font-family: 'Courier New', monospace; font-size: 13px;
+      padding: 18px 22px; border-radius: 6px;
+      border-left: 4px solid var(--theme-color);
+      margin: 20px 0; white-space: pre; line-height: 1.5;
     }
     .bank-diagram {
-      background: #1a1a2e;
-      color: #aaddff;
-      font-family: 'Courier New', monospace;
-      font-size: 13px;
-      padding: 18px 22px;
-      border-radius: 6px;
-      border-left: 4px solid var(--hardware-light);
-      margin: 20px 0;
-      white-space: pre;
-      line-height: 1.5;
+      background: var(--c64-dark); color: #aaddff;
+      font-family: 'Courier New', monospace; font-size: 13px;
+      padding: 18px 22px; border-radius: 6px;
+      border-left: 4px solid var(--c64-light-blue);
+      margin: 20px 0; white-space: pre; line-height: 1.5;
     }
     .hardware-banner {
-      background: linear-gradient(135deg, #2d1200 0%, #884400 100%);
-      border: 1px solid var(--hardware-light);
-      border-radius: 8px;
-      padding: 24px 28px;
-      margin: 32px 0 24px;
+      background: linear-gradient(135deg, var(--theme-dark) 0%, var(--theme-color) 100%);
+      border: 1px solid var(--c64-light-blue);
+      border-radius: 8px; padding: 24px 28px; margin: 32px 0 24px; color: white;
     }
-    .hardware-banner h2 { color: #ffcc88; border: none; margin-top: 0; font-size: 20px; letter-spacing: 1px; }
-    .hardware-banner p { color: #ddaa66; margin: 0; }
-    .benchmark {
-      background: linear-gradient(135deg, #1a0d00 0%, #5c2d00 100%);
-      border: 1px solid var(--hardware-light);
-      border-radius: 8px;
-      padding: 28px 32px;
-      margin: 48px 0 32px;
-      color: #ffe0aa;
-    }
-    .benchmark h2 { color: #ffcc66; border-bottom: 1px solid #884400; padding-bottom: 10px; margin-top: 0; font-size: 20px; }
-    .benchmark-list { list-style: none; margin: 0; padding: 0; }
-    .benchmark-list li { padding: 10px 0; border-bottom: 1px solid rgba(255,204,102,0.15); font-size: 15px; display: flex; align-items: flex-start; gap: 10px; }
-    .benchmark-list li::before { content: "□"; font-family: monospace; color: #cc7700; font-size: 18px; flex-shrink: 0; }
-    .exercises {
-      background: var(--paper-dark);
-      border: 1px solid #c8b89a;
-      border-radius: 8px;
-      padding: 28px 32px;
-      margin: 32px 0;
-    }
-    .exercises h2 { color: var(--hardware); border-bottom: 2px solid var(--hardware); padding-bottom: 8px; margin-top: 0; }
-    .exercise-item { border-left: 4px solid var(--hardware); padding: 14px 18px; margin: 18px 0; background: white; border-radius: 0 6px 6px 0; }
-    .exercise-item h4 { color: var(--hardware); margin: 0 0 8px; font-family: 'Courier New', monospace; }
-    .chapter-nav { display: flex; justify-content: space-between; margin-top: 56px; padding-top: 24px; border-top: 2px solid var(--hardware); }
-    .chapter-nav a { display: inline-flex; align-items: center; gap: 8px; color: var(--hardware); text-decoration: none; font-family: 'Courier New', monospace; font-size: 14px; padding: 10px 18px; border: 2px solid var(--hardware); border-radius: 4px; transition: all 0.2s; }
-    .chapter-nav a:hover { background: var(--hardware); color: white; }
-    @media print { .sidebar { display: none; } body { grid-template-columns: 1fr; } main { max-width: 100%; padding: 20px; } }
+    .hardware-banner h2 { color: var(--c64-green); border: none; margin-top: 0; font-size: 20px; letter-spacing: 1px; }
+    .hardware-banner p  { color: #aaccee; margin: 0; }
   </style>
   <link rel="stylesheet" href="assets/c64-interactive.css">
   <link rel="stylesheet" href="assets/c64-print.css" media="print">
 </head>
 <body>
 
-<aside class="sidebar">
-  <div class="sidebar-header">
-    <div class="logo">■ C64 MASTERY</div>
-    Professioneller Lehrgang
-  </div>
-  <nav>
-    <div class="section-label">Curriculum</div>
-    <a href="index.html">◈ Übersicht &amp; Lernpfad</a>
-    <a href="stufe_00_fundament.html">00 · Fundament</a>
-    <a href="stufe_01_6510_assembler.html">01 · 6510 &amp; Assembler</a>
-    <a href="stufe_02_adressierung_speicher.html">02 · Adressierung &amp; Speicher</a>
-    <a href="stufe_03_bildschirm_zeichen.html">03 · Bildschirm &amp; Zeichen</a>
-    <a href="stufe_04_sprites_animation.html">04 · Sprites &amp; Animation</a>
-    <a href="stufe_05_bitmap_grafik.html">05 · Bitmap-Grafik</a>
-    <a href="stufe_06_sid_sound.html">06 · SID-Sound</a>
-    <a href="stufe_07_interrupts_timing.html">07 · Interrupts &amp; Timing</a>
-    <a href="stufe_08_optimierung.html">08 · Optimierung</a>
-    <a href="stufe_09_demo_effekte.html">09 · Demo-Effekte</a>
-    <a href="stufe_10_meisterschaft.html">10 · Meisterschaft</a>
-
-    <div class="section-label">Workflow &amp; Release</div>
-    <a href="stufe_11_spielentwicklung_workflow.html">11 · Spiel-Workflow</a>
-    <a href="stufe_12_demo_entwicklung_workflow.html">12 · Demo-Workflow</a>
-
-    <div class="section-label">Erweiterte Stufen</div>
-    <a href="stufe_13_hardware_erweiterungen.html" class="active">13 · Hardware-Erweiterungen</a>
-    <a href="stufe_14_modern_workflow.html">14 · Moderner Workflow</a>
-    <a href="stufe_15_debugging_deep_dive.html">15 · Deep Debugging</a>
-
-    <div class="section-label">Diese Seite</div>
-    <a href="#reu-grundlagen" class="toc-link">1. REU 1750 — Grundlagen</a>
-    <a href="#reu-dma" class="toc-link">2. REU-DMA in der Praxis</a>
-    <a href="#reu-anwendungen" class="toc-link">3. REU-Anwendungen</a>
-    <a href="#easyflash" class="toc-link">4. EasyFlash-Cartridge</a>
-    <a href="#userport" class="toc-link">5. CIA2-Userport</a>
-    <a href="#vic-banking" class="toc-link">6. VIC-II Banking</a>
-    <a href="#timing-erweiterungen" class="toc-link">7. Timing &amp; Erkennung</a>
-    <a href="#walkthrough" class="toc-link">8. Walkthrough: Slideshow</a>
-    <a href="#benchmark" class="toc-link">Skill-Benchmark</a>
-
-    <div class="section-label">Anhänge &amp; Referenz</div>
-    <a href="anhang_opcodes.html">A · Opcode-Referenz</a>
-    <a href="anhang_speicherkarte.html">B · Speicherkarte</a>
-    <a href="anhang_vic_register.html">C · VIC-II Register</a>
-    <a href="anhang_sid_register.html">D · SID Register</a>
-    <a href="anhang_cia_register.html">E · CIA Register</a>
-    <a href="anhang_petscii.html">F · PETSCII-Tabelle</a>
-    <a href="anhang_farben.html">G · C64-Farben</a>
-    <a href="anhang_kernal_routinen.html">H · KERNAL-Routinen</a>
-
-    <div class="section-label">Downloads</div>
-    <a href="beispiele/index.html">Beispielcode (.asm)</a>
-    <a href="vice.vicerc" download>VICE Konfiguration</a>
-  </nav>
-</aside>
+<aside class="sidebar"></aside>
 
 <main>
   <header class="chapter-header">
@@ -953,6 +701,7 @@
   </nav>
 </main>
 
+  <script src="assets/sidebar.js"></script>
   <script src="assets/c64-interactive.js"></script>
 </body>
 </html>

@@ -4,8 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>C64 Mastery — Stufe 5: Bitmap-Grafik</title>
+<link rel="stylesheet" href="assets/c64-base.css">
 <style>
-:root{--c64-blue:#0033aa;--c64-green:#00ff88;--c64-dark:#1a1a2e;--paper:#f8f6f0;--paper-dark:#ede9e0;--text:#1a1a2e;--text-light:#444466;--border:#c0b8a8}
+:root{--c64-blue:#1a3f80;--c64-green:#00cc66;--c64-dark:#1a1a2e;--paper:#f8f6f0;--paper-dark:#ede9e0;--text:#1a1a2e;--text-light:#444466;--border:#c0b8a8}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Georgia','Times New Roman',serif;font-size:17px;line-height:1.75;color:var(--text);background:var(--paper);display:grid;grid-template-columns:270px 1fr;min-height:100vh}
 .sidebar{background:var(--c64-dark);color:#ccc;position:sticky;top:0;height:100vh;overflow-y:auto;font-family:'Courier New',monospace;font-size:13px}
@@ -46,7 +47,7 @@ tbody tr:hover{background:#dde8ff}
 .box.tip{background:#e8f5e9;border-color:#2e7d32}.box.tip .box-title{color:#1b5e20}
 .box.note{background:#e3f2fd;border-color:#1565c0}.box.note .box-title{color:#0d47a1}
 .box.important{background:#fce4ec;border-color:#c62828}.box.important .box-title{color:#b71c1c}
-.benchmark{background:linear-gradient(135deg,#001166 0%,#0033aa 100%);color:white;padding:30px;border-radius:12px;margin:44px 0}
+.benchmark{background:linear-gradient(135deg,#001166 0%,#1a3f80 100%);color:white;padding:30px;border-radius:12px;margin:44px 0}
 .benchmark h2{color:var(--c64-green);border-color:rgba(0,255,136,.3);margin-top:0;font-size:22px}
 .benchmark ul{list-style:none;padding:0}
 .benchmark ul li{padding:7px 0 7px 28px;position:relative;border-bottom:1px solid rgba(255,255,255,.1)}
@@ -64,35 +65,7 @@ tbody tr:hover{background:#dde8ff}
   <link rel="stylesheet" href="assets/c64-interactive.css">
 </head>
 <body>
-<nav class="sidebar">
-  <div class="sidebar-header"><div class="logo">C64</div><div class="sub">MASTERY SYSTEM</div></div>
-  <nav><ul>
-    <li><a href="index.html">&#9632; Übersicht &amp; Curriculum</a></li>
-    <li class="section-label">Grundlagen</li>
-    <li><a href="stufe_00_fundament.html">Stufe 0 — Fundament</a></li>
-    <li><a href="stufe_01_6510_assembler.html">Stufe 1 — 6510 Assembler</a></li>
-    <li><a href="stufe_02_adressierung_speicher.html">Stufe 2 — Adressierung &amp; Speicher</a></li>
-    <li class="section-label">Grafik &amp; Sound</li>
-    <li><a href="stufe_03_bildschirm_zeichen.html">Stufe 3 — VIC-II &amp; Zeichen</a></li>
-    <li><a href="stufe_04_sprites_animation.html">Stufe 4 — Sprites &amp; Animation</a></li>
-    <li><a href="stufe_05_bitmap_grafik.html" class="active">Stufe 5 — Bitmap-Grafik</a></li>
-    <li><a href="stufe_06_sid_sound.html">Stufe 6 — SID &amp; Sound</a></li>
-    <li class="section-label">Fortgeschritten</li>
-    <li><a href="stufe_07_interrupts_timing.html">Stufe 7 — Interrupts &amp; Timing</a></li>
-    <li><a href="stufe_08_optimierung.html">Stufe 8 — Optimierung</a></li>
-    <li><a href="stufe_09_demo_effekte.html">Stufe 9 — Demo-Effekte</a></li>
-    <li><a href="stufe_10_meisterschaft.html">Stufe 10 — Meisterschaft</a></li>
-      <li class="section-label">Workflow &amp; Release</li>
-      <li><a href="stufe_11_spielentwicklung_workflow.html">Stufe 11 — Spielentwicklung</a></li>
-      <li><a href="stufe_12_demo_entwicklung_workflow.html">Stufe 12 — Demo-Workflow</a></li>
-      <li class="section-label">Erweiterte Stufen</li>
-      <li><a href="stufe_13_hardware_erweiterungen.html">Stufe 13 — Hardware-Erweiterungen</a></li>
-      <li><a href="stufe_14_modern_workflow.html">Stufe 14 — Moderner Workflow</a></li>
-      <li><a href="stufe_15_debugging_deep_dive.html">Stufe 15 — Deep Debugging</a></li>
-      <li class="section-label">Anhänge &amp; Referenz</li>
-      <li><a href="anhang_kernal_routinen.html">H — KERNAL-Routinen</a></li>
-  </ul></nav>
-</nav>
+<aside class="sidebar"></aside>
 
 <main>
 <div class="chapter-header">
@@ -105,7 +78,7 @@ tbody tr:hover{background:#dde8ff}
   </div>
 </div>
 
-<div class="objectives">
+<section class="learning-objectives">
   <h3>&#127919; Lernziele dieser Stufe</h3>
   <ul>
     <li>Den Hires-Bitmap-Modus (320×200) vollständig einrichten und nutzen</li>
@@ -115,7 +88,7 @@ tbody tr:hover{background:#dde8ff}
     <li>Grafiken im Koala-Format laden und anzeigen</li>
     <li>Optimierte Bitmap-Routinen für Performance schreiben</li>
   </ul>
-</div>
+</section>
 
 <h2>1. Bitmap-Grafik — Pixel für Pixel</h2>
 
@@ -163,6 +136,23 @@ sta $d016
 
 <p>Bei Standard VIC-Bank 0: Bitmap entweder bei <code>$0000</code> oder <code>$2000</code>.</p>
 
+<div class="box tip">
+  <div class="box-title">$D018-Adressen sind Bank-Offsets, keine absoluten Adressen</div>
+  <p>Alle Adressen in $D018 (Screen-RAM-Pointer und Bitmap/Charset-Pointer) sind Offsets
+  <em>innerhalb</em> der aktiven VIC-II-Bank (eingestellt via CIA2 $DD00 Bits 0–1).
+  Bei Bitmap-Start +$2000 und aktiver Bank 1 ($4000–$7FFF) liegt das Bitmap absolut bei
+  $4000 + $2000 = $6000 — nicht bei der absoluten Adresse $2000.</p>
+</div>
+
+<div class="box warning">
+  <div class="box-title">⚠️ Charset-ROM nur in Bank 0 und Bank 2 verfügbar</div>
+  <p>Der eingebaute C64-Zeichensatz liegt hardwareseitig nur in VIC-Bank 0 ($0000–$3FFF)
+  und Bank 2 ($8000–$BFFF) bei den Offsets +$1000 und +$1800 als ROM bereit.
+  In Bank 1 ($4000–$7FFF) und Bank 3 ($C000–$FFFF) zeigt der VIC-II an diesen Offsets
+  normales RAM — der Zeichensatz ist <em>nicht sichtbar</em>. Wer in Bank 1 oder 3 einen
+  Textmodus mit dem Standard-Zeichensatz nutzen will, muss ihn als RAM-Kopie dorthin laden.</p>
+</div>
+
 <p>Screen-RAM bestimmt die Farben der einzelnen 8×8-Zellen:</p>
 <ul>
   <li>High-Nibble (Bits 4–7): Farbe der <em>gesetzten</em> Bits (Pixel "an")</li>
@@ -208,28 +198,24 @@ Beispiel: Pixel (100, 75)
 ; =====================================================
 
 InitHiresBitmap:
-        ; 1. Bitmap-RAM löschen (8000 Bytes bei $2000)
+        ; 1. Bitmap-RAM löschen (8000 Bytes bei $2000–$3F3F)
         lda #0
         ldx #0
-@clr:   sta $2000,x     ; Seite $20
-        sta $2100,x
-        sta $2200,x
-        sta $2300,x
-        sta $2400,x
-        sta $2500,x
-        sta $2600,x
-        sta $2700,x
-        sta $2800,x
-        sta $2900,x
-        sta $2a00,x
-        sta $2b00,x
-        sta $2c00,x
-        sta $2d00,x
-        sta $2e00,x
-        sta $2f00,x
-        ; Verbleibende 1984 Bytes (16*256=4096, 8000-4096=3904... besser per Schleife)
+@clr:   sta $2000,x : sta $2100,x : sta $2200,x : sta $2300,x
+        sta $2400,x : sta $2500,x : sta $2600,x : sta $2700,x
+        sta $2800,x : sta $2900,x : sta $2a00,x : sta $2b00,x
+        sta $2c00,x : sta $2d00,x : sta $2e00,x : sta $2f00,x
+        sta $3000,x : sta $3100,x : sta $3200,x : sta $3300,x
+        sta $3400,x : sta $3500,x : sta $3600,x : sta $3700,x
+        sta $3800,x : sta $3900,x : sta $3a00,x : sta $3b00,x
+        sta $3c00,x : sta $3d00,x : sta $3e00,x
         inx
         bne @clr
+        ; Letzte 64 Bytes ($3F00–$3F3F)
+        ldx #63
+@clr2:  sta $3f00,x
+        dex
+        bpl @clr2
 
         ; 2. Screen-RAM: Farben initialisieren (weiß auf schwarz: $10)
         ;    High-Nibble = 1 (weiß für Pixel=1), Low-Nibble = 0 (schwarz für Pixel=0)
@@ -568,25 +554,8 @@ FLI_IRQ:
   </ul>
 </div>
 
-<div class="exercises-section">
-  <h2>&#9997; Übungen</h2>
-  <div class="exercise">
-    <div class="exercise-num">Übung 5.1 — Hires-Bitmap-Linien</div>
-    <p>Implementiere eine vollständige <code>DrawLine</code>-Routine mit dem Bresenham-Algorithmus. Zeichne ein X-Muster (beide Diagonalen des Bildschirms) und ein Rechteck in der Mitte. Verwende weiße Linien auf schwarzem Hintergrund.</p>
-  </div>
-  <div class="exercise">
-    <div class="exercise-num">Übung 5.2 — Multicolor-Bitmap</div>
-    <p>Aktiviere den Multicolor-Bitmap-Modus. Fülle den gesamten Bildschirm mit einem geometrischen Muster: Abwechselnd %01 und %10 Pixel (im Schachbrettmuster) mit kontrastierenden Farben in Screen-RAM und $D021/$D022.</p>
-  </div>
-  <div class="exercise">
-    <div class="exercise-num">Übung 5.3 — Screen-RAM-Farbgebung</div>
-    <p>Erstelle im Hires-Bitmap-Modus ein Farbverlaufsmuster: Jede Spalte der 40 Zellenspalten erhält ein anderes Farbpaar im Screen-RAM (von Farbe 0 aufwärts zyklisch). Male dann ein einfaches geometrisches Motiv in die Bitmap.</p>
-  </div>
-  <div class="exercise">
-    <div class="exercise-num">Übung 5.4 — Kreis zeichnen</div>
-    <p>Implementiere eine <code>DrawCircle(cx, cy, r)</code>-Routine mit dem Midpoint-Circle-Algorithmus. Zeichne konzentrische Kreise auf dem Hires-Bitmap-Bildschirm. Tipp: Nutze die 8-Wege-Symmetrie des Kreises für maximale Effizienz.</p>
-  </div>
-</div>
+<section class="exercises">
+</section>
 
 <nav class="chapter-nav">
   <a href="stufe_04_sprites_animation.html">
@@ -599,6 +568,7 @@ FLI_IRQ:
   </a>
 </nav>
 </main>
+  <script src="assets/sidebar.js"></script>
   <script src="assets/c64-interactive.js"></script>
 </body>
 </html>

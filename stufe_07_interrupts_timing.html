@@ -4,8 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>C64 Mastery — Stufe 7: Interrupts &amp; Timing</title>
+<link rel="stylesheet" href="assets/c64-base.css">
 <style>
-:root{--c64-blue:#0033aa;--c64-green:#00ff88;--c64-dark:#1a1a2e;--paper:#f8f6f0;--paper-dark:#ede9e0;--text:#1a1a2e;--text-light:#444466;--border:#c0b8a8}
+:root{--c64-blue:#1a3f80;--c64-green:#00cc66;--c64-dark:#1a1a2e;--paper:#f8f6f0;--paper-dark:#ede9e0;--text:#1a1a2e;--text-light:#444466;--border:#c0b8a8}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Georgia','Times New Roman',serif;font-size:17px;line-height:1.75;color:var(--text);background:var(--paper);display:grid;grid-template-columns:270px 1fr;min-height:100vh}
 .sidebar{background:var(--c64-dark);color:#ccc;position:sticky;top:0;height:100vh;overflow-y:auto;font-family:'Courier New',monospace;font-size:13px}
@@ -46,7 +47,7 @@ tbody tr:hover{background:#dde8ff}
 .box.tip{background:#e8f5e9;border-color:#2e7d32}.box.tip .box-title{color:#1b5e20}
 .box.note{background:#e3f2fd;border-color:#1565c0}.box.note .box-title{color:#0d47a1}
 .box.important{background:#fce4ec;border-color:#c62828}.box.important .box-title{color:#b71c1c}
-.benchmark{background:linear-gradient(135deg,#001166 0%,#0033aa 100%);color:white;padding:30px;border-radius:12px;margin:44px 0}
+.benchmark{background:linear-gradient(135deg,#001166 0%,#1a3f80 100%);color:white;padding:30px;border-radius:12px;margin:44px 0}
 .benchmark h2{color:var(--c64-green);border-color:rgba(0,255,136,.3);margin-top:0;font-size:22px}
 .benchmark ul{list-style:none;padding:0}
 .benchmark ul li{padding:7px 0 7px 28px;position:relative;border-bottom:1px solid rgba(255,255,255,.1)}
@@ -64,35 +65,7 @@ tbody tr:hover{background:#dde8ff}
   <link rel="stylesheet" href="assets/c64-interactive.css">
 </head>
 <body>
-<nav class="sidebar">
-  <div class="sidebar-header"><div class="logo">C64</div><div class="sub">MASTERY SYSTEM</div></div>
-  <nav><ul>
-    <li><a href="index.html">&#9632; Übersicht &amp; Curriculum</a></li>
-    <li class="section-label">Grundlagen</li>
-    <li><a href="stufe_00_fundament.html">Stufe 0 — Fundament</a></li>
-    <li><a href="stufe_01_6510_assembler.html">Stufe 1 — 6510 Assembler</a></li>
-    <li><a href="stufe_02_adressierung_speicher.html">Stufe 2 — Adressierung &amp; Speicher</a></li>
-    <li class="section-label">Grafik &amp; Sound</li>
-    <li><a href="stufe_03_bildschirm_zeichen.html">Stufe 3 — VIC-II &amp; Zeichen</a></li>
-    <li><a href="stufe_04_sprites_animation.html">Stufe 4 — Sprites &amp; Animation</a></li>
-    <li><a href="stufe_05_bitmap_grafik.html">Stufe 5 — Bitmap-Grafik</a></li>
-    <li><a href="stufe_06_sid_sound.html">Stufe 6 — SID &amp; Sound</a></li>
-    <li class="section-label">Fortgeschritten</li>
-    <li><a href="stufe_07_interrupts_timing.html" class="active">Stufe 7 — Interrupts &amp; Timing</a></li>
-    <li><a href="stufe_08_optimierung.html">Stufe 8 — Optimierung</a></li>
-    <li><a href="stufe_09_demo_effekte.html">Stufe 9 — Demo-Effekte</a></li>
-    <li><a href="stufe_10_meisterschaft.html">Stufe 10 — Meisterschaft</a></li>
-      <li class="section-label">Workflow &amp; Release</li>
-      <li><a href="stufe_11_spielentwicklung_workflow.html">Stufe 11 — Spielentwicklung</a></li>
-      <li><a href="stufe_12_demo_entwicklung_workflow.html">Stufe 12 — Demo-Workflow</a></li>
-      <li class="section-label">Erweiterte Stufen</li>
-      <li><a href="stufe_13_hardware_erweiterungen.html">Stufe 13 — Hardware-Erweiterungen</a></li>
-      <li><a href="stufe_14_modern_workflow.html">Stufe 14 — Moderner Workflow</a></li>
-      <li><a href="stufe_15_debugging_deep_dive.html">Stufe 15 — Deep Debugging</a></li>
-      <li class="section-label">Anhänge &amp; Referenz</li>
-      <li><a href="anhang_kernal_routinen.html">H — KERNAL-Routinen</a></li>
-  </ul></nav>
-</nav>
+<aside class="sidebar"></aside>
 
 <main>
 <div class="chapter-header">
@@ -101,11 +74,11 @@ tbody tr:hover{background:#dde8ff}
   <div class="chapter-meta">
     <span><span class="badge red">Fortgeschritten</span></span>
     <span>&#128337; ca. 8 Stunden</span>
-    <span>Voraussetzungen: Stufen 0–6</span>
+    <span>Voraussetzungen: Stufen 0–6 — besonders <a href="stufe_05_bitmap_grafik.html">Stufe 05 (VIC-Grafik, Raster-IRQ)</a></span>
   </div>
 </div>
 
-<div class="objectives">
+<section class="learning-objectives">
   <h3>&#127919; Lernziele dieser Stufe</h3>
   <ul>
     <li>Das vollständige Interrupt-System des C64 (IRQ/NMI) verstehen</li>
@@ -115,7 +88,7 @@ tbody tr:hover{background:#dde8ff}
     <li>CIA-Timer für musik-synchrone 50 Hz Aufrufe konfigurieren</li>
     <li>Mehrere IRQs in einer Kette verbinden (Multi-Raster-IRQ)</li>
   </ul>
-</div>
+</section>
 
 <h2>1. Das Interrupt-System des 6510</h2>
 
@@ -301,7 +274,7 @@ SetVICBank1:   ; Auf Bank 1 ($4000-$7FFF) wechseln
 
 <pre>
 ; CIA1 Timer A für exakt 50 Hz (PAL) konfigurieren
-; PAL: 985248 Hz, 985248 / 50 = 19704,96 ≈ 19704 Zyklen = $4CC8
+; PAL: 985248 Hz, 985248 / 50 = 19704,96 ≈ 19704 Zyklen = $4CF8
 
 InitTimer50Hz:
         SEI
@@ -318,10 +291,10 @@ InitTimer50Hz:
         LDA #&gt;TimerHandler
         STA $0315
 
-        ; Timer A Latch auf 19704 ($4CC8) setzen
-        LDA #$C8        ; $4CC8 Low-Byte
+        ; Timer A Latch auf 19704 ($4CF8) setzen
+        LDA #$F8        ; $4CF8 Low-Byte
         STA $DC04       ; Timer A Low (schreibt Latch)
-        LDA #$4C        ; $4CC8 High-Byte
+        LDA #$4C        ; $4CF8 High-Byte
         STA $DC05       ; Timer A High (schreibt Latch)
 
         ; Control Register A: Continuous + Systemclock + sofortiges Laden + Start
@@ -513,25 +486,14 @@ MusicIRQ:
   </ul>
 </div>
 
-<div class="exercises-section">
-  <h2>&#9997; Übungen</h2>
-  <div class="exercise">
-    <div class="exercise-num">Übung 7.1 — Regenbogen-Border</div>
-    <p>Implementiere einen IRQ, der auf jeder sichtbaren Rasterzeile die Border-Farbe wechselt. Das Ergebnis soll ein Regenbogen aus allen 16 Farben in der Border sein, der sich jede Sekunde verschiebt (durch einen Zähler, der den Farb-Offset verändert).</p>
-  </div>
-  <div class="exercise">
-    <div class="exercise-num">Übung 7.2 — Musik + Grafik gleichzeitig</div>
-    <p>Kombiniere den Musik-Player aus Stufe 6 mit einem Raster-IRQ. Die Musik soll im VBlank-IRQ (Rasterzeile 250+) laufen. Gleichzeitig soll ein zweiter IRQ auf Rasterzeile 100 die Border-Farbe rhythmisch zur Musik ändern.</p>
-  </div>
-  <div class="exercise">
-    <div class="exercise-num">Übung 7.3 — Stabile Farbsplits</div>
-    <p>Implementiere 4 stabile Farbsplits auf dem Bildschirm (4 verschiedene Background-Farben in 4 horizontalen Streifen). Verwende die Double-IRQ-Technik für jeden Split. Die Grenzen sollen pixelgenau sein (kein Jitter sichtbar).</p>
-  </div>
-  <div class="exercise">
-    <div class="exercise-num">Übung 7.4 — Tastatur-Input mit IRQ</div>
-    <p>Schreibe ein Programm, das den Tastatur-Scan im Haupt-IRQ ausführt (nicht den KERNAL-Scan). Zeige die gedrückte Taste als Matrix-Code (0-63) im oberen linken Bildschirmbereich an. Verwende dafür die Routine aus diesem Kapitel.</p>
-  </div>
-</div>
+<section class="exercises">
+  <h2>Verwandte Themen</h2>
+  <ul>
+    <li><a href="stufe_05_bitmap_grafik.html">Stufe 05: VIC-Grafik — Raster-IRQ und VIC-Banking</a></li>
+    <li><a href="stufe_08_optimierung.html">Stufe 08: Timing-Optimierung — Bad Lines, DMA-Delays, Zyklenbudget</a></li>
+    <li><a href="stufe_09_demo_effekte.html">Stufe 09: Demo-Effekte — FLD/FLI, Raster-Tricks, Open Border</a></li>
+  </ul>
+</section>
 
 <nav class="chapter-nav">
   <a href="stufe_06_sid_sound.html">
@@ -544,6 +506,7 @@ MusicIRQ:
   </a>
 </nav>
 </main>
+  <script src="assets/sidebar.js"></script>
   <script src="assets/c64-interactive.js"></script>
 </body>
 </html>

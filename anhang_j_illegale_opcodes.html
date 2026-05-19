@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>C64 Mastery — Anhang J: Illegale Opcodes</title>
+  <link rel="stylesheet" href="assets/c64-base.css">
+<style>
+    :root { --c64-blue:#1a3f80;--c64-green:#00cc66;--c64-dark:#1a1a2e;--c64-darker:#0d0d1a;--paper:#f5f4f0;--paper-dark:#eae8e2;--text:#1e1e30;--text-light:#505070;--accent:#b03000; }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Georgia',serif;font-size:15px;line-height:1.75;color:var(--text);background:var(--paper);display:grid;grid-template-columns:270px 1fr;min-height:100vh;}
+    .sidebar{background:var(--c64-dark);color:#ccc;position:sticky;top:0;height:100vh;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--c64-blue) var(--c64-darker);}
+    .sidebar::-webkit-scrollbar{width:6px;}.sidebar::-webkit-scrollbar-thumb{background:var(--c64-blue);}
+    .sidebar-header{background:var(--c64-blue);padding:18px 20px;font-family:'Courier New',monospace;font-size:13px;font-weight:bold;color:white;}
+    .sidebar-header .logo{font-size:22px;margin-bottom:4px;color:var(--c64-green);}
+    .sidebar nav{padding:12px 0;}
+    .sidebar nav a{display:block;padding:7px 20px;color:#aab;text-decoration:none;font-family:'Courier New',monospace;font-size:12.5px;border-left:3px solid transparent;transition:all 0.2s;}
+    .sidebar nav a:hover{color:white;background:rgba(255,255,255,0.05);border-left-color:var(--c64-green);}
+    .sidebar nav a.active{color:var(--c64-green);border-left-color:var(--c64-green);background:rgba(0,204,102,0.07);font-weight:bold;}
+    .sidebar nav .section-label{padding:12px 20px 4px;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:#556;font-family:'Courier New',monospace;}
+    main{max-width:1060px;padding:40px 48px;}
+    h1{font-size:32px;color:var(--c64-dark);margin-bottom:8px;}
+    .chapter-number{font-family:'Courier New',monospace;font-size:13px;color:var(--c64-blue);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;}
+    .chapter-meta{display:flex;gap:16px;font-family:'Courier New',monospace;font-size:12px;color:var(--text-light);margin:12px 0 28px;flex-wrap:wrap;}
+    .chapter-meta span{background:var(--paper-dark);padding:4px 10px;border-radius:3px;}
+    h2{font-size:22px;color:var(--c64-blue);margin:36px 0 14px;padding-bottom:6px;border-bottom:1px solid #d0ccc0;}
+    h3{font-size:17px;color:var(--c64-dark);margin:22px 0 10px;}
+    p{margin-bottom:14px;}
+    ul,ol{margin:10px 0 14px 22px;}
+    li{margin-bottom:5px;}
+    strong{color:var(--c64-dark);}
+    code{font-family:'Courier New',monospace;font-size:13px;background:#e8e4da;padding:2px 5px;border-radius:3px;color:var(--accent);}
+    pre{background:var(--c64-dark);color:var(--c64-green);font-family:'Courier New',monospace;font-size:13px;line-height:1.6;padding:20px 24px;border-radius:6px;overflow-x:auto;margin:16px 0;border-left:4px solid var(--c64-blue);white-space:pre;}
+    pre .comment{color:#6688aa;}
+    pre .label{color:#88ffcc;}
+
+    /* ── Haupttabelle ─────────────────────────────────────────────── */
+    .opc-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px;}
+    .opc-table thead{background:var(--c64-blue);color:white;}
+    .opc-table thead th{padding:9px 10px;text-align:left;font-family:'Courier New',monospace;font-size:12px;white-space:nowrap;}
+    .opc-table tbody tr:nth-child(even){background:var(--paper-dark);}
+    .opc-table tbody tr:hover{background:#e0dbd0;}
+    .opc-table tbody td{padding:7px 10px;border-bottom:1px solid #d0ccc0;vertical-align:top;}
+    .opc-table .mn{font-family:'Courier New',monospace;font-weight:bold;color:var(--c64-blue);font-size:13px;}
+    .opc-table .op{font-family:'Courier New',monospace;font-size:12px;color:#444;}
+    .opc-table .modes{font-family:'Courier New',monospace;font-size:11px;color:var(--text-light);line-height:1.6;}
+
+    /* ── Bewertungs-Sterne ────────────────────────────────────────── */
+    .stars { white-space:nowrap; font-size:14px; letter-spacing:1px; }
+    .star-full  { color: #cc8800; }
+    .star-empty { color: #ccc; }
+    .rel-5 .star-full { color: #008844; }
+    .rel-4 .star-full { color: #448800; }
+    .rel-3 .star-full { color: #888800; }
+    .rel-2 .star-full { color: #cc4400; }
+    .rel-1 .star-full { color: #cc0000; }
+
+    /* ── Kategorie-Karten ─────────────────────────────────────────── */
+    .cat-header{
+      background:var(--c64-dark);color:white;
+      font-family:'Courier New',monospace;font-size:13px;font-weight:bold;
+      padding:10px 14px;border-radius:4px 4px 0 0;margin-top:32px;
+      display:flex;align-items:center;gap:12px;
+    }
+    .cat-badge{
+      display:inline-block;padding:2px 10px;border-radius:10px;font-size:11px;
+      font-family:'Courier New',monospace;
+    }
+    .cat-stable   { background:#006633;color:white; }
+    .cat-moderate { background:#664400;color:white; }
+    .cat-unstable { background:#660000;color:white; }
+    .cat-nop      { background:#334488;color:white; }
+    .cat-kil      { background:#440000;color:white; }
+
+    /* ── Info-Boxen ───────────────────────────────────────────────── */
+    .box-info{background:#dce8f8;border:1px solid #1a5599;border-left:5px solid #1a5599;border-radius:6px;padding:14px 18px;margin:16px 0;}
+    .box-info strong{color:#0a3366;font-family:'Courier New',monospace;font-size:13px;display:block;margin-bottom:6px;}
+    .box-warn{background:#fdf3dc;border:1px solid #c98a00;border-left:5px solid #c98a00;border-radius:6px;padding:14px 18px;margin:16px 0;}
+    .box-warn strong{color:#7a5200;font-family:'Courier New',monospace;font-size:13px;display:block;margin-bottom:6px;}
+    .box-danger{background:#f5dde0;border:1px solid #b02030;border-left:5px solid #b02030;border-radius:6px;padding:14px 18px;margin:16px 0;}
+    .box-danger strong{color:#7a0010;font-family:'Courier New',monospace;font-size:13px;display:block;margin-bottom:6px;}
+    .box-tip{background:#dff0e4;border:1px solid #1e8a3a;border-left:5px solid #1e8a3a;border-radius:6px;padding:14px 18px;margin:16px 0;}
+    .box-tip strong{color:#0f5a22;font-family:'Courier New',monospace;font-size:13px;display:block;margin-bottom:6px;}
+
+    /* ── Legende ──────────────────────────────────────────────────── */
+    .legend{display:flex;gap:24px;flex-wrap:wrap;margin:16px 0;font-size:13px;font-family:'Courier New',monospace;}
+    .legend-item{display:flex;align-items:center;gap:8px;}
+
+    /* ── Dark Mode ─────────────────────────────────────────────────── */
+    body.dark-mode .opc-table tbody tr:nth-child(even){background:#1e1e36;}
+    body.dark-mode .opc-table tbody tr:hover{background:#22223a;}
+    body.dark-mode .opc-table tbody td{border-color:#2a2a4a;}
+    body.dark-mode .opc-table .op{color:#9090b0;}
+    body.dark-mode .opc-table .modes{color:#666688;}
+    body.dark-mode .cat-header{background:#12122a;}
+    body.dark-mode .star-empty{color:#333344;}
+
+    @media print{.sidebar{display:none;}body{grid-template-columns:1fr;}main{max-width:100%;padding:20px;font-size:12px;}
+      .opc-table{font-size:11px;} .cat-header{break-inside:avoid;}}
+  </style>
+  <link rel="stylesheet" href="assets/c64-interactive.css">
+  <link rel="stylesheet" href="assets/c64-print.css" media="print">
+</head>
+<body>
+<aside class="sidebar"></aside>
+
+<main>
+  <div class="chapter-number">Anhang J</div>
+  <h1>Illegale &amp; undokumentierte Opcodes</h1>
+  <div class="chapter-meta">
+    <span>6510 / 6502 NMOS</span><span>105 undokumentierte Bytes</span><span>Vollständige Referenz</span>
+  </div>
+
+  <p>Der 6510-Prozessor des C64 hat 256 mögliche Opcode-Bytes, davon sind 151 offiziell dokumentiert. Die verbleibenden <strong>105 Bytes</strong> sind sogenannte <em>illegale</em> oder <em>undokumentierte</em> Opcodes. Sie entstehen als Nebeneffekt der internen Schaltlogik des NMOS-Prozessors: Bei undefinierten Opcodes aktivieren sich mehrere Dekodierpfade gleichzeitig, was zu kombinierten Operationen führt.</p>
+
+  <p>In der C64-Demoszene und bei Spieleentwicklern werden illegale Opcodes für Optimierungen eingesetzt — ein <code>LAX</code> ersetzt ein <code>LDA</code> + <code>TAX</code> und spart 1 Byte und 2 Zyklen. Diese Tabelle bewertet alle illegalen Opcodes nach ihrer <strong>Zuverlässigkeit</strong> (funktioniert auf echter Hardware?) und <strong>Nützlichkeit</strong> (lohnt der Einsatz?).</p>
+
+  <div class="box-warn">
+    <strong>Nur auf NMOS-6502/6510 — nicht auf CMOS-Varianten</strong>
+    Alle hier beschriebenen Opcodes gelten für den originalen 6510 im C64 und den 6502 im C64C (frühe Revisionen). Der <strong>65C02</strong> (CMOS) behandelt alle undokumentierten Opcodes als <code>NOP</code> — Programme, die illegale Opcodes nutzen, laufen dort nicht korrekt. Das C64C hatte anfangs noch NMOS-Chips; späte Revisionen können CMOS-Derivate enthalten.
+  </div>
+
+  <!-- ── Legende ──────────────────────────────────────────────────── -->
+  <h2 id="legende">Bewertungs-Legende</h2>
+
+  <div class="legend">
+    <div class="legend-item">
+      <span class="stars rel-5"><span class="star-full">★★★★★</span></span>
+      <span>Zuverlässigkeit: 99 %+ — auf allen C64-Revisionen stabil</span>
+    </div>
+    <div class="legend-item">
+      <span class="stars rel-3"><span class="star-full">★★★</span><span class="star-empty">★★</span></span>
+      <span>Zuverlässigkeit: ~70 % — chip- oder revisionsabhängig</span>
+    </div>
+    <div class="legend-item">
+      <span class="stars rel-1"><span class="star-full">★</span><span class="star-empty">★★★★</span></span>
+      <span>Zuverlässigkeit: &lt;30 % — temperatur- und spannungsabhängig</span>
+    </div>
+  </div>
+
+  <table style="width:auto;margin:8px 0 24px;">
+    <thead><tr><th>Spalte</th><th>Bedeutung</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Mnemonic</strong></td><td>Gebräuchlicher Name (verschiedene Quellen nutzen abweichende Namen)</td></tr>
+      <tr><td><strong>Opcodes</strong></td><td>Hex-Bytes und Adressierungsmodi (zp=Zero Page, abs=absolut, ind=indirekt)</td></tr>
+      <tr><td><strong>Operation</strong></td><td>Was der Befehl tut (vereinfacht)</td></tr>
+      <tr><td><strong>Flags</strong></td><td>Beeinflusste Status-Register-Bits</td></tr>
+      <tr><td><strong>Zuverlässigkeit</strong></td><td>★★★★★ = immer stabil, ★ = instabil/chip-abhängig</td></tr>
+      <tr><td><strong>Nützlichkeit</strong></td><td>★★★★★ = sehr wertvoll, ★ = kaum nutzbar</td></tr>
+      <tr><td><strong>ACME</strong></td><td>Mnemonic in ACME 0.97+ (--cpu 6510), sonst <code>!byte $xx</code></td></tr>
+    </tbody>
+  </table>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <div class="cat-header">
+    <span class="cat-badge cat-stable">KATEGORIE 1</span>
+    Kombinationsbefehle — stabil &amp; praxistauglich
+  </div>
+
+  <p style="margin:12px 0 8px;">Diese Opcodes kombinieren zwei dokumentierte Befehle in einem einzigen Byte. Sie sind auf allen bekannten 6510/6502-NMOS-Revisionen zuverlässig und werden aktiv in der Demoszene eingesetzt.</p>
+
+  <table class="opc-table">
+    <thead>
+      <tr>
+        <th>Mnemonic</th>
+        <th>Opcodes &amp; Modi</th>
+        <th>Operation</th>
+        <th>Flags</th>
+        <th>Zuverlässigkeit</th>
+        <th>Nützlichkeit</th>
+        <th>ACME</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="mn">LAX</td>
+        <td class="modes">$A7 zp (3 Zy)<br>$B7 zp,Y (4 Zy)<br>$AF abs (4 Zy)<br>$BF abs,Y (4+)<br>$A3 (ind,X) (6 Zy)<br>$B3 (ind),Y (5+)</td>
+        <td>A ← mem<br>X ← mem<br><small>= LDA + TAX in 1 Opcode</small></td>
+        <td>N, Z</td>
+        <td class="stars rel-5"><span class="star-full">★★★★★</span></td>
+        <td class="stars"><span class="star-full">★★★★★</span></td>
+        <td class="op">lax</td>
+      </tr>
+      <tr>
+        <td class="mn">SAX</td>
+        <td class="modes">$87 zp (3 Zy)<br>$97 zp,Y (4 Zy)<br>$8F abs (4 Zy)<br>$83 (ind,X) (6 Zy)</td>
+        <td>mem ← A AND X<br><small>Kein Flag-Update. Einziger Befehl der A&amp;X ohne Clobber speichert.</small></td>
+        <td>—</td>
+        <td class="stars rel-5"><span class="star-full">★★★★★</span></td>
+        <td class="stars"><span class="star-full">★★★★</span><span class="star-empty">★</span></td>
+        <td class="op">sax</td>
+      </tr>
+      <tr>
+        <td class="mn">DCP</td>
+        <td class="modes">$C7 zp (5 Zy)<br>$D7 zp,X (6 Zy)<br>$CF abs (6 Zy)<br>$DF abs,X (7 Zy)<br>$DB abs,Y (7 Zy)<br>$C3 (ind,X) (8 Zy)<br>$D3 (ind),Y (8 Zy)</td>
+        <td>mem ← mem − 1<br>A − mem (wie CMP)<br><small>= DEC + CMP, kein Akkumulator-Update</small></td>
+        <td>N, Z, C</td>
+        <td class="stars rel-5"><span class="star-full">★★★★★</span></td>
+        <td class="stars"><span class="star-full">★★★</span><span class="star-empty">★★</span></td>
+        <td class="op">dcp</td>
+      </tr>
+      <tr>
+        <td class="mn">ISC<br><small>(auch ISB)</small></td>
+        <td class="modes">$E7 zp (5 Zy)<br>$F7 zp,X (6 Zy)<br>$EF abs (6 Zy)<br>$FF abs,X (7 Zy)<br>$FB abs,Y (7 Zy)<br>$E3 (ind,X) (8 Zy)<br>$F3 (ind),Y (8 Zy)</td>
+        <td>mem ← mem + 1<br>A ← A − mem − (1−C)<br><small>= INC + SBC</small></td>
+        <td>N, V, Z, C</td>
+        <td class="stars rel-5"><span class="star-full">★★★★★</span></td>
+        <td class="stars"><span class="star-full">★★★</span><span class="star-empty">★★</span></td>
+        <td class="op">isb</td>
+      </tr>
+      <tr>
+        <td class="mn">SLO<br><small>(auch ASO)</small></td>
+        <td class="modes">$07 zp (5 Zy)<br>$17 zp,X (6 Zy)<br>$0F abs (6 Zy)<br>$1F abs,X (7 Zy)<br>$1B abs,Y (7 Zy)<br>$03 (ind,X) (8 Zy)<br>$13 (ind),Y (8 Zy)</td>
+        <td>mem ← mem &lt;&lt; 1<br>A ← A OR mem<br><small>= ASL + ORA</small></td>
+        <td>N, Z, C</td>
+        <td class="stars rel-5"><span class="star-full">★★★★★</span></td>
+        <td class="stars"><span class="star-full">★★★</span><span class="star-empty">★★</span></td>
+        <td class="op">slo</td>
+      </tr>
+      <tr>
+        <td class="mn">RLA</td>
+        <td class="modes">$27 zp (5 Zy)<br>$37 zp,X (6 Zy)<br>$2F abs (6 Zy)<br>$3F abs,X (7 Zy)<br>$3B abs,Y (7 Zy)<br>$23 (ind,X) (8 Zy)<br>$33 (ind),Y (8 Zy)</td>
+        <td>mem ← ROL(mem)<br>A ← A AND mem<br><small>= ROL + AND</small></td>
+        <td>N, Z, C</td>
+        <td class="stars rel-5"><span class="star-full">★★★★★</span></td>
+        <td class="stars"><span class="star-full">★★★</span><span class="star-empty">★★</span></td>
+        <td class="op">rla</td>
+      </tr>
+      <tr>
+        <td class="mn">SRE<br><small>(auch LSE)</small></td>
+        <td class="modes">$47 zp (5 Zy)<br>$57 zp,X (6 Zy)<br>$4F abs (6 Zy)<br>$5F abs,X (7 Zy)<br>$5B abs,Y (7 Zy)<br>$43 (ind,X) (8 Zy)<br>$53 (ind),Y (8 Zy)</td>
+        <td>mem ← mem &gt;&gt; 1<br>A ← A EOR mem<br><small>= LSR + EOR</small></td>
+        <td>N, Z, C</td>
+        <td class="stars rel-5"><span class="star-full">★★★★★</span></td>
+        <td class="stars"><span class="star-full">★★★</span><span class="star-empty">★★</span></td>
+        <td class="op">sre</td>
+      </tr>
+      <tr>
+        <td class="mn">RRA</td>
+        <td class="modes">$67 zp (5 Zy)<br>$77 zp,X (6 Zy)<br>$6F abs (6 Zy)<br>$7F abs,X (7 Zy)<br>$7B abs,Y (7 Zy)<br>$63 (ind,X) (8 Zy)<br>$73 (ind),Y (8 Zy)</td>
+        <td>mem ← ROR(mem)<br>A ← A + mem + C<br><small>= ROR + ADC</small></td>
+        <td>N, V, Z, C</td>
+        <td class="stars rel-5"><span class="star-full">★★★★★</span></td>
+        <td class="stars"><span class="star-full">★★</span><span class="star-empty">★★★</span></td>
+        <td class="op">rra</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <div class="cat-header">
+    <span class="cat-badge cat-stable">KATEGORIE 2</span>
+    Register- und Flag-Operationen — stabil
+  </div>
+
+  <p style="margin:12px 0 8px;">Arithmetische und logische Operationen auf Registern oder mit Immediate-Werten. Auf NMOS-Chips zuverlässig.</p>
+
+  <table class="opc-table">
+    <thead>
+      <tr>
+        <th>Mnemonic</th>
+        <th>Opcodes &amp; Modi</th>
+        <th>Operation</th>
+        <th>Flags</th>
+        <th>Zuverlässigkeit</th>
+        <th>Nützlichkeit</th>
+        <th>ACME</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="mn">ANC<br><small>(auch AAC)</small></td>
+        <td class="modes">$0B imm (2 Zy)<br>$2B imm (2 Zy)</td>
+        <td>A ← A AND imm<br>C ← Bit 7 des Ergebnisses<br><small>Wie AND #, aber C wird wie nach ASL gesetzt</small></td>
+        <td>N, Z, C</td>
+        <td class="stars rel-5"><span class="star-full">★★★★★</span></td>
+        <td class="stars"><span class="star-full">★★★</span><span class="star-empty">★★</span></td>
+        <td class="op">anc</td>
+      </tr>
+      <tr>
+        <td class="mn">ALR<br><small>(auch ASR)</small></td>
+        <td class="modes">$4B imm (2 Zy)</td>
+        <td>A ← (A AND imm) &gt;&gt; 1<br><small>= AND #imm gefolgt von LSR A — ideal für Bit-Extraktion</small></td>
+        <td>N, Z, C</td>
+        <td class="stars rel-5"><span class="star-full">★★★★★</span></td>
+        <td class="stars"><span class="star-full">★★★★</span><span class="star-empty">★</span></td>
+        <td class="op">alr</td>
+      </tr>
+      <tr>
+        <td class="mn">ARR</td>
+        <td class="modes">$6B imm (2 Zy)</td>
+        <td>A ← (A AND imm) ROR 1<br><small>Komplexes Flag-Verhalten: V = C EOR Bit6, C = Bit7 des AND-Ergebnisses. Kaum gebraucht.</small></td>
+        <td>N, V, Z, C<br><small>(komplex)</small></td>
+        <td class="stars rel-5"><span class="star-full">★★★★</span><span class="star-empty">★</span></td>
+        <td class="stars"><span class="star-full">★★</span><span class="star-empty">★★★</span></td>
+        <td class="op">arr</td>
+      </tr>
+      <tr>
+        <td class="mn">SBX<br><small>(auch AXS, SAX imm)</small></td>
+        <td class="modes">$CB imm (2 Zy)</td>
+        <td>X ← (A AND X) − imm<br><small>Flags wie CMP. Kein Borrow aus Carry. A bleibt unverändert.</small></td>
+        <td>N, Z, C</td>
+        <td class="stars rel-5"><span class="star-full">★★★★★</span></td>
+        <td class="stars"><span class="star-full">★★★</span><span class="star-empty">★★</span></td>
+        <td class="op">axs</td>
+      </tr>
+      <tr>
+        <td class="mn">USBC<br><small>(auch SBC undoc)</small></td>
+        <td class="modes">$EB imm (2 Zy)</td>
+        <td>A ← A − imm − (1−C)<br><small>Identisch zu SBC #imm ($E9). Doppelter Opcode, kein Vorteil.</small></td>
+        <td>N, V, Z, C</td>
+        <td class="stars rel-5"><span class="star-full">★★★★★</span></td>
+        <td class="stars"><span class="star-full">★</span><span class="star-empty">★★★★</span></td>
+        <td class="op">!byte $EB</td>
+      </tr>
+      <tr>
+        <td class="mn">LAS<br><small>(auch LAR)</small></td>
+        <td class="modes">$BB abs,Y (4+ Zy)</td>
+        <td>A ← X ← SP ← mem AND SP<br><small>Lädt den Stackpointer maskiert mit dem Speicherwert in A, X und SP. Nischennutzen.</small></td>
+        <td>N, Z</td>
+        <td class="stars rel-4"><span class="star-full">★★★★</span><span class="star-empty">★</span></td>
+        <td class="stars"><span class="star-full">★★</span><span class="star-empty">★★★</span></td>
+        <td class="op">las</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <div class="cat-header">
+    <span class="cat-badge cat-nop">KATEGORIE 3</span>
+    Undokumentierte NOPs — stabil, nützlich für Timing
+  </div>
+
+  <p style="margin:12px 0 8px;">Diese Opcodes führen nichts aus (oder lesen einen Wert und verwerfen ihn), haben aber unterschiedliche Längen und Zyklenanzahlen. Nützlich für präzises Timing-Padding ohne Register zu verändern.</p>
+
+  <table class="opc-table">
+    <thead>
+      <tr>
+        <th>Gruppe</th>
+        <th>Opcodes</th>
+        <th>Länge</th>
+        <th>Zyklen</th>
+        <th>Seiteneffekt</th>
+        <th>Zuverlässigkeit</th>
+        <th>Nützlichkeit</th>
+        <th>ACME</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="mn">NOP<br><small>1-Byte-Varianten</small></td>
+        <td class="modes">$1A $3A $5A<br>$7A $DA $FA</td>
+        <td>1 Byte</td>
+        <td>2</td>
+        <td>Keiner</td>
+        <td class="stars rel-5"><span class="star-full">★★★★★</span></td>
+        <td class="stars"><span class="star-full">★★★★</span><span class="star-empty">★</span></td>
+        <td class="op">nop<br><small>(ACME wählt $EA; für Varianten: !byte)</small></td>
+      </tr>
+      <tr>
+        <td class="mn">DOP<br><small>2-Byte-NOP (imm)</small></td>
+        <td class="modes">$80 $82 $89<br>$C2 $E2</td>
+        <td>2 Byte</td>
+        <td>2</td>
+        <td>Liest imm-Byte, ignoriert</td>
+        <td class="stars rel-5"><span class="star-full">★★★★★</span></td>
+        <td class="stars"><span class="star-full">★★★</span><span class="star-empty">★★</span></td>
+        <td class="op">dop<br><small>oder !byte $80,$00</small></td>
+      </tr>
+      <tr>
+        <td class="mn">DOP<br><small>2-Byte-NOP (zp)</small></td>
+        <td class="modes">$04 $44 $64</td>
+        <td>2 Byte</td>
+        <td>3</td>
+        <td>Liest ZP-Adresse, ignoriert</td>
+        <td class="stars rel-5"><span class="star-full">★★★★★</span></td>
+        <td class="stars"><span class="star-full">★★★</span><span class="star-empty">★★</span></td>
+        <td class="op">!byte $04,$00</td>
+      </tr>
+      <tr>
+        <td class="mn">DOP<br><small>2-Byte-NOP (zp,X)</small></td>
+        <td class="modes">$14 $34 $54 $74<br>$D4 $F4</td>
+        <td>2 Byte</td>
+        <td>4</td>
+        <td>Liest ZP+X, ignoriert</td>
+        <td class="stars rel-5"><span class="star-full">★★★★★</span></td>
+        <td class="stars"><span class="star-full">★★★</span><span class="star-empty">★★</span></td>
+        <td class="op">!byte $14,$00</td>
+      </tr>
+      <tr>
+        <td class="mn">TOP<br><small>3-Byte-NOP (abs)</small></td>
+        <td class="modes">$0C</td>
+        <td>3 Byte</td>
+        <td>4</td>
+        <td>Liest abs-Adresse, ignoriert</td>
+        <td class="stars rel-5"><span class="star-full">★★★★★</span></td>
+        <td class="stars"><span class="star-full">★★★</span><span class="star-empty">★★</span></td>
+        <td class="op">top<br><small>oder !byte $0C,$00,$00</small></td>
+      </tr>
+      <tr>
+        <td class="mn">TOP<br><small>3-Byte-NOP (abs,X)</small></td>
+        <td class="modes">$1C $3C $5C $7C<br>$DC $FC</td>
+        <td>3 Byte</td>
+        <td>4 oder 5<br><small>(+1 bei Page-Cross)</small></td>
+        <td>Liest abs+X, ignoriert</td>
+        <td class="stars rel-5"><span class="star-full">★★★★★</span></td>
+        <td class="stars"><span class="star-full">★★★</span><span class="star-empty">★★</span></td>
+        <td class="op">!byte $1C,$00,$00</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="box-tip">
+    <strong>Timing-Padding ohne Register-Clobber</strong>
+    Wenn ein Raster-IRQ auf eine ganz bestimmte Zyklenzahl kalibriert werden muss, bieten die NOP-Varianten flexible Padding-Optionen: 1-Byte-NOP (2 Zy), DOP imm (2 Zy, 2 Byte), DOP zp (3 Zy, 2 Byte), DOP zp,X (4 Zy, 2 Byte). So lassen sich ohne BIT $xxxx-Tricks (die A/Flags lesen) exakte Zyklen einfügen.
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <div class="cat-header">
+    <span class="cat-badge cat-unstable">KATEGORIE 4</span>
+    Instabile Opcodes — chip- und temperaturabhängig
+  </div>
+
+  <p style="margin:12px 0 8px;">Diese Opcodes haben kein deterministisches Verhalten. Das Ergebnis hängt vom genauen Chipexemplar, der Betriebstemperatur, der Versorgungsspannung und dem vorherigen Buszustand ab. Auf echten C64 sind sie <strong>nicht zuverlässig reproduzierbar</strong>.</p>
+
+  <div class="box-danger">
+    <strong>Vorsicht: Nicht für Produktivcode geeignet</strong>
+    Programme, die instabile Opcodes nutzen, können auf einem C64 funktionieren, auf einem anderen mit gleicher Hardware-Konfiguration aber nicht. Unterschiede zwischen frühen und späten 6510-Revisionen, PAL und NTSC, sowie Betriebstemperatur können das Ergebnis verändern. Nur für Forschungszwecke oder als technische Demonstration verwenden.
+  </div>
+
+  <table class="opc-table">
+    <thead>
+      <tr>
+        <th>Mnemonic</th>
+        <th>Opcode</th>
+        <th>Nominale Operation</th>
+        <th>Tatsächliches Verhalten</th>
+        <th>Zuverlässigkeit</th>
+        <th>Nützlichkeit</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="mn">ANE<br><small>(auch XAA)</small></td>
+        <td class="op">$8B imm</td>
+        <td>A ← (A OR magic) AND X AND imm</td>
+        <td>Der "magic"-Wert ist chipabhängig: typisch $EE, $EF, $FE oder $FF. Verhält sich bei vollständig gesetztem A ($FF) und X meist wie <code>LDA #(X AND imm)</code>. Auf manchen Chips vollständig unvorhersehbar.</td>
+        <td class="stars rel-2"><span class="star-full">★★</span><span class="star-empty">★★★</span></td>
+        <td class="stars"><span class="star-full">★</span><span class="star-empty">★★★★</span></td>
+      </tr>
+      <tr>
+        <td class="mn">LXA<br><small>(auch OAL, LAX imm)</small></td>
+        <td class="op">$AB imm</td>
+        <td>A ← X ← (A OR magic) AND imm</td>
+        <td>Ähnlich ANE — "magic" ist chipabhängig: typisch $EE, $EF, $FE oder $FF (variiert zwischen 6510-Chip-Revisionen). Mit imm=$FF und A=$FF auf den meisten Chips wie <code>LDA #imm / TAX</code> nutzbar. Auf echter Hardware immer testen — Verhalten zwischen Chip-Revisionen verschieden. Riskant auf echter Hardware.</td>
+        <td class="stars rel-3"><span class="star-full">★★★</span><span class="star-empty">★★</span></td>
+        <td class="stars"><span class="star-full">★★</span><span class="star-empty">★★★</span></td>
+      </tr>
+      <tr>
+        <td class="mn">SHA<br><small>(auch AHX, AXA)</small></td>
+        <td class="op">$93 (ind),Y<br>$9F abs,Y</td>
+        <td>mem ← A AND X AND (high(addr)+1)</td>
+        <td>Bei Page-Crossing instabil: Der gespeicherte Wert und die Zieladresse können je nach Bus-Zustand variieren. Außerdem wird intern der High-Byte des Adressbusses beeinflusst.</td>
+        <td class="stars rel-2"><span class="star-full">★★</span><span class="star-empty">★★★</span></td>
+        <td class="stars"><span class="star-full">★</span><span class="star-empty">★★★★</span></td>
+      </tr>
+      <tr>
+        <td class="mn">SHX<br><small>(auch SXA, XAS)</small></td>
+        <td class="op">$9E abs,Y</td>
+        <td>mem ← X AND (high(addr)+1)</td>
+        <td>Ohne Page-Cross weitgehend stabil. Bei Page-Crossing (wenn high(addr) sich durch Y-Addition ändert) ist die Zieladresse selbst unzuverlässig — kann benachbarte Adressen beschreiben.</td>
+        <td class="stars rel-3"><span class="star-full">★★★</span><span class="star-empty">★★</span></td>
+        <td class="stars"><span class="star-full">★</span><span class="star-empty">★★★★</span></td>
+      </tr>
+      <tr>
+        <td class="mn">SHY<br><small>(auch SYA, SAY)</small></td>
+        <td class="op">$9C abs,X</td>
+        <td>mem ← Y AND (high(addr)+1)</td>
+        <td>Gleiche Problematik wie SHX. Ohne Page-Cross relativ stabil. Wird gelegentlich in Demo-Scrollern für spezielle Schreibeffekte genutzt, wenn die Zieladresse bekannt ist.</td>
+        <td class="stars rel-3"><span class="star-full">★★★</span><span class="star-empty">★★</span></td>
+        <td class="stars"><span class="star-full">★</span><span class="star-empty">★★★★</span></td>
+      </tr>
+      <tr>
+        <td class="mn">TAS<br><small>(auch SHS, XAS)</small></td>
+        <td class="op">$9B abs,Y</td>
+        <td>SP ← A AND X;<br>mem ← SP AND (high(addr)+1)</td>
+        <td>Verändert den Stackpointer als Seiteneffekt — extrem gefährlich. Zuverlässigkeit ähnlich SHA. Praktisch nie sinnvoll einsetzbar.</td>
+        <td class="stars rel-2"><span class="star-full">★★</span><span class="star-empty">★★★</span></td>
+        <td class="stars"><span class="star-full">★</span><span class="star-empty">★★★★</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <div class="cat-header">
+    <span class="cat-badge cat-kil">KATEGORIE 5</span>
+    KIL / JAM / HLT — CPU-Halter
+  </div>
+
+  <p style="margin:12px 0 8px;">Diese 12 Opcodes frieren die CPU dauerhaft ein. Der Prozessor führt keinen weiteren Befehl aus — es ist kein IRQ, NMI oder Programmzustand-Recovery möglich. Nur ein Hardware-Reset (RESTORE-Taste oder Kaltstart) hilft.</p>
+
+  <table class="opc-table">
+    <thead>
+      <tr>
+        <th>Mnemonic</th>
+        <th>Opcodes</th>
+        <th>Verhalten</th>
+        <th>Zuverlässigkeit</th>
+        <th>Nützlichkeit</th>
+        <th>Anmerkung</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="mn">KIL<br><small>(auch JAM, HLT, CIM, CRP)</small></td>
+        <td class="modes">$02 $12 $22 $32<br>$42 $52 $62 $72<br>$92 $B2 $D2 $F2</td>
+        <td>CPU hält an. PC wird nicht weiter inkrementiert. Bus läuft mit letztem Buszustand weiter. IRQ und NMI werden ignoriert.</td>
+        <td class="stars rel-5"><span class="star-full">★★★★★</span><br><small>(tut immer was es soll)</small></td>
+        <td class="stars"><span class="star-full">★</span><span class="star-empty">★★★★</span></td>
+        <td>Nützlich als "Watchdog-Trap" im Debug: gezielt platzierbarer Halt-Punkt ohne VICE-Monitor. Versehentlich ausgelöst: hart. Alle 12 Opcodes sind äquivalent.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <h2 id="acme-nutzung">ACME-Assembler: Illegale Opcodes verwenden</h2>
+
+  <p>ACME 0.97+ unterstützt die meisten stabilen illegalen Opcodes direkt als Mnemonic wenn <code>--cpu 6510</code> gesetzt ist. Für nicht unterstützte Opcodes oder unstabile Befehle: <code>!byte $xx</code> verwenden.</p>
+
+  <pre><span class="comment">; Konfiguration für illegale Opcode-Unterstützung</span>
+<span class="comment">; acme --cpu 6510 main.asm</span>
+
+<span class="comment">; ── Kategorie 1: Kombinationsbefehle ────────────────────────────</span>
+<span class="label">lax</span> $FA               <span class="comment">; A und X ← ZP-Adresse $FA  (spart 1 Byte + 2 Zy vs LDA+TAX)</span>
+<span class="label">sax</span> $FB               <span class="comment">; ZP $FB ← A AND X           (kein Flag-Update)</span>
+<span class="label">dcp</span> some_counter      <span class="comment">; Dekrement + Vergleich mit A</span>
+<span class="label">isb</span> some_counter      <span class="comment">; Inkrement + SBC von A</span>
+<span class="label">slo</span> bitmask           <span class="comment">; ASL + ORA</span>
+
+<span class="comment">; ── Kategorie 2: Register-Operationen ───────────────────────────</span>
+<span class="label">alr</span> #$FE              <span class="comment">; A = (A AND $FE) >> 1    (Low-Bit isolieren+shift in 2 Zy)</span>
+<span class="label">anc</span> #$80              <span class="comment">; A AND $80, C = Bit 7      (Vorzeichen in Carry)</span>
+<span class="label">axs</span> #5                <span class="comment">; X = (A AND X) - 5         (X-Register gezielt subtrahieren)</span>
+
+<span class="comment">; ── Kategorie 3: NOP-Varianten ──────────────────────────────────</span>
+    !byte $1A           <span class="comment">; 1-Byte-NOP, 2 Zyklen (wie $EA)</span>
+    !byte $80, $00      <span class="comment">; 2-Byte-NOP, 2 Zyklen (imm ignoriert)</span>
+    !byte $04, $00      <span class="comment">; 2-Byte-NOP, 3 Zyklen (ZP gelesen, ignoriert)</span>
+    !byte $14, $00      <span class="comment">; 2-Byte-NOP, 4 Zyklen (ZP+X gelesen, ignoriert)</span>
+    !byte $0C, $00, $00 <span class="comment">; 3-Byte-NOP, 4 Zyklen (abs gelesen, ignoriert)</span>
+
+<span class="comment">; ── Instabile: Niemals in Produktivcode ─────────────────────────</span>
+<span class="comment">; Nur dokumentieren, nicht verwenden:</span>
+    !byte $8B, $FF      <span class="comment">; ANE #$FF — chipabhängig, vermeiden!</span>
+    !byte $AB, $FF      <span class="comment">; LXA #$FF — bei A=$FF meist stabil, aber riskant</span>
+
+<span class="comment">; ── KIL als Debug-Trap ──────────────────────────────────────────</span>
+<span class="comment">; Gezielt platzierbarer Programmhalt (nur in Debug-Builds!)</span>
+debug_trap:
+    !if DEBUG = 1 { !byte $02 }  <span class="comment">; KIL — CPU friert ein, VICE zeigt PC</span></pre>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <h2 id="praxis">Praxiswissen: Wann illegale Opcodes lohnen</h2>
+
+  <h3>Hochwertige Kandidaten für Optimierungen</h3>
+
+  <p><strong>LAX</strong> ist der nützlichste illegale Opcode überhaupt. Überall wo <code>LDA addr</code> + <code>TAX</code> steht, kann ein einzelnes <code>LAX addr</code> stehen — 1 Byte kürzer, 2 Zyklen schneller. Im Zero-Page-Modus: 5 statt 7 Zyklen.</p>
+
+  <p><strong>ALR</strong> glänzt bei Bit-Extraktion: <code>AND #$FE / LSR A</code> (4 Bytes, 6 Zyklen) wird zu <code>ALR #$FE</code> (2 Bytes, 2 Zyklen). Ideal in Sprite-Multiplexern und Sortierschleifen.</p>
+
+  <p><strong>SBX</strong> ermöglicht <code>X ← (A AND X) − imm</code> ohne den Akkumulator zu verändern — nützlich wenn A als weiterer Zähler dient.</p>
+
+  <p><strong>DOP/TOP</strong> (undokumentierte NOPs) erlauben Timing-Padding auf 2, 3, 4 oder 5 Zyklen ohne ein einziges Register zu berühren — besser als <code>BIT $EA</code>-Tricks.</p>
+
+  <h3>Zyklenersparnis durch LAX — konkretes Beispiel</h3>
+
+  <pre><span class="comment">; Sprite-Multiplexer: Y-Koordinate laden und in X für Tabellenindex</span>
+
+<span class="comment">; Ohne illegale Opcodes: 4 Bytes, 7 Zyklen</span>
+    <span class="label">lda</span> sprite_y,x      <span class="comment">; LDA abs,X  (4 Zy)</span>
+    <span class="label">tax</span>                  <span class="comment">; TAX        (2 Zy)</span>
+    <span class="label">lda</span> lookup_table,x  <span class="comment">; LDA abs,X  (4 Zy) — 10 Zyklen gesamt</span>
+
+<span class="comment">; Mit LAX: 3 Bytes, 5 Zyklen</span>
+    <span class="label">lax</span> sprite_y,x      <span class="comment">; LAX abs,X  (4 Zy) — A=X=Y-Koordinate</span>
+    <span class="label">lda</span> lookup_table,x  <span class="comment">; LDA abs,X  (4 Zy) — 8 Zyklen gesamt</span>
+
+<span class="comment">; Bei 8 Sprites × 50 Hz: 16 Zyklen/Frame gespart — messbar!</span></pre>
+
+  <h3>VICE-Kompatibilität</h3>
+
+  <p>VICE emuliert alle stabilen illegalen Opcodes korrekt. Die instabilen (ANE, LXA, SHA, SHX, SHY, TAS) werden ebenfalls emuliert, aber mit einem festen "magic"-Wert ($FF für ANE/LXA) — das stimmt mit manchen echten Chips überein, nicht mit allen. Programme die auf VICE funktionieren, müssen auf echter Hardware getestet werden wenn instabile Opcodes genutzt werden.</p>
+
+  <div class="box-info">
+    <strong>Empfehlung für die Praxis</strong>
+    <ul style="margin:8px 0 0 18px;">
+      <li><strong>Frei nutzen:</strong> LAX, SAX, DCP, ISC, SLO, RLA, SRE, RRA, ANC, ALR, SBX, undokumentierte NOPs</li>
+      <li><strong>Mit Bedacht:</strong> ARR, LAS (funktionieren, aber ungewöhnliche Semantik)</li>
+      <li><strong>Vermeiden:</strong> ANE, LXA, SHA, SHX, SHY, TAS (auf echter Hardware unzuverlässig)</li>
+      <li><strong>Nur Debug:</strong> KIL (als bewusster Trap, nie in Release-Code)</li>
+    </ul>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <h2 id="schnellreferenz">Schnellreferenz — Alle illegalen Opcodes sortiert nach Opcode-Byte</h2>
+
+  <table class="opc-table" style="font-size:12px;">
+    <thead>
+      <tr>
+        <th>Byte</th><th>Mnemonic</th><th>Modus</th><th>Zy</th>
+        <th>Byte</th><th>Mnemonic</th><th>Modus</th><th>Zy</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="op">$02</td><td class="mn">KIL</td><td>—</td><td>∞</td>
+        <td class="op">$03</td><td class="mn">SLO</td><td>(ind,X)</td><td>8</td>
+      </tr>
+      <tr>
+        <td class="op">$04</td><td class="mn">DOP</td><td>zp</td><td>3</td>
+        <td class="op">$07</td><td class="mn">SLO</td><td>zp</td><td>5</td>
+      </tr>
+      <tr>
+        <td class="op">$0B</td><td class="mn">ANC</td><td>imm</td><td>2</td>
+        <td class="op">$0C</td><td class="mn">TOP</td><td>abs</td><td>4</td>
+      </tr>
+      <tr>
+        <td class="op">$0F</td><td class="mn">SLO</td><td>abs</td><td>6</td>
+        <td class="op">$12</td><td class="mn">KIL</td><td>—</td><td>∞</td>
+      </tr>
+      <tr>
+        <td class="op">$13</td><td class="mn">SLO</td><td>(ind),Y</td><td>8</td>
+        <td class="op">$14</td><td class="mn">DOP</td><td>zp,X</td><td>4</td>
+      </tr>
+      <tr>
+        <td class="op">$17</td><td class="mn">SLO</td><td>zp,X</td><td>6</td>
+        <td class="op">$1A</td><td class="mn">NOP</td><td>impl</td><td>2</td>
+      </tr>
+      <tr>
+        <td class="op">$1B</td><td class="mn">SLO</td><td>abs,Y</td><td>7</td>
+        <td class="op">$1C</td><td class="mn">TOP</td><td>abs,X</td><td>4+</td>
+      </tr>
+      <tr>
+        <td class="op">$1F</td><td class="mn">SLO</td><td>abs,X</td><td>7</td>
+        <td class="op">$22</td><td class="mn">KIL</td><td>—</td><td>∞</td>
+      </tr>
+      <tr>
+        <td class="op">$23</td><td class="mn">RLA</td><td>(ind,X)</td><td>8</td>
+        <td class="op">$27</td><td class="mn">RLA</td><td>zp</td><td>5</td>
+      </tr>
+      <tr>
+        <td class="op">$2B</td><td class="mn">ANC</td><td>imm</td><td>2</td>
+        <td class="op">$2F</td><td class="mn">RLA</td><td>abs</td><td>6</td>
+      </tr>
+      <tr>
+        <td class="op">$32</td><td class="mn">KIL</td><td>—</td><td>∞</td>
+        <td class="op">$33</td><td class="mn">RLA</td><td>(ind),Y</td><td>8</td>
+      </tr>
+      <tr>
+        <td class="op">$34</td><td class="mn">DOP</td><td>zp,X</td><td>4</td>
+        <td class="op">$37</td><td class="mn">RLA</td><td>zp,X</td><td>6</td>
+      </tr>
+      <tr>
+        <td class="op">$3A</td><td class="mn">NOP</td><td>impl</td><td>2</td>
+        <td class="op">$3B</td><td class="mn">RLA</td><td>abs,Y</td><td>7</td>
+      </tr>
+      <tr>
+        <td class="op">$3C</td><td class="mn">TOP</td><td>abs,X</td><td>4+</td>
+        <td class="op">$3F</td><td class="mn">RLA</td><td>abs,X</td><td>7</td>
+      </tr>
+      <tr>
+        <td class="op">$42</td><td class="mn">KIL</td><td>—</td><td>∞</td>
+        <td class="op">$43</td><td class="mn">SRE</td><td>(ind,X)</td><td>8</td>
+      </tr>
+      <tr>
+        <td class="op">$44</td><td class="mn">DOP</td><td>zp</td><td>3</td>
+        <td class="op">$47</td><td class="mn">SRE</td><td>zp</td><td>5</td>
+      </tr>
+      <tr>
+        <td class="op">$4B</td><td class="mn">ALR</td><td>imm</td><td>2</td>
+        <td class="op">$4F</td><td class="mn">SRE</td><td>abs</td><td>6</td>
+      </tr>
+      <tr>
+        <td class="op">$52</td><td class="mn">KIL</td><td>—</td><td>∞</td>
+        <td class="op">$53</td><td class="mn">SRE</td><td>(ind),Y</td><td>8</td>
+      </tr>
+      <tr>
+        <td class="op">$54</td><td class="mn">DOP</td><td>zp,X</td><td>4</td>
+        <td class="op">$57</td><td class="mn">SRE</td><td>zp,X</td><td>6</td>
+      </tr>
+      <tr>
+        <td class="op">$5A</td><td class="mn">NOP</td><td>impl</td><td>2</td>
+        <td class="op">$5B</td><td class="mn">SRE</td><td>abs,Y</td><td>7</td>
+      </tr>
+      <tr>
+        <td class="op">$5C</td><td class="mn">TOP</td><td>abs,X</td><td>4+</td>
+        <td class="op">$5F</td><td class="mn">SRE</td><td>abs,X</td><td>7</td>
+      </tr>
+      <tr>
+        <td class="op">$62</td><td class="mn">KIL</td><td>—</td><td>∞</td>
+        <td class="op">$63</td><td class="mn">RRA</td><td>(ind,X)</td><td>8</td>
+      </tr>
+      <tr>
+        <td class="op">$64</td><td class="mn">DOP</td><td>zp</td><td>3</td>
+        <td class="op">$67</td><td class="mn">RRA</td><td>zp</td><td>5</td>
+      </tr>
+      <tr>
+        <td class="op">$6B</td><td class="mn">ARR</td><td>imm</td><td>2</td>
+        <td class="op">$6F</td><td class="mn">RRA</td><td>abs</td><td>6</td>
+      </tr>
+      <tr>
+        <td class="op">$72</td><td class="mn">KIL</td><td>—</td><td>∞</td>
+        <td class="op">$73</td><td class="mn">RRA</td><td>(ind),Y</td><td>8</td>
+      </tr>
+      <tr>
+        <td class="op">$74</td><td class="mn">DOP</td><td>zp,X</td><td>4</td>
+        <td class="op">$77</td><td class="mn">RRA</td><td>zp,X</td><td>6</td>
+      </tr>
+      <tr>
+        <td class="op">$7A</td><td class="mn">NOP</td><td>impl</td><td>2</td>
+        <td class="op">$7B</td><td class="mn">RRA</td><td>abs,Y</td><td>7</td>
+      </tr>
+      <tr>
+        <td class="op">$7C</td><td class="mn">TOP</td><td>abs,X</td><td>4+</td>
+        <td class="op">$7F</td><td class="mn">RRA</td><td>abs,X</td><td>7</td>
+      </tr>
+      <tr>
+        <td class="op">$80</td><td class="mn">DOP</td><td>imm</td><td>2</td>
+        <td class="op">$82</td><td class="mn">DOP</td><td>imm</td><td>2</td>
+      </tr>
+      <tr>
+        <td class="op">$83</td><td class="mn">SAX</td><td>(ind,X)</td><td>6</td>
+        <td class="op">$87</td><td class="mn">SAX</td><td>zp</td><td>3</td>
+      </tr>
+      <tr>
+        <td class="op">$89</td><td class="mn">DOP</td><td>imm</td><td>2</td>
+        <td class="op">$8B</td><td class="mn">ANE</td><td>imm</td><td>2</td>
+      </tr>
+      <tr>
+        <td class="op">$8F</td><td class="mn">SAX</td><td>abs</td><td>4</td>
+        <td class="op">$92</td><td class="mn">KIL</td><td>—</td><td>∞</td>
+      </tr>
+      <tr>
+        <td class="op">$93</td><td class="mn">SHA</td><td>(ind),Y</td><td>6</td>
+        <td class="op">$97</td><td class="mn">SAX</td><td>zp,Y</td><td>4</td>
+      </tr>
+      <tr>
+        <td class="op">$9B</td><td class="mn">TAS</td><td>abs,Y</td><td>5</td>
+        <td class="op">$9C</td><td class="mn">SHY</td><td>abs,X</td><td>5</td>
+      </tr>
+      <tr>
+        <td class="op">$9E</td><td class="mn">SHX</td><td>abs,Y</td><td>5</td>
+        <td class="op">$9F</td><td class="mn">SHA</td><td>abs,Y</td><td>5</td>
+      </tr>
+      <tr>
+        <td class="op">$A3</td><td class="mn">LAX</td><td>(ind,X)</td><td>6</td>
+        <td class="op">$A7</td><td class="mn">LAX</td><td>zp</td><td>3</td>
+      </tr>
+      <tr>
+        <td class="op">$AB</td><td class="mn">LXA</td><td>imm</td><td>2</td>
+        <td class="op">$AF</td><td class="mn">LAX</td><td>abs</td><td>4</td>
+      </tr>
+      <tr>
+        <td class="op">$B2</td><td class="mn">KIL</td><td>—</td><td>∞</td>
+        <td class="op">$B3</td><td class="mn">LAX</td><td>(ind),Y</td><td>5+</td>
+      </tr>
+      <tr>
+        <td class="op">$B7</td><td class="mn">LAX</td><td>zp,Y</td><td>4</td>
+        <td class="op">$BB</td><td class="mn">LAS</td><td>abs,Y</td><td>4+</td>
+      </tr>
+      <tr>
+        <td class="op">$BF</td><td class="mn">LAX</td><td>abs,Y</td><td>4+</td>
+        <td class="op">$C2</td><td class="mn">DOP</td><td>imm</td><td>2</td>
+      </tr>
+      <tr>
+        <td class="op">$C3</td><td class="mn">DCP</td><td>(ind,X)</td><td>8</td>
+        <td class="op">$C7</td><td class="mn">DCP</td><td>zp</td><td>5</td>
+      </tr>
+      <tr>
+        <td class="op">$CB</td><td class="mn">SBX</td><td>imm</td><td>2</td>
+        <td class="op">$CF</td><td class="mn">DCP</td><td>abs</td><td>6</td>
+      </tr>
+      <tr>
+        <td class="op">$D2</td><td class="mn">KIL</td><td>—</td><td>∞</td>
+        <td class="op">$D3</td><td class="mn">DCP</td><td>(ind),Y</td><td>8</td>
+      </tr>
+      <tr>
+        <td class="op">$D4</td><td class="mn">DOP</td><td>zp,X</td><td>4</td>
+        <td class="op">$D7</td><td class="mn">DCP</td><td>zp,X</td><td>6</td>
+      </tr>
+      <tr>
+        <td class="op">$DA</td><td class="mn">NOP</td><td>impl</td><td>2</td>
+        <td class="op">$DB</td><td class="mn">DCP</td><td>abs,Y</td><td>7</td>
+      </tr>
+      <tr>
+        <td class="op">$DC</td><td class="mn">TOP</td><td>abs,X</td><td>4+</td>
+        <td class="op">$DF</td><td class="mn">DCP</td><td>abs,X</td><td>7</td>
+      </tr>
+      <tr>
+        <td class="op">$E2</td><td class="mn">DOP</td><td>imm</td><td>2</td>
+        <td class="op">$E3</td><td class="mn">ISC</td><td>(ind,X)</td><td>8</td>
+      </tr>
+      <tr>
+        <td class="op">$E7</td><td class="mn">ISC</td><td>zp</td><td>5</td>
+        <td class="op">$EB</td><td class="mn">USBC</td><td>imm</td><td>2</td>
+      </tr>
+      <tr>
+        <td class="op">$EF</td><td class="mn">ISC</td><td>abs</td><td>6</td>
+        <td class="op">$F2</td><td class="mn">KIL</td><td>—</td><td>∞</td>
+      </tr>
+      <tr>
+        <td class="op">$F3</td><td class="mn">ISC</td><td>(ind),Y</td><td>8</td>
+        <td class="op">$F4</td><td class="mn">DOP</td><td>zp,X</td><td>4</td>
+      </tr>
+      <tr>
+        <td class="op">$F7</td><td class="mn">ISC</td><td>zp,X</td><td>6</td>
+        <td class="op">$FA</td><td class="mn">NOP</td><td>impl</td><td>2</td>
+      </tr>
+      <tr>
+        <td class="op">$FB</td><td class="mn">ISC</td><td>abs,Y</td><td>7</td>
+        <td class="op">$FC</td><td class="mn">TOP</td><td>abs,X</td><td>4+</td>
+      </tr>
+      <tr>
+        <td class="op">$FF</td><td class="mn">ISC</td><td>abs,X</td><td>7</td>
+        <td class="op">—</td><td>—</td><td>—</td><td>—</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p style="margin-top:32px;text-align:center;font-family:'Courier New',monospace;font-size:13px;color:var(--text-light);">
+    ← <a href="anhang_i_acme_referenz.html" style="color:var(--c64-blue);">I · ACME-Referenz</a>
+    &nbsp;&nbsp;|&nbsp;&nbsp;
+    <a href="anhang_opcodes.html" style="color:var(--c64-blue);">A · Vollständige Opcode-Tabelle</a>
+    &nbsp;&nbsp;|&nbsp;&nbsp;
+    <a href="index.html" style="color:var(--c64-blue);">◈ Zurück zur Übersicht</a>
+  </p>
+
+  <nav class="chapter-nav">
+    <a href="anhang_i_acme_referenz.html">← Anhang I: ACME-Referenz</a>
+    <a href="index.html">Zur Übersicht →</a>
+  </nav>
+</main>
+  <script src="assets/sidebar.js"></script>
+  <script src="assets/c64-interactive.js"></script>
+</body>
+</html>

@@ -4,8 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>C64 Mastery — Stufe 3: VIC-II &amp; Zeichenmodus</title>
+<link rel="stylesheet" href="assets/c64-base.css">
 <style>
-:root{--c64-blue:#0033aa;--c64-green:#00ff88;--c64-dark:#1a1a2e;--paper:#f8f6f0;--paper-dark:#ede9e0;--text:#1a1a2e;--text-light:#444466;--border:#c0b8a8}
+:root{--c64-blue:#1a3f80;--c64-green:#00cc66;--c64-dark:#1a1a2e;--paper:#f8f6f0;--paper-dark:#ede9e0;--text:#1a1a2e;--text-light:#444466;--border:#c0b8a8}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Georgia','Times New Roman',serif;font-size:17px;line-height:1.75;color:var(--text);background:var(--paper);display:grid;grid-template-columns:270px 1fr;min-height:100vh}
 .sidebar{background:var(--c64-dark);color:#ccc;position:sticky;top:0;height:100vh;overflow-y:auto;font-family:'Courier New',monospace;font-size:13px}
@@ -46,7 +47,7 @@ tbody tr:hover{background:#dde8ff}
 .box.tip{background:#e8f5e9;border-color:#2e7d32}.box.tip .box-title{color:#1b5e20}
 .box.note{background:#e3f2fd;border-color:#1565c0}.box.note .box-title{color:#0d47a1}
 .box.important{background:#fce4ec;border-color:#c62828}.box.important .box-title{color:#b71c1c}
-.benchmark{background:linear-gradient(135deg,#001166 0%,#0033aa 100%);color:white;padding:30px;border-radius:12px;margin:44px 0}
+.benchmark{background:linear-gradient(135deg,#001166 0%,#1a3f80 100%);color:white;padding:30px;border-radius:12px;margin:44px 0}
 .benchmark h2{color:var(--c64-green);border-color:rgba(0,255,136,.3);margin-top:0;font-size:22px}
 .benchmark ul{list-style:none;padding:0}
 .benchmark ul li{padding:7px 0 7px 28px;position:relative;border-bottom:1px solid rgba(255,255,255,.1)}
@@ -67,35 +68,7 @@ tbody tr:hover{background:#dde8ff}
 </head>
 <body>
 
-<nav class="sidebar">
-  <div class="sidebar-header"><div class="logo">C64</div><div class="sub">MASTERY SYSTEM</div></div>
-  <nav><ul>
-    <li><a href="index.html">&#9632; Übersicht &amp; Curriculum</a></li>
-    <li class="section-label">Grundlagen</li>
-    <li><a href="stufe_00_fundament.html">Stufe 0 — Fundament</a></li>
-    <li><a href="stufe_01_6510_assembler.html">Stufe 1 — 6510 Assembler</a></li>
-    <li><a href="stufe_02_adressierung_speicher.html">Stufe 2 — Adressierung &amp; Speicher</a></li>
-    <li class="section-label">Grafik &amp; Sound</li>
-    <li><a href="stufe_03_bildschirm_zeichen.html" class="active">Stufe 3 — VIC-II &amp; Zeichen</a></li>
-    <li><a href="stufe_04_sprites_animation.html">Stufe 4 — Sprites &amp; Animation</a></li>
-    <li><a href="stufe_05_bitmap_grafik.html">Stufe 5 — Bitmap-Grafik</a></li>
-    <li><a href="stufe_06_sid_sound.html">Stufe 6 — SID &amp; Sound</a></li>
-    <li class="section-label">Fortgeschritten</li>
-    <li><a href="stufe_07_interrupts_timing.html">Stufe 7 — Interrupts &amp; Timing</a></li>
-    <li><a href="stufe_08_optimierung.html">Stufe 8 — Optimierung</a></li>
-    <li><a href="stufe_09_demo_effekte.html">Stufe 9 — Demo-Effekte</a></li>
-    <li><a href="stufe_10_meisterschaft.html">Stufe 10 — Meisterschaft</a></li>
-      <li class="section-label">Workflow &amp; Release</li>
-      <li><a href="stufe_11_spielentwicklung_workflow.html">Stufe 11 — Spielentwicklung</a></li>
-      <li><a href="stufe_12_demo_entwicklung_workflow.html">Stufe 12 — Demo-Workflow</a></li>
-      <li class="section-label">Erweiterte Stufen</li>
-      <li><a href="stufe_13_hardware_erweiterungen.html">Stufe 13 — Hardware-Erweiterungen</a></li>
-      <li><a href="stufe_14_modern_workflow.html">Stufe 14 — Moderner Workflow</a></li>
-      <li><a href="stufe_15_debugging_deep_dive.html">Stufe 15 — Deep Debugging</a></li>
-      <li class="section-label">Anhänge &amp; Referenz</li>
-      <li><a href="anhang_kernal_routinen.html">H — KERNAL-Routinen</a></li>
-  </ul></nav>
-</nav>
+<aside class="sidebar"></aside>
 
 <main>
 <div class="chapter-header">
@@ -108,7 +81,7 @@ tbody tr:hover{background:#dde8ff}
   </div>
 </div>
 
-<div class="objectives">
+<section class="learning-objectives">
   <h3>&#127919; Lernziele dieser Stufe</h3>
   <ul>
     <li>Den VIC-II Chip architektonisch verstehen und alle wichtigen Register kennen</li>
@@ -118,7 +91,7 @@ tbody tr:hover{background:#dde8ff}
     <li>Bildschirmausgabe ohne KERNAL direkt über Screen-RAM programmieren</li>
     <li>Die 16 C64-Farben gezielt für Farbgestaltung einsetzen</li>
   </ul>
-</div>
+</section>
 
 <h2>1. Der VIC-II — Herz der C64-Grafik</h2>
 
@@ -595,29 +568,8 @@ UpdateFlame:
   </ul>
 </div>
 
-<div class="exercises-section">
-  <h2>&#9997; Übungen</h2>
-
-  <div class="exercise">
-    <div class="exercise-num">Übung 3.1 — Direktes Screen-Clearing</div>
-    <p>Schreibe eine Routine <code>ClearScreen</code>, die den gesamten Bildschirm (1000 Zeichen) mit einem vorgegebenen Zeichen-Code (in Register A übergeben) füllt und dabei die Farbe aus Register X übernimmt. Die Routine soll kein KERNAL verwenden und maximal 100 CPU-Zyklen pro 8 Zeichen benötigen.</p>
-  </div>
-
-  <div class="exercise">
-    <div class="exercise-num">Übung 3.2 — Zeichensatz-Designer</div>
-    <p>Erstelle einen vollständigen 8-Zeichen-Mini-Font (nur 0–7) als Byte-Array. Kopiere den Standard-Zeichensatz ins RAM, ersetze die entsprechenden Zeichenpositionen durch deinen Font und zeige alle 8 Ziffern auf dem Bildschirm an. Verwende eine gelbe Farbe auf schwarzem Hintergrund.</p>
-  </div>
-
-  <div class="exercise">
-    <div class="exercise-num">Übung 3.3 — Farbspiel</div>
-    <p>Schreibe ein Programm, das das Color-RAM mit einem Farbverlauf füllt: Die linke Bildschirmhälfte (Spalten 0–19) soll Farbe 7 (Gelb) erhalten, die rechte Hälfte (Spalten 20–39) Farbe 5 (Grün). Der gesamte Bildschirm soll mit dem '@'-Zeichen (Screen-Code $00) gefüllt werden.</p>
-  </div>
-
-  <div class="exercise">
-    <div class="exercise-num">Übung 3.4 — Animiertes Logo</div>
-    <p>Erstelle ein 5×3-Zeichen-Logo deiner Wahl (z.B. "C64") mit einem eigenen Custom-Zeichensatz. Animiere das Logo durch 4 Frames, indem du die Zeichensatz-Daten pro Frame leicht veränderst (z.B. Blink-Effekt oder Rollbalken innerhalb der Zeichen). Der Wechsel soll durch einen einfachen Warte-Loop (nicht IRQ) erfolgen.</p>
-  </div>
-</div>
+<section class="exercises">
+</section>
 
 <nav class="chapter-nav">
   <a href="stufe_02_adressierung_speicher.html">
@@ -630,6 +582,7 @@ UpdateFlame:
   </a>
 </nav>
 </main>
+  <script src="assets/sidebar.js"></script>
   <script src="assets/c64-interactive.js"></script>
 </body>
 </html>
