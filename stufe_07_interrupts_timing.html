@@ -78,7 +78,7 @@ tbody tr:hover{background:#dde8ff}
   </div>
 </div>
 
-<div class="objectives">
+<section class="learning-objectives">
   <h3>&#127919; Lernziele dieser Stufe</h3>
   <ul>
     <li>Das vollständige Interrupt-System des C64 (IRQ/NMI) verstehen</li>
@@ -88,7 +88,7 @@ tbody tr:hover{background:#dde8ff}
     <li>CIA-Timer für musik-synchrone 50 Hz Aufrufe konfigurieren</li>
     <li>Mehrere IRQs in einer Kette verbinden (Multi-Raster-IRQ)</li>
   </ul>
-</div>
+</section>
 
 <h2>1. Das Interrupt-System des 6510</h2>
 
@@ -274,7 +274,7 @@ SetVICBank1:   ; Auf Bank 1 ($4000-$7FFF) wechseln
 
 <pre>
 ; CIA1 Timer A für exakt 50 Hz (PAL) konfigurieren
-; PAL: 985248 Hz, 985248 / 50 = 19704,96 ≈ 19704 Zyklen = $4CC8
+; PAL: 985248 Hz, 985248 / 50 = 19704,96 ≈ 19704 Zyklen = $4CF8
 
 InitTimer50Hz:
         SEI
@@ -291,10 +291,10 @@ InitTimer50Hz:
         LDA #&gt;TimerHandler
         STA $0315
 
-        ; Timer A Latch auf 19704 ($4CC8) setzen
-        LDA #$C8        ; $4CC8 Low-Byte
+        ; Timer A Latch auf 19704 ($4CF8) setzen
+        LDA #$F8        ; $4CF8 Low-Byte
         STA $DC04       ; Timer A Low (schreibt Latch)
-        LDA #$4C        ; $4CC8 High-Byte
+        LDA #$4C        ; $4CF8 High-Byte
         STA $DC05       ; Timer A High (schreibt Latch)
 
         ; Control Register A: Continuous + Systemclock + sofortiges Laden + Start
@@ -486,25 +486,8 @@ MusicIRQ:
   </ul>
 </div>
 
-<div class="exercises-section">
-  <h2>&#9997; Übungen</h2>
-  <div class="exercise">
-    <div class="exercise-num">Übung 7.1 — Regenbogen-Border</div>
-    <p>Implementiere einen IRQ, der auf jeder sichtbaren Rasterzeile die Border-Farbe wechselt. Das Ergebnis soll ein Regenbogen aus allen 16 Farben in der Border sein, der sich jede Sekunde verschiebt (durch einen Zähler, der den Farb-Offset verändert).</p>
-  </div>
-  <div class="exercise">
-    <div class="exercise-num">Übung 7.2 — Musik + Grafik gleichzeitig</div>
-    <p>Kombiniere den Musik-Player aus Stufe 6 mit einem Raster-IRQ. Die Musik soll im VBlank-IRQ (Rasterzeile 250+) laufen. Gleichzeitig soll ein zweiter IRQ auf Rasterzeile 100 die Border-Farbe rhythmisch zur Musik ändern.</p>
-  </div>
-  <div class="exercise">
-    <div class="exercise-num">Übung 7.3 — Stabile Farbsplits</div>
-    <p>Implementiere 4 stabile Farbsplits auf dem Bildschirm (4 verschiedene Background-Farben in 4 horizontalen Streifen). Verwende die Double-IRQ-Technik für jeden Split. Die Grenzen sollen pixelgenau sein (kein Jitter sichtbar).</p>
-  </div>
-  <div class="exercise">
-    <div class="exercise-num">Übung 7.4 — Tastatur-Input mit IRQ</div>
-    <p>Schreibe ein Programm, das den Tastatur-Scan im Haupt-IRQ ausführt (nicht den KERNAL-Scan). Zeige die gedrückte Taste als Matrix-Code (0-63) im oberen linken Bildschirmbereich an. Verwende dafür die Routine aus diesem Kapitel.</p>
-  </div>
-</div>
+<section class="exercises">
+</section>
 
 <nav class="chapter-nav">
   <a href="stufe_06_sid_sound.html">

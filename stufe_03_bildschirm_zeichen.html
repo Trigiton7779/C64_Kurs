@@ -81,7 +81,7 @@ tbody tr:hover{background:#dde8ff}
   </div>
 </div>
 
-<div class="objectives">
+<section class="learning-objectives">
   <h3>&#127919; Lernziele dieser Stufe</h3>
   <ul>
     <li>Den VIC-II Chip architektonisch verstehen und alle wichtigen Register kennen</li>
@@ -91,7 +91,7 @@ tbody tr:hover{background:#dde8ff}
     <li>Bildschirmausgabe ohne KERNAL direkt über Screen-RAM programmieren</li>
     <li>Die 16 C64-Farben gezielt für Farbgestaltung einsetzen</li>
   </ul>
-</div>
+</section>
 
 <h2>1. Der VIC-II — Herz der C64-Grafik</h2>
 
@@ -568,29 +568,8 @@ UpdateFlame:
   </ul>
 </div>
 
-<div class="exercises-section">
-  <h2>&#9997; Übungen</h2>
-
-  <div class="exercise">
-    <div class="exercise-num">Übung 3.1 — Direktes Screen-Clearing</div>
-    <p>Schreibe eine Routine <code>ClearScreen</code>, die den gesamten Bildschirm (1000 Zeichen) mit einem vorgegebenen Zeichen-Code (in Register A übergeben) füllt und dabei die Farbe aus Register X übernimmt. Die Routine soll kein KERNAL verwenden und maximal 100 CPU-Zyklen pro 8 Zeichen benötigen.</p>
-  </div>
-
-  <div class="exercise">
-    <div class="exercise-num">Übung 3.2 — Zeichensatz-Designer</div>
-    <p>Erstelle einen vollständigen 8-Zeichen-Mini-Font (nur 0–7) als Byte-Array. Kopiere den Standard-Zeichensatz ins RAM, ersetze die entsprechenden Zeichenpositionen durch deinen Font und zeige alle 8 Ziffern auf dem Bildschirm an. Verwende eine gelbe Farbe auf schwarzem Hintergrund.</p>
-  </div>
-
-  <div class="exercise">
-    <div class="exercise-num">Übung 3.3 — Farbspiel</div>
-    <p>Schreibe ein Programm, das das Color-RAM mit einem Farbverlauf füllt: Die linke Bildschirmhälfte (Spalten 0–19) soll Farbe 7 (Gelb) erhalten, die rechte Hälfte (Spalten 20–39) Farbe 5 (Grün). Der gesamte Bildschirm soll mit dem '@'-Zeichen (Screen-Code $00) gefüllt werden.</p>
-  </div>
-
-  <div class="exercise">
-    <div class="exercise-num">Übung 3.4 — Animiertes Logo</div>
-    <p>Erstelle ein 5×3-Zeichen-Logo deiner Wahl (z.B. "C64") mit einem eigenen Custom-Zeichensatz. Animiere das Logo durch 4 Frames, indem du die Zeichensatz-Daten pro Frame leicht veränderst (z.B. Blink-Effekt oder Rollbalken innerhalb der Zeichen). Der Wechsel soll durch einen einfachen Warte-Loop (nicht IRQ) erfolgen.</p>
-  </div>
-</div>
+<section class="exercises">
+</section>
 
 <nav class="chapter-nav">
   <a href="stufe_02_adressierung_speicher.html">

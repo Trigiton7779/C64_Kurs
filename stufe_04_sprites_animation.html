@@ -78,7 +78,7 @@ tbody tr:hover{background:#dde8ff}
   </div>
 </div>
 
-<div class="objectives">
+<section class="learning-objectives">
   <h3>&#127919; Lernziele dieser Stufe</h3>
   <ul>
     <li>Sprite-Daten im richtigen Format anlegen und im Speicher platzieren</li>
@@ -88,7 +88,7 @@ tbody tr:hover{background:#dde8ff}
     <li>Hardware-Kollisionserkennung des VIC-II nutzen</li>
     <li>Das Prinzip des Sprite-Multiplexers für mehr als 8 logische Sprites verstehen</li>
   </ul>
-</div>
+</section>
 
 <h2>1. Hardware-Sprites — Grundkonzept</h2>
 
@@ -566,29 +566,8 @@ lda #2  : sta $d027  ; Sprite 0 Individualfarbe (für %10 Bits) = Rot
   </ul>
 </div>
 
-<div class="exercises-section">
-  <h2>&#9997; Übungen</h2>
-
-  <div class="exercise">
-    <div class="exercise-num">Übung 4.1 — Eigener Sprite</div>
-    <p>Entwerfe ein eigenes 24×21-Sprite auf Rasterpapier (z.B. ein Tier, Fahrzeug oder Symbol). Kodiere es als Byte-Array und zeige es als Sprite 0 auf dem Bildschirm an, zentriert auf Position (160, 100). Verwende eine markante Farbe.</p>
-  </div>
-
-  <div class="exercise">
-    <div class="exercise-num">Übung 4.2 — Animierter Laufzyklus</div>
-    <p>Erstelle 4 Animations-Frames für eine laufende Figur (Seitenansicht). Platziere die Frames hintereinander im Speicher und implementiere die Frame-Wechsel-Routine. Die Animation soll mit einer Geschwindigkeit von ca. 8 Frames pro Sekunde laufen.</p>
-  </div>
-
-  <div class="exercise">
-    <div class="exercise-num">Übung 4.3 — Joystick-Steuerung mit Grenzen</div>
-    <p>Implementiere eine vollständige Spieler-Steuerung: Sprite 0 wird per Joystick-Port 2 bewegt. Der Sprite soll nicht über den Bildschirmrand hinausgehen (24 ≤ X ≤ 320, 50 ≤ Y ≤ 229). Wenn Feuerknopf gedrückt wird, ändere die Sprite-Farbe.</p>
-  </div>
-
-  <div class="exercise">
-    <div class="exercise-num">Übung 4.4 — Kollisions-Demo</div>
-    <p>Positioniere 3 Sprites: Sprite 0 (Spieler) und Sprites 1+2 (Feinde, die sich per Code hin und her bewegen). Wenn Sprite 0 einen Feind berührt ($D01E), soll der Bildschirm kurz aufleuchten (Border-Farbe ändern) und ein Zähler auf dem Bildschirm inkrementiert werden.</p>
-  </div>
-</div>
+<section class="exercises">
+</section>
 
 <nav class="chapter-nav">
   <a href="stufe_03_bildschirm_zeichen.html">

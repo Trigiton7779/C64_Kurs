@@ -241,9 +241,9 @@ var C64_QUIZ = {
     },
     {
       q: 'Welcher Latch-Wert ergibt bei CIA1 Timer A exakt 50 Hz (PAL, 985248 Hz Takt)?',
-      options: ['A) $EA60 (60000)', 'B) $4CC9 (19657)', 'C) $2710 (10000)', 'D) $9C40 (40000)'],
+      options: ['A) $EA60 (60000)', 'B) $4CF8 (19704)', 'C) $2710 (10000)', 'D) $9C40 (40000)'],
       correct: 1,
-      explanation: '985248 ÷ 50 = 19704,96 ≈ 19705. Hexadezimal: $4CC9. Dieser Wert in Timer-A-Latch geladen ergibt exakt 50 Interrupts pro Sekunde.'
+      explanation: '985248 ÷ 50 = 19704,96 ≈ 19704 (abgerundet). Hexadezimal: $4CF8. Dieser Wert in Timer-A-Latch geladen ergibt exakt 50 Interrupts pro Sekunde.'
     },
     {
       q: 'Wofür dient der Double-IRQ-Trick (stabiler Raster-IRQ)?',

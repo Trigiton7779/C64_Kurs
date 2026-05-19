@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Stufe 2 — Adressierungsarten &amp; Speicherarchitektur | C64 Mastery System</title>
+<title>C64 Mastery — Stufe 2: Adressierungsarten &amp; Speicherarchitektur</title>
 <link rel="stylesheet" href="assets/c64-base.css">
 <style>
 :root {
@@ -95,7 +95,7 @@ tbody tr:hover { background: #dde8ff; }
     </div>
   </div>
 
-  <div class="objectives">
+  <section class="learning-objectives">
     <h3>Lernziele dieses Kapitels</h3>
     <ul>
       <li>Alle 13 Adressierungsarten des 6510 vollständig verstehen und korrekt anwenden</li>
@@ -105,7 +105,7 @@ tbody tr:hover { background: #dde8ff; }
       <li>Pointer-basierte Programmierung mit indirekten Adressierungsarten realisieren</li>
       <li>Page-Crossing-Penalties identifizieren und in der Praxis vermeiden</li>
     </ul>
-  </div>
+  </section>
 
   <!-- ============================================================ -->
   <h2>Abschnitt 1: Adressierungsarten — Das Fundament der Maschinenprogrammierung</h2>
@@ -955,66 +955,8 @@ bullet_y     = <span class="asm-addr">$55</span>  <span class="asm-comment">; Sc
   </div>
 
   <!-- ============================================================ -->
-  <div class="exercises-section">
-    <h2>Praktische Übungen — Stufe 2</h2>
-
-    <div class="exercise">
-      <div class="exercise-num">Übung 2-A — Adressierungsarten-Klassifikation</div>
-      <strong>Aufgabe:</strong> Klassifizieren Sie die folgenden 15 Assembler-Zeilen nach Adressierungsart,
-      Byte-Länge und Zyklenanzahl. Schreiben Sie auch die Effektive Adresse auf, wo relevant.
-      <pre><span class="asm-instr">LDA</span> <span class="asm-num">#$FF</span>     <span class="asm-comment">; 1. ___</span>
-<span class="asm-instr">STA</span> <span class="asm-addr">$0400</span>   <span class="asm-comment">; 2. ___</span>
-<span class="asm-instr">INX</span>          <span class="asm-comment">; 3. ___</span>
-<span class="asm-instr">LDA</span> <span class="asm-addr">$20,X</span>   <span class="asm-comment">; 4. ___ (wenn X=$05, Eff.Addr=?)</span>
-<span class="asm-instr">JMP</span> (<span class="asm-addr">$4000</span>) <span class="asm-comment">; 5. ___</span>
-<span class="asm-instr">LDA</span> (<span class="asm-addr">$FB</span>),Y <span class="asm-comment">; 6. ___</span>
-<span class="asm-instr">BNE</span> -<span class="asm-num">5</span>      <span class="asm-comment">; 7. ___</span>
-<span class="asm-instr">ASL A</span>        <span class="asm-comment">; 8. ___</span>
-<span class="asm-instr">LDA</span> <span class="asm-addr">$C000,Y</span> <span class="asm-comment">; 9. ___ (Page-Crossing wenn Y=?)</span>
-<span class="asm-instr">STX</span> <span class="asm-addr">$50,Y</span>   <span class="asm-comment">; 10. ___</span>
-<span class="asm-instr">LDA</span> (<span class="asm-addr">$20</span>,X)  <span class="asm-comment">; 11. ___</span>
-<span class="asm-instr">RTS</span>          <span class="asm-comment">; 12. ___</span>
-<span class="asm-instr">LDA</span> <span class="asm-addr">$D800,X</span> <span class="asm-comment">; 13. ___</span>
-<span class="asm-instr">CMP</span> <span class="asm-num">#0</span>      <span class="asm-comment">; 14. ___</span>
-<span class="asm-instr">LDA</span> <span class="asm-addr">$FC</span>     <span class="asm-comment">; 15. ___</span></pre>
-    </div>
-
-    <div class="exercise">
-      <div class="exercise-num">Übung 2-B — Pointer-Programm: Speicher kopieren</div>
-      <strong>Aufgabe:</strong> Schreiben Sie eine Subroutine <code>MemCopy</code>, die einen beliebig
-      großen Speicherblock von Quelle nach Ziel kopiert. Verwenden Sie (Indirect),Y für den Zugriff.
-      Eingabe-Schnittstelle:
-      <ul>
-        <li><code>$FB/$FC</code> = Quell-Adresse (16-Bit)</li>
-        <li><code>$FD/$FE</code> = Ziel-Adresse (16-Bit)</li>
-        <li><code>$F9/$FA</code> = Byte-Anzahl (16-Bit, 1–65535)</li>
-      </ul>
-      Hinweis: Y kann nur 0–255 iterieren — für mehr als 256 Bytes müssen die Zeiger aktualisiert werden.
-    </div>
-
-    <div class="exercise">
-      <div class="exercise-num">Übung 2-C — Banking-Demo</div>
-      <strong>Aufgabe:</strong> Schreiben Sie ein Programm, das folgendes demonstriert:
-      <ol>
-        <li>BASIC-ROM ausblenden ($A000–$BFFF ist jetzt RAM)</li>
-        <li>Eigenen Text in den Shadow-RAM-Bereich bei $A000 schreiben</li>
-        <li>BASIC-ROM wieder einblenden — der geschriebene Text ist nicht mehr lesbar</li>
-        <li>BASIC-ROM wieder ausblenden — der Text ist wieder da!</li>
-      </ol>
-      Dokumentieren Sie, warum das Shadow-RAM den Inhalt behält.
-    </div>
-
-    <div class="exercise">
-      <div class="exercise-num">Übung 2-D — VIC-Banking Experiement</div>
-      <strong>Aufgabe:</strong> Verschieben Sie den Screen-RAM an eine andere Position:
-      <ol>
-        <li>Screen-RAM nach $0800 verlegen (VIC-Bank 0, Offset $0800)</li>
-        <li>$D018 entsprechend setzen</li>
-        <li>Text in den neuen Screen-RAM bei $0800 schreiben</li>
-        <li>Erklären Sie, warum der alte Inhalt bei $0400 nicht mehr sichtbar ist</li>
-      </ol>
-    </div>
-  </div>
+  <section class="exercises">
+  </section>
 
   <div class="chapter-nav">
     <a href="stufe_01_6510_assembler.html">

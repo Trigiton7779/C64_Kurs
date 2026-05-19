@@ -409,6 +409,24 @@ tbody tr:hover { background: #dde8ff; }
         &nbsp; ~12 Stunden
       </div>
     </a>
+    <a class="stufe-card" href="stufe_16_tastatur_joystick.html" style="border-color: var(--c64-blue); background: linear-gradient(135deg, #f0f4ff, white);">
+      <div class="stufe-num">Stufe 16 &mdash; Erweitert</div>
+      <h3>Tastatur &amp; Joystick</h3>
+      <p>Direkte Hardware-Abfrage der CIA-Ports, vollständige Tastaturmatrix, Joystick-Auswertung und Entprellung — ohne KERNAL-Umweg.</p>
+      <div class="meta">
+        <span class="badge red" style="font-size:11px; background:var(--c64-blue);">Hardware</span>
+        &nbsp; ~8–10 Stunden
+      </div>
+    </a>
+    <a class="stufe-card" href="stufe_17_floppy_fastloader.html" style="border-color: var(--c64-blue); background: linear-gradient(135deg, #f0f4ff, white);">
+      <div class="stufe-num">Stufe 17 &mdash; Experte</div>
+      <h3>Floppy &amp; Fastloader</h3>
+      <p>1541-Zugriff über KERNAL, serielles Busprotokoll, eigene Fastloader-Routinen und Disketten-Formatierung auf Low-Level-Ebene.</p>
+      <div class="meta">
+        <span class="badge red" style="font-size:11px; background:var(--c64-blue);">System</span>
+        &nbsp; ~12–15 Stunden
+      </div>
+    </a>
   </div>
 
   <h2>Lernpfad und Phasen-Struktur</h2>
@@ -461,6 +479,31 @@ PHASE 3: FORTGESCHRITTEN (7–10)
       │
       ▼
 [Stufe 10: Meisterschaft]
+      │
+      ▼
+PHASE 4: MULTIMEDIA &amp; TOOLS (11–13)
+══════════════════════════════════
+[Stufe 11: Spielentwicklung-Workflow]
+      │
+      ▼
+[Stufe 12: Demo-Entwicklung-Workflow]
+      │
+      ▼
+[Stufe 13: Hardware-Erweiterungen]
+      │
+      ▼
+PHASE 5: SYSTEM-MASTERY (14–17)
+════════════════════════════════
+[Stufe 14: Modern Workflow]
+      │
+      ▼
+[Stufe 15: Deep Debugging]
+      │
+      ▼
+[Stufe 16: Tastatur &amp; Joystick]
+      │
+      ▼
+[Stufe 17: Floppy &amp; Fastloader]
     </pre>
   </div>
 
@@ -483,6 +526,20 @@ PHASE 3: FORTGESCHRITTEN (7–10)
     <p>Timing-kritische Programmierung, maximale Performance-Optimierung, Demo-Effekte auf Profi-Niveau
     und schließlich das Meisterschaftsprojekt. Nach Phase 3 sind Sie in der Lage, technisch anspruchsvolle
     Demo-Teile und vollständige Spiele zu programmieren.</p>
+  </div>
+
+  <div class="phase-block">
+    <h4>Phase 4 — Multimedia &amp; Tools (Stufen 11–13)</h4>
+    <p>Werkzeuge und Workflows für professionelle C64-Entwicklung: Spielentwicklungs-Pipelines, Demo-Workflows
+    und Hardware-Erweiterungen. Nach Phase 4 beherrschen Sie den vollständigen Entwicklungsprozess von der
+    Idee bis zum fertigen Produkt.</p>
+  </div>
+
+  <div class="phase-block">
+    <h4>Phase 5 — System-Mastery (Stufen 14–17)</h4>
+    <p>Tiefes System-Verständnis: moderner Entwicklungs-Workflow mit ACME und Make, fortgeschrittenes
+    Debugging, direkte Hardware-Kommunikation mit Tastatur und Joystick sowie die komplexe Welt der
+    Floppy-Programmierung. Das Abschluss-Niveau des Kurses.</p>
   </div>
 
   <h2>Voraussetzungen</h2>
@@ -733,6 +790,55 @@ acme -f cbm -o output.prg --labeldump labels.txt meinprogramm.asm</pre>
         <td>~20+ Std.</td>
         <td><span class="badge red" style="background:#7b0000;">Meister</span></td>
         <td>Alle Stufen</td>
+      </tr>
+      <tr>
+        <td class="mono">11</td>
+        <td>Spielentwicklung-Workflow</td>
+        <td>~10 Std.</td>
+        <td><span class="badge red">Experte</span></td>
+        <td>Stufen 3, 7, 10</td>
+      </tr>
+      <tr>
+        <td class="mono">12</td>
+        <td>Demo-Entwicklung-Workflow</td>
+        <td>~10 Std.</td>
+        <td><span class="badge red">Experte</span></td>
+        <td>Stufen 6, 9, 10</td>
+      </tr>
+      <tr>
+        <td class="mono">13</td>
+        <td>Hardware-Erweiterungen</td>
+        <td>~8 Std.</td>
+        <td><span class="badge red">Experte</span></td>
+        <td>Stufen 7, 10</td>
+      </tr>
+      <tr>
+        <td class="mono">14</td>
+        <td>Modern Workflow</td>
+        <td>~6 Std.</td>
+        <td><span class="badge red">Experte</span></td>
+        <td>Stufe 10</td>
+      </tr>
+      <tr>
+        <td class="mono">15</td>
+        <td>Deep Debugging</td>
+        <td>~12 Std.</td>
+        <td><span class="badge red">Experte</span></td>
+        <td>Stufen 7, 10</td>
+      </tr>
+      <tr>
+        <td class="mono">16</td>
+        <td>Tastatur &amp; Joystick</td>
+        <td>~8–10 Std.</td>
+        <td><span class="badge red">Experte</span></td>
+        <td>Stufen 7, 10</td>
+      </tr>
+      <tr>
+        <td class="mono">17</td>
+        <td>Floppy &amp; Fastloader</td>
+        <td>~12–15 Std.</td>
+        <td><span class="badge red" style="background:#7b0000;">Meister</span></td>
+        <td>Stufen 7, 10, 11</td>
       </tr>
     </tbody>
   </table>

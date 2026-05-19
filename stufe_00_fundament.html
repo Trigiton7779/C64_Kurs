@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Stufe 0 — Das Fundament | C64 Mastery System</title>
+<title>C64 Mastery — Stufe 0: Das Fundament</title>
 <link rel="stylesheet" href="assets/c64-base.css">
 <style>
 :root {
@@ -168,7 +168,7 @@ tbody tr:hover { background: #dde8ff; }
     </div>
   </div>
 
-  <div class="objectives">
+  <section class="learning-objectives">
     <h3>Lernziele dieses Kapitels</h3>
     <ul>
       <li>Die Geschichte und kulturelle Bedeutung des Commodore 64 verstehen und einordnen können</li>
@@ -178,7 +178,7 @@ tbody tr:hover { background: #dde8ff; }
       <li>Das erste eigene Maschinenprogramm schreiben, kompilieren und auf dem Emulator ausführen</li>
       <li>Die Struktur einer <code>.prg</code>-Datei verstehen und den BASIC-Stub erklären können</li>
     </ul>
-  </div>
+  </section>
 
   <h2>1. Geschichte des Commodore 64</h2>
 
@@ -299,7 +299,7 @@ tbody tr:hover { background: #dde8ff; }
 ╠══════════════════╦══════════════════╦═══════════════════════════╣
 ║   MOS 6510 CPU   ║   MOS 6567/6569  ║       MOS 6581/8580       ║
 ║   (Prozessor)    ║   VIC-II (Video) ║       SID (Sound)         ║
-║   1.023 MHz PAL  ║   16 KB Zugriff  ║   3 Stimmen Synthese      ║
+║   0.985 MHz PAL  ║   16 KB Zugriff  ║   3 Stimmen Synthese      ║
 ╠══════════════════╩══════════════════╩═══════════════════════════╣
 ║         MOS 6526 CIA1            MOS 6526 CIA2                   ║
 ║         ($DC00) Tastatur         ($DD00) IEC-Bus/VIC-Bank        ║
@@ -1111,41 +1111,8 @@ xxd farben.prg | head -5
     </ul>
   </div>
 
-  <div class="exercises-section">
-    <h2>Übungen — Stufe 0</h2>
-
-    <div class="exercise">
-      <div class="exercise-num">Übung 0.1 — Farben ausprobieren</div>
-      <p>Modifizieren Sie das "farben.asm"-Programm, um alle 16 Farben des C64 nacheinander
-      auszuprobieren. Die Farbnummern gehen von 0 (Schwarz) bis 15 (Hellgrau). Setzen Sie
-      Rahmen- und Hintergrundfarbe jeweils auf denselben Wert. Was passiert bei Farbe 0? Bei Farbe 14 (Hellblau)?</p>
-    </div>
-
-    <div class="exercise">
-      <div class="exercise-num">Übung 0.2 — Monitor-Erkundung</div>
-      <p>Laden Sie farben.prg in VICE, tippen Sie im BASIC-Prompt <code>RUN</code>, und öffnen
-      Sie dann den VICE-Monitor (Alt+H). Inspizieren Sie den Speicherbereich $D000–$D021 mit
-      dem Befehl <code>m d000 d021</code>. Welche Werte stehen in den Registern $D020 und $D021?
-      Ändern Sie $D020 manuell auf einen anderen Wert mit dem Befehl <code>f d020 d020 ff</code>
-      (füllt mit $FF = weiß). Was passiert auf dem Bildschirm?</p>
-    </div>
-
-    <div class="exercise">
-      <div class="exercise-num">Übung 0.3 — Text schreiben</div>
-      <p>Erweitern Sie das Programm um eine Routine, die Ihren Namen auf dem Bildschirm ausgibt.
-      Schreiben Sie dazu direkt in das Bildschirm-RAM ab Adresse $0400 (Zeile 0, Spalte 0).
-      Denken Sie daran: Der C64-Zeichensatz ist PETSCII — Großbuchstaben A–Z entsprechen
-      den Werten 1–26 im Standard-Modus. Das Leerzeichen ist $20.</p>
-    </div>
-
-    <div class="exercise">
-      <div class="exercise-num">Übung 0.4 — Speicherkarte zeichnen</div>
-      <p>Zeichnen Sie ohne Hilfsmittel die ungefähre Speicherkarte des C64 auf ein Blatt Papier.
-      Markieren Sie: BASIC-ROM, Kernal-ROM, I/O-Bereich, Screen-RAM, Color-RAM, Zero-Page,
-      Stack und freies RAM. Prüfen Sie anschließend Ihre Zeichnung gegen die Speicherkarte
-      in diesem Kapitel.</p>
-    </div>
-  </div>
+  <section class="exercises">
+  </section>
 
   <div class="chapter-nav">
     <a href="index.html">

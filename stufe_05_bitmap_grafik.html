@@ -78,7 +78,7 @@ tbody tr:hover{background:#dde8ff}
   </div>
 </div>
 
-<div class="objectives">
+<section class="learning-objectives">
   <h3>&#127919; Lernziele dieser Stufe</h3>
   <ul>
     <li>Den Hires-Bitmap-Modus (320×200) vollständig einrichten und nutzen</li>
@@ -88,7 +88,7 @@ tbody tr:hover{background:#dde8ff}
     <li>Grafiken im Koala-Format laden und anzeigen</li>
     <li>Optimierte Bitmap-Routinen für Performance schreiben</li>
   </ul>
-</div>
+</section>
 
 <h2>1. Bitmap-Grafik — Pixel für Pixel</h2>
 
@@ -541,25 +541,8 @@ FLI_IRQ:
   </ul>
 </div>
 
-<div class="exercises-section">
-  <h2>&#9997; Übungen</h2>
-  <div class="exercise">
-    <div class="exercise-num">Übung 5.1 — Hires-Bitmap-Linien</div>
-    <p>Implementiere eine vollständige <code>DrawLine</code>-Routine mit dem Bresenham-Algorithmus. Zeichne ein X-Muster (beide Diagonalen des Bildschirms) und ein Rechteck in der Mitte. Verwende weiße Linien auf schwarzem Hintergrund.</p>
-  </div>
-  <div class="exercise">
-    <div class="exercise-num">Übung 5.2 — Multicolor-Bitmap</div>
-    <p>Aktiviere den Multicolor-Bitmap-Modus. Fülle den gesamten Bildschirm mit einem geometrischen Muster: Abwechselnd %01 und %10 Pixel (im Schachbrettmuster) mit kontrastierenden Farben in Screen-RAM und $D021/$D022.</p>
-  </div>
-  <div class="exercise">
-    <div class="exercise-num">Übung 5.3 — Screen-RAM-Farbgebung</div>
-    <p>Erstelle im Hires-Bitmap-Modus ein Farbverlaufsmuster: Jede Spalte der 40 Zellenspalten erhält ein anderes Farbpaar im Screen-RAM (von Farbe 0 aufwärts zyklisch). Male dann ein einfaches geometrisches Motiv in die Bitmap.</p>
-  </div>
-  <div class="exercise">
-    <div class="exercise-num">Übung 5.4 — Kreis zeichnen</div>
-    <p>Implementiere eine <code>DrawCircle(cx, cy, r)</code>-Routine mit dem Midpoint-Circle-Algorithmus. Zeichne konzentrische Kreise auf dem Hires-Bitmap-Bildschirm. Tipp: Nutze die 8-Wege-Symmetrie des Kreises für maximale Effizienz.</p>
-  </div>
-</div>
+<section class="exercises">
+</section>
 
 <nav class="chapter-nav">
   <a href="stufe_04_sprites_animation.html">

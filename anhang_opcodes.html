@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>C64 Mastery — Anhang: 6510 Opcode-Referenz</title>
+  <title>C64 Mastery — Anhang A: 6510 Opcode-Referenz</title>
   <link rel="stylesheet" href="assets/c64-base.css">
 <style>
     :root {
@@ -244,6 +244,11 @@
     </tbody>
   </table>
   <div class="no-results" id="noResults">Keine Opcodes gefunden. Suchbegriff ändern oder Filter zurücksetzen.</div>
+
+  <nav class="chapter-nav">
+    <a href="index.html">← Übersicht</a>
+    <a href="anhang_speicherkarte.html">Anhang B: Speicherkarte →</a>
+  </nav>
 </main>
 
 <script>
@@ -343,7 +348,7 @@ const opcodes = [
   ["ARITH","CPX","Abs","$EC",3,"4","* - - - - - * *","Vergleiche X absolut"],
   ["ARITH","CPY","Imm #","$C0",2,"2","* - - - - - * *","Vergleiche Y mit Wert"],
   ["ARITH","CPY","ZP","$C4",2,"3","* - - - - - * *","Vergleiche Y mit ZP"],
-  ["ARITH","CPY","$CC",3,"4","* - - - - - * *","Vergleiche Y absolut"],
+  ["ARITH","CPY","Abs","$CC",3,"4","* - - - - - * *","Vergleiche Y absolut"],
   // Logik
   ["LOGIC","AND","Imm #","$29",2,"2","* - - - - - * -","A = A AND Wert"],
   ["LOGIC","AND","ZP","$25",2,"3","* - - - - - * -","A = A AND ZP"],
