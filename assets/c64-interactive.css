@@ -683,3 +683,20 @@ body.dark-mode .sr-more-btn { background: rgba(60,80,180,0.2); border-color: #3a
   color: var(--c64-green, #00cc66);
   margin-bottom: 20px;
 }
+
+/* ── Dark Mode: Kontrastverstärkung & Anti-Halation ─────────────── */
+/* Sanfterer Hintergrund (nicht reines Schwarz) + entsättigtes Grün  */
+/* verhindert visuelles Halation bei langen Lesezeiten               */
+body.dark-mode {
+  --paper:      #111118;   /* etwas heller als #0d0d1a — nimmt Härte raus */
+  --paper-dark: #1c1c2c;
+  --c64-green:  #4dd68c;   /* entsättigtes Mintgrün statt #00cc66 */
+}
+
+/* Badge-Farben im Dark Mode für WCAG-Lesbarkeit aufhellen:          */
+/* dunkle Badges (#2e7d32, #b71c1c) verschwinden auf dunklem Grund   */
+body.dark-mode .badge             { background: #2a4cc0; }
+body.dark-mode .badge.green       { background: #1a6832; color: #aaffc4; }
+body.dark-mode .badge.orange      { background: #c04800; color: #ffdcbe; }
+body.dark-mode .badge.red         { background: #d42020; color: #ffd8d8; }
+body.dark-mode .badge.meister     { background: #aa1818; color: #ffc8c8; }
