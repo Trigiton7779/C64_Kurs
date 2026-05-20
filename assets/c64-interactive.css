@@ -693,10 +693,41 @@ body.dark-mode {
   --c64-green:  #4dd68c;   /* entsättigtes Mintgrün statt #00cc66 */
 }
 
-/* Badge-Farben im Dark Mode für WCAG-Lesbarkeit aufhellen:          */
-/* dunkle Badges (#2e7d32, #b71c1c) verschwinden auf dunklem Grund   */
-body.dark-mode .badge             { background: #2a4cc0; }
-body.dark-mode .badge.green       { background: #1a6832; color: #aaffc4; }
-body.dark-mode .badge.orange      { background: #c04800; color: #ffdcbe; }
-body.dark-mode .badge.red         { background: #d42020; color: #ffd8d8; }
-body.dark-mode .badge.meister     { background: #aa1818; color: #ffc8c8; }
+/* Badge-Farben im Dark Mode — gedämpft für ruhigeres Erscheinungsbild */
+body.dark-mode .badge             { background: #2a3f60; }
+body.dark-mode .badge.green       { background: #1c4828; color: #a8e0bc; }
+body.dark-mode .badge.orange      { background: #7a3000; color: #f5cca0; }
+body.dark-mode .badge.red         { background: #7a1818; color: #f5c0c0; }
+body.dark-mode .badge.meister     { background: #600f0f; color: #eebbbb; }
+
+/* ── Visuelle Entschlackung: Sidebar-Chrome ─────────────────────── */
+/* Logo: weniger Grün-auf-Blau-Clash, ruhigeres Blauweiss            */
+.sidebar-header .logo { color: #d0e4ff; }
+/* Aktiver Link: lesbares Grün, nicht neon                           */
+.sidebar nav a.active { color: #7abf8a; background: rgba(122,191,138,0.09); }
+
+/* ── Badges Light Mode: desaturiert (überschreibt inline-<style>) ── */
+/* c64-interactive.css lädt nach inline <style> → gleiche Spezifität, */
+/* aber spätere Stelle in der Kaskade → gewinnt im Light Mode         */
+.badge          { background: #374e72; }
+.badge.green    { background: #3a6642; }
+.badge.orange   { background: #7a4e10; }
+.badge.red      { background: #762a2a; }
+.badge.meister  { background: #541515; color: #f0d0d0; }
+
+/* ── Dark Mode: Flag-Name Kontrast-Fix ──────────────────────────── */
+/* .flag-name { color: var(--c64-blue) } → #2244aa auf #1a1a2e = 2.3:1 */
+/* Fix: helles Blau mit ~6.5:1 Kontrast                              */
+body.dark-mode .flag-name { color: #8aadee; }
+
+/* ── Info-Boxen Light Mode: Hintergründe fast neutral ───────────── */
+/* Überschreibt inline-<style> Definitionen (kommt später in Kaskade) */
+.box.tip      { background: #edf7f2; border-color: #2a7a42; }
+.box.warning  { background: #fdf8ee; border-color: #b08000; }
+.box.note     { background: #edf3fb; border-color: #2a5a90; }
+.box.important{ background: #fdf0f2; border-color: #902030; }
+
+/* ── Dark Mode: Register-Block gedämpft ─────────────────────────── */
+body.dark-mode .register-block { border-color: #2a3a60; }
+body.dark-mode .reg-header     { background: #182540; }
+body.dark-mode .bit.used       { color: #52a870; }
