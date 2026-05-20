@@ -56,6 +56,7 @@ main { max-width: 860px; padding: 0 56px 80px; }
 .badge.green { background: #2e7d32; }
 .badge.orange { background: #e65100; }
 .badge.red { background: #b71c1c; }
+.badge.meister { background: #7b0000; }
 .objectives {
     background: #e3f2fd; border-left: 4px solid #1565c0; border-radius: 0 8px 8px 0;
     padding: 22px 26px; margin-bottom: 40px;
@@ -156,6 +157,24 @@ tbody tr:hover { background: #dde8ff; }
 .phase-block { border-left: 4px solid var(--c64-blue); padding: 16px 22px; margin: 18px 0; background: white; border-radius: 0 8px 8px 0; }
 .phase-block h4 { color: var(--c64-blue); margin: 0 0 8px; font-size: 14px; }
 .phase-block p { font-size: 14px; margin: 0; color: var(--text-light); }
+/* ASCII-Lernpfad: Phase-Farben */
+.lernpfad .p1 { color: #4dd68c; }
+.lernpfad .p2 { color: #ffa040; }
+.lernpfad .p3 { color: #ff6060; }
+.lernpfad .p4 { color: #cc88ff; }
+.lernpfad .p5 { color: #ff8855; }
+/* Mobile: ASCII-Diagramm ausblenden, Liste zeigen */
+.lernpfad-mobile { display: none; background: var(--c64-dark); border-radius: 10px; padding: 20px 24px; margin: 28px 0; }
+@media (max-width: 768px) {
+  .lernpfad { display: none; }
+  .lernpfad-mobile { display: block; }
+}
+/* Schwierigkeits-Farbstreifen in der Zeittabelle */
+.diff-einsteiger > td:first-child { border-left: 4px solid #2e7d32; }
+.diff-anfaenger > td:first-child { border-left: 4px solid #1a3f80; }
+.diff-fortgeschritten > td:first-child { border-left: 4px solid #e65100; }
+.diff-experte > td:first-child { border-left: 4px solid #b71c1c; }
+.diff-meister > td:first-child { border-left: 4px solid #7b0000; }
 </style>
   <link rel="stylesheet" href="assets/c64-interactive.css">
 </head>
@@ -202,7 +221,11 @@ tbody tr:hover { background: #dde8ff; }
     meistverkauften Heimcomputer der Geschichte. Doch während er in den Wohnzimmern der Welt stand,
     entstand in Kellern und Jugendzimmern etwas Einzigartiges: eine Demo-Szene, die die technischen
     Grenzen der Maschine immer wieder neu definierte, Effekte zeigte, die als unmöglich galten, und eine
-    Programmierkultur prägte, die bis heute lebendig ist. Intertexture, Comalight, Plush, Crest — die
+    Programmierkultur prägte, die bis heute lebendig ist.
+    <a href="https://csdb.dk/search/?stype=group&search=Intertexture" target="_blank" rel="noopener">Intertexture</a>,
+    <a href="https://csdb.dk/search/?stype=group&search=Comalight" target="_blank" rel="noopener">Comalight</a>,
+    <a href="https://csdb.dk/search/?stype=group&search=Plush" target="_blank" rel="noopener">Plush</a>,
+    <a href="https://csdb.dk/search/?stype=group&search=Crest" target="_blank" rel="noopener">Crest</a> — die
     Gruppen der C64-Demo-Szene haben Programme geschrieben, die selbst heute noch Informatiker zum Staunen
     bringen.
   </p>
@@ -242,11 +265,12 @@ tbody tr:hover { background: #dde8ff; }
   <h2>Das Curriculum im Überblick</h2>
 
   <p>
-    Das C64 Mastery System ist in drei Phasen unterteilt: <strong>Grundlagen</strong> (Stufen 0–2),
-    <strong>Grafik &amp; Sound</strong> (Stufen 3–6) und <strong>Fortgeschrittene Techniken</strong>
-    (Stufen 7–10). Jede Phase schließt mit einem Projekt ab, das das Gelernte konsolidiert. Die folgende
-    Übersicht gibt einen ersten Eindruck der Inhalte; jede Stufe ist als vollständiges Kapitel mit
-    Theorie, Code-Beispielen, Übungen und einem Skill-Benchmark ausgearbeitet.
+    Das C64 Mastery System ist in fünf Phasen unterteilt: <strong>Grundlagen</strong> (0–2),
+    <strong>Grafik &amp; Sound</strong> (3–6), <strong>Fortgeschrittene Techniken</strong> (7–10),
+    <strong>Multimedia &amp; Tools</strong> (11–13) und <strong>System-Mastery</strong> (14–17).
+    Jede Phase schließt mit einem Projekt oder einer Vertiefung ab, die das Gelernte konsolidiert.
+    Die folgende Übersicht gibt einen ersten Eindruck der Inhalte; jede Stufe ist als vollständiges
+    Kapitel mit Theorie, Code-Beispielen, Übungen und einem Skill-Benchmark ausgearbeitet.
   </p>
 
   <div class="stufen-grid">
@@ -355,7 +379,7 @@ tbody tr:hover { background: #dde8ff; }
       <h3>Meisterschaft &amp; Komplett-Projekt</h3>
       <p>Vollständiges Spiel oder Demo von Grund auf: Design, Codearchitektur, Integration aller Techniken, Loader, Crunch-Algorithmen, Veröffentlichung.</p>
       <div class="meta">
-        <span class="badge red" style="font-size:11px; background:#7b0000;">Meister</span>
+        <span class="badge meister" style="font-size:11px;">Meister</span>
         &nbsp; ~20+ Stunden
       </div>
     </a>
@@ -440,9 +464,8 @@ tbody tr:hover { background: #dde8ff; }
   </p>
 
   <div class="lernpfad">
-    <pre>
-PHASE 1: GRUNDLAGEN (Stufen 0–2)
-════════════════════════════════
+    <pre><span class="p1">PHASE 1: GRUNDLAGEN (Stufen 0–2)
+════════════════════════════════</span>
 [Stufe 0: Fundament]
       │
       ▼
@@ -451,24 +474,23 @@ PHASE 1: GRUNDLAGEN (Stufen 0–2)
       ▼
 [Stufe 2: Adressierung]
       │
-      ├──────────────────────────┐
-      ▼                          ▼
-PHASE 2: GRAFIK &amp; SOUND (3–6)  │
-══════════════════════════════  │
-[Stufe 3: VIC-II Text]         │
-      │                          │
-      ▼                          │
-[Stufe 4: Sprites]              │
-      │                          │
-      ▼                          │
-[Stufe 5: Bitmap]               │
-      │                          │
-      ▼                          │
-[Stufe 6: SID Sound] ◄──────────┘
+      ▼
+<span class="p2">PHASE 2: GRAFIK &amp; SOUND (3–6)
+══════════════════════════════</span>
+[Stufe 3: VIC-II Text]
       │
       ▼
-PHASE 3: FORTGESCHRITTEN (7–10)
-═══════════════════════════════
+[Stufe 4: Sprites]
+      │
+      ▼
+[Stufe 5: Bitmap]
+      │
+      ▼
+[Stufe 6: SID Sound]
+      │
+      ▼
+<span class="p3">PHASE 3: FORTGESCHRITTEN (7–10)
+═══════════════════════════════</span>
 [Stufe 7: Interrupts]
       │
       ▼
@@ -481,8 +503,8 @@ PHASE 3: FORTGESCHRITTEN (7–10)
 [Stufe 10: Meisterschaft]
       │
       ▼
-PHASE 4: MULTIMEDIA &amp; TOOLS (11–13)
-══════════════════════════════════
+<span class="p4">PHASE 4: MULTIMEDIA &amp; TOOLS (11–13)
+══════════════════════════════════</span>
 [Stufe 11: Spielentwicklung-Workflow]
       │
       ▼
@@ -492,8 +514,8 @@ PHASE 4: MULTIMEDIA &amp; TOOLS (11–13)
 [Stufe 13: Hardware-Erweiterungen]
       │
       ▼
-PHASE 5: SYSTEM-MASTERY (14–17)
-════════════════════════════════
+<span class="p5">PHASE 5: SYSTEM-MASTERY (14–17)
+════════════════════════════════</span>
 [Stufe 14: Modern Workflow]
       │
       ▼
@@ -505,6 +527,30 @@ PHASE 5: SYSTEM-MASTERY (14–17)
       ▼
 [Stufe 17: Floppy &amp; Fastloader]
     </pre>
+  </div>
+
+  <div class="lernpfad-mobile">
+    <p style="font-family:'Courier New',monospace; font-size:10px; color:#aac; text-transform:uppercase; letter-spacing:2px; margin:0 0 14px;">Lernpfad — Fünf Phasen</p>
+    <div style="border-left:3px solid #4dd68c; padding:0 0 4px 14px; margin-bottom:14px;">
+      <div style="font-size:12px; color:#4dd68c; font-family:'Courier New',monospace; font-weight:bold; margin-bottom:5px;">Phase 1: Grundlagen (0–2)</div>
+      <div style="font-size:13px; color:#cce; line-height:1.8;">Stufe 0 &middot; Stufe 1 &middot; Stufe 2</div>
+    </div>
+    <div style="border-left:3px solid #ffa040; padding:0 0 4px 14px; margin-bottom:14px;">
+      <div style="font-size:12px; color:#ffa040; font-family:'Courier New',monospace; font-weight:bold; margin-bottom:5px;">Phase 2: Grafik &amp; Sound (3–6)</div>
+      <div style="font-size:13px; color:#cce; line-height:1.8;">Stufe 3 &middot; Stufe 4 &middot; Stufe 5 &middot; Stufe 6</div>
+    </div>
+    <div style="border-left:3px solid #ff6060; padding:0 0 4px 14px; margin-bottom:14px;">
+      <div style="font-size:12px; color:#ff6060; font-family:'Courier New',monospace; font-weight:bold; margin-bottom:5px;">Phase 3: Fortgeschritten (7–10)</div>
+      <div style="font-size:13px; color:#cce; line-height:1.8;">Stufe 7 &middot; Stufe 8 &middot; Stufe 9 &middot; Stufe 10</div>
+    </div>
+    <div style="border-left:3px solid #cc88ff; padding:0 0 4px 14px; margin-bottom:14px;">
+      <div style="font-size:12px; color:#cc88ff; font-family:'Courier New',monospace; font-weight:bold; margin-bottom:5px;">Phase 4: Multimedia &amp; Tools (11–13)</div>
+      <div style="font-size:13px; color:#cce; line-height:1.8;">Stufe 11 &middot; Stufe 12 &middot; Stufe 13</div>
+    </div>
+    <div style="border-left:3px solid #ff8855; padding:0 0 4px 14px;">
+      <div style="font-size:12px; color:#ff8855; font-family:'Courier New',monospace; font-weight:bold; margin-bottom:5px;">Phase 5: System-Mastery (14–17)</div>
+      <div style="font-size:13px; color:#cce; line-height:1.8;">Stufe 14 &middot; Stufe 15 &middot; Stufe 16 &middot; Stufe 17</div>
+    </div>
   </div>
 
   <div class="phase-block">
@@ -593,10 +639,10 @@ PHASE 5: SYSTEM-MASTERY (14–17)
       Enthält eingebauten Monitor/Debugger. Verfügbar für Windows, macOS, Linux.</p>
     </div>
     <div class="tool-card">
-      <div class="tool-name">ACME</div>
-      <div class="tool-type">Assembler &mdash; Empfohlen</div>
+      <div class="tool-name">ACME <span class="badge green" style="font-size:10px; vertical-align:middle; font-family:sans-serif; font-weight:normal;">Kurs-Standard</span></div>
+      <div class="tool-type">Assembler &mdash; Kurs-Standard</div>
       <p>Schneller, moderner Cross-Assembler für 6502/6510. Unterstützt Makros, Includes,
-      Pseudo-Opcodes. Kompakte Syntax, ideal für den Einstieg und für erfahrene Entwickler.</p>
+      Pseudo-Opcodes. Alle Code-Beispiele dieses Kurses sind für ACME geschrieben.</p>
     </div>
     <div class="tool-card">
       <div class="tool-name">Kick Assembler</div>
@@ -623,6 +669,12 @@ PHASE 5: SYSTEM-MASTERY (14–17)
       relevant ab Stufe 9 für die Veröffentlichung von Demos und Spielen.</p>
     </div>
   </div>
+
+  <p style="font-size:13px; color:var(--text-light); margin-top:12px; margin-bottom:0;">
+    Alle Code-Beispiele in diesem Kurs sind für <strong>ACME</strong> geschrieben.
+    Kick Assembler, CBM prg Studio und Turbo Macro Pro sind vollwertige Alternativen,
+    erfordern aber ggf. Syntax-Anpassungen.
+  </p>
 
   <h3>VICE Emulator — Schnellkonfiguration</h3>
 
@@ -693,6 +745,27 @@ acme -f cbm -o output.prg meinprogramm.asm &amp;&amp; x64sc output.prg
 <span class="asm-comment"># Mit Fehlerliste und Label-Export:</span>
 acme -f cbm -o output.prg --labeldump labels.txt meinprogramm.asm</pre>
 
+  <div class="box note" style="margin-top:16px;">
+    <div class="box-title">Windows: ACME in den PATH eintragen</div>
+    Damit <code>acme</code> in CMD oder PowerShell von überall aufrufbar ist, muss der Ordner mit
+    <code>acme.exe</code> in die Systemumgebungsvariable <code>PATH</code> eingetragen sein:
+    Systemsteuerung → System → Erweiterte Systemeinstellungen → Umgebungsvariablen →
+    <code>PATH</code> bearbeiten → ACME-Verzeichnis hinzufügen.
+  </div>
+
+  <div class="box tip" style="margin-top:16px;">
+    <div class="box-title">Cross-Development-Quickstart in 3 Schritten</div>
+    <ol style="margin:6px 0 6px; padding-left:20px; line-height:1.9;">
+      <li>Quellcode in beliebigem Texteditor schreiben: <code>meinprogramm.asm</code></li>
+      <li>Assemblieren: <code>acme -f cbm -o output.prg meinprogramm.asm</code></li>
+      <li>In VICE laden und starten: <code>x64sc -autostart output.prg</code></li>
+    </ol>
+    Schritte 2 &amp; 3 kombiniert:
+    <code>acme -f cbm -o output.prg meinprogramm.asm &amp;&amp; x64sc output.prg</code><br>
+    Für automatisierte Builds und IDE-Integration →
+    <a href="stufe_14_workflow_tools.html">Stufe 14: Workflow &amp; Tools</a>
+  </div>
+
   <h2>Zeitplanung und Lernempfehlungen</h2>
 
   <p>
@@ -714,130 +787,130 @@ acme -f cbm -o output.prg --labeldump labels.txt meinprogramm.asm</pre>
       </tr>
     </thead>
     <tbody>
-      <tr>
+      <tr class="diff-einsteiger">
         <td class="mono">0</td>
         <td>Das Fundament</td>
         <td>~4 Std.</td>
         <td><span class="badge green">Einsteiger</span></td>
         <td>Keine</td>
       </tr>
-      <tr>
+      <tr class="diff-anfaenger">
         <td class="mono">1</td>
         <td>6510 Assembler</td>
         <td>~8 Std.</td>
         <td><span class="badge">Anfänger</span></td>
         <td>Stufe 0</td>
       </tr>
-      <tr>
+      <tr class="diff-anfaenger">
         <td class="mono">2</td>
         <td>Adressierung &amp; Speicher</td>
         <td>~6 Std.</td>
         <td><span class="badge">Anfänger</span></td>
         <td>Stufe 1</td>
       </tr>
-      <tr>
+      <tr class="diff-fortgeschritten">
         <td class="mono">3</td>
         <td>VIC-II &amp; Zeichenmodus</td>
         <td>~8 Std.</td>
         <td><span class="badge orange">Fortgeschritten</span></td>
         <td>Stufen 0–2</td>
       </tr>
-      <tr>
+      <tr class="diff-fortgeschritten">
         <td class="mono">4</td>
         <td>Sprites &amp; Animation</td>
         <td>~6 Std.</td>
         <td><span class="badge orange">Fortgeschritten</span></td>
         <td>Stufe 3</td>
       </tr>
-      <tr>
+      <tr class="diff-fortgeschritten">
         <td class="mono">5</td>
         <td>Bitmap-Grafik</td>
         <td>~8 Std.</td>
         <td><span class="badge orange">Fortgeschritten</span></td>
         <td>Stufen 3–4</td>
       </tr>
-      <tr>
+      <tr class="diff-fortgeschritten">
         <td class="mono">6</td>
         <td>SID &amp; Sound</td>
         <td>~10 Std.</td>
         <td><span class="badge orange">Fortgeschritten</span></td>
         <td>Stufen 0–2</td>
       </tr>
-      <tr>
+      <tr class="diff-experte">
         <td class="mono">7</td>
         <td>Interrupts &amp; Timing</td>
         <td>~8 Std.</td>
         <td><span class="badge red">Experte</span></td>
         <td>Stufen 0–6</td>
       </tr>
-      <tr>
+      <tr class="diff-experte">
         <td class="mono">8</td>
         <td>Optimierung</td>
         <td>~8 Std.</td>
         <td><span class="badge red">Experte</span></td>
         <td>Stufen 0–7</td>
       </tr>
-      <tr>
+      <tr class="diff-experte">
         <td class="mono">9</td>
         <td>Demo-Effekte</td>
         <td>~10 Std.</td>
         <td><span class="badge red">Experte</span></td>
         <td>Stufen 0–8</td>
       </tr>
-      <tr>
+      <tr class="diff-meister">
         <td class="mono">10</td>
         <td>Meisterschaft</td>
         <td>~20+ Std.</td>
-        <td><span class="badge red" style="background:#7b0000;">Meister</span></td>
+        <td><span class="badge meister">Meister</span></td>
         <td>Alle Stufen</td>
       </tr>
-      <tr>
+      <tr class="diff-experte">
         <td class="mono">11</td>
         <td>Spielentwicklung-Workflow</td>
         <td>~10 Std.</td>
         <td><span class="badge red">Experte</span></td>
         <td>Stufen 3, 7, 10</td>
       </tr>
-      <tr>
+      <tr class="diff-experte">
         <td class="mono">12</td>
         <td>Demo-Entwicklung-Workflow</td>
         <td>~10 Std.</td>
         <td><span class="badge red">Experte</span></td>
         <td>Stufen 6, 9, 10</td>
       </tr>
-      <tr>
+      <tr class="diff-experte">
         <td class="mono">13</td>
         <td>Hardware-Erweiterungen</td>
         <td>~8 Std.</td>
         <td><span class="badge red">Experte</span></td>
         <td>Stufen 7, 10</td>
       </tr>
-      <tr>
+      <tr class="diff-experte">
         <td class="mono">14</td>
         <td>Modern Workflow</td>
         <td>~6 Std.</td>
         <td><span class="badge red">Experte</span></td>
         <td>Stufe 10</td>
       </tr>
-      <tr>
+      <tr class="diff-experte">
         <td class="mono">15</td>
         <td>Deep Debugging</td>
         <td>~12 Std.</td>
         <td><span class="badge red">Experte</span></td>
         <td>Stufen 7, 10</td>
       </tr>
-      <tr>
+      <tr class="diff-experte">
         <td class="mono">16</td>
         <td>Tastatur &amp; Joystick</td>
         <td>~8–10 Std.</td>
         <td><span class="badge red">Experte</span></td>
         <td>Stufen 7, 10</td>
       </tr>
-      <tr>
+      <tr class="diff-meister">
         <td class="mono">17</td>
         <td>Floppy &amp; Fastloader</td>
         <td>~12–15 Std.</td>
-        <td><span class="badge red" style="background:#7b0000;">Meister</span></td>
+        <td><span class="badge meister">Meister</span></td>
         <td>Stufen 7, 10, 11</td>
       </tr>
     </tbody>

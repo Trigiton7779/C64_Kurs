@@ -710,6 +710,23 @@ x64sc</pre>
     für fortgeschrittene Entwickler.
   </p>
 
+  <pre><span class="asm-comment"># Linux (Debian/Ubuntu/Mint):</span>
+sudo apt install acme
+
+<span class="asm-comment"># macOS (mit Homebrew):</span>
+brew install acme
+
+<span class="asm-comment"># Windows: ACME.EXE von sourceforge.net/projects/acme-crossass/ herunterladen</span>
+<span class="asm-comment"># Dann den Ordner mit acme.exe in PATH eintragen (siehe Hinweis unten)</span></pre>
+
+  <div class="box note">
+    <div class="box-title">Windows: ACME in den PATH eintragen</div>
+    Damit <code>acme</code> in CMD oder PowerShell von überall aufrufbar ist, muss der Ordner mit
+    <code>acme.exe</code> in die Systemumgebungsvariable <code>PATH</code> eingetragen sein:
+    Systemsteuerung → System → Erweiterte Systemeinstellungen → Umgebungsvariablen →
+    <code>PATH</code> bearbeiten → ACME-Verzeichnis hinzufügen.
+  </div>
+
   <p>
     ACME-Quelldateien verwenden die Erweiterung <code>.asm</code> oder <code>.a</code>.
     Kommentare beginnen mit einem Semikolon (<code>;</code>). Labels werden am Zeilenanfang
